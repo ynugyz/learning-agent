@@ -42,6 +42,12 @@ dependency. See [`docs/DECISIONS.md`](../../docs/DECISIONS.md) D-0011 and D-0012
 | Absence is `unavailable` + `reason`, never silent | `run-manifest.ts` |
 | `ManifestUsage` is **local**, not the runtime `Usage` | `run-manifest.ts` |
 | `schemaVersion` required | all four |
+| Card truth state gone; `verified` needs `basis: human-verified` + evidence (`SC-28`) | `semantic-card.ts` |
+| `relations[].target` required (`SC-29`) | `semantic-card.ts` |
+| `coverage` top-level required (`SM-27`) | `source-map.ts` |
+| Success/failure union truly exclusive; no empty success (`RT-29`, `RT-30`) | `agent-runtime.ts` |
+| Tagged-union branches mutually exclusive (`RM-23`) | `run-manifest.ts` |
+| Fingerprint values are 64-hex SHA-256 (`RM-26`) | `common.ts` |
 
 ## M1A-V: executably verified
 
@@ -50,7 +56,7 @@ Since M1A-V these declarations are **compiled** and their contracts are
 
 ```powershell
 npx --no-install tsc --noEmit        # 0 errors required
-node tools/contract-tests.mjs        # 56 checks: 4 valid + 48 invalid + 4 spec/fixture identity
+node tools/contract-tests.mjs        # 84 checks: 4 valid + 75 invalid + 4 spec/fixture identity + 1 declaration coverage
 ```
 
 `tools/check.ps1` runs both automatically. Evidence — including what is still

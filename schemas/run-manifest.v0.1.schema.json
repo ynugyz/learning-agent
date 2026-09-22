@@ -12,7 +12,7 @@
       "description": "Content fingerprint. SHA-256 is the default and the only supported algorithm at v0.1 (RM-15).",
       "properties": {
         "alg": { "type": "string", "enum": ["sha256"], "default": "sha256" },
-        "value": { "type": "string", "minLength": 1, "pattern": "\\S" }
+        "value": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$", "description": "SHA-256 digest as 64 lowercase-or-uppercase hex characters (RM-26). The HASHED OBJECT semantics (raw bytes vs canonical JSON) remain DEFERRED." }
       },
       "required": ["value"],
       "additionalProperties": false
@@ -23,20 +23,20 @@
       "description": "Tagged union: either the case, or an explicit reason there is none. Distinguishes an exploratory run from one whose case reference was lost (RM-17).",
       "properties": {
         "availability": { "type": "string", "enum": ["present", "not-applicable", "unavailable"] },
-        "value": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "value": { "type": "string", "minLength": 1, "pattern": "\\S", "description": "The benchmark case identifier. Not a hash." },
         "reason": { "$ref": "#/$defs/reason" }
       },
       "required": ["availability"],
       "allOf": [
         {
-          "$comment": "RM-12: present requires the value.",
+          "$comment": "RM-12 / RM-23: `present` requires the value AND must not carry a reason; the branches are mutually exclusive.",
           "if": { "properties": { "availability": { "const": "present" } }, "required": ["availability"] },
-          "then": { "required": ["value"] }
+          "then": { "required": ["value"], "not": { "required": ["reason"] } }
         },
         {
-          "$comment": "RM-12: an absent case requires a reason.",
+          "$comment": "RM-12 / RM-23: an absent case requires a reason and must not carry a value.",
           "if": { "properties": { "availability": { "enum": ["not-applicable", "unavailable"] } }, "required": ["availability"] },
-          "then": { "required": ["reason"] }
+          "then": { "required": ["reason"], "not": { "required": ["value"] } }
         }
       ],
       "additionalProperties": false
@@ -61,14 +61,14 @@
       "required": ["availability"],
       "allOf": [
         {
-          "$comment": "RM-12: present requires commit and dirty.",
+          "$comment": "RM-12 / RM-23: `present` requires commit and dirty, and must not carry a reason.",
           "if": { "properties": { "availability": { "const": "present" } }, "required": ["availability"] },
-          "then": { "required": ["commit", "dirty"] }
+          "then": { "required": ["commit", "dirty"], "not": { "required": ["reason"] } }
         },
         {
-          "$comment": "RM-13: unavailable requires a reason.",
+          "$comment": "RM-13 / RM-23: `unavailable` requires a reason and must not carry commit/dirty/branch.",
           "if": { "properties": { "availability": { "const": "unavailable" } }, "required": ["availability"] },
-          "then": { "required": ["reason"] }
+          "then": { "required": ["reason"], "not": { "anyOf": [{ "required": ["commit"] }, { "required": ["dirty"] }, { "required": ["branch"] }] } }
         }
       ],
       "additionalProperties": false
@@ -108,14 +108,14 @@
           "then": { "required": ["requested", "resolved"] }
         },
         {
-          "$comment": "RM-12: present requires both sides of the comparison.",
+          "$comment": "RM-12 / RM-23: `present` requires both sides of the comparison and must not carry a reason.",
           "if": { "properties": { "availability": { "const": "present" } }, "required": ["availability"] },
-          "then": { "required": ["requested", "resolved"] }
+          "then": { "required": ["requested", "resolved"], "not": { "required": ["reason"] } }
         },
         {
-          "$comment": "RM-12: unavailable requires a reason.",
+          "$comment": "RM-12 / RM-23: `unavailable` requires a reason and must not carry requested/resolved/resolution.",
           "if": { "properties": { "availability": { "const": "unavailable" } }, "required": ["availability"] },
-          "then": { "required": ["reason"] }
+          "then": { "required": ["reason"], "not": { "anyOf": [{ "required": ["requested"] }, { "required": ["resolved"] }, { "required": ["resolution"] }] } }
         }
       ],
       "additionalProperties": false
@@ -130,18 +130,20 @@
           "description": "Tagged union: a value when available, a reason when not (RM-12).",
           "properties": {
             "availability": { "type": "string", "enum": ["available", "unavailable"] },
-            "value": { "type": "string", "minLength": 1, "pattern": "\\S" },
+            "value": { "type": "string", "minLength": 1, "pattern": "\\S", "description": "The model name that actually ran. Not a hash." },
             "reason": { "$ref": "#/$defs/reason" }
           },
           "required": ["availability"],
           "allOf": [
             {
+              "$comment": "RM-23: available requires the value and must not carry a reason.",
               "if": { "properties": { "availability": { "const": "available" } }, "required": ["availability"] },
-              "then": { "required": ["value"] }
+              "then": { "required": ["value"], "not": { "required": ["reason"] } }
             },
             {
+              "$comment": "RM-23: unavailable requires the reason and must not carry a value.",
               "if": { "properties": { "availability": { "const": "unavailable" } }, "required": ["availability"] },
-              "then": { "required": ["reason"] }
+              "then": { "required": ["reason"], "not": { "required": ["value"] } }
             }
           ],
           "additionalProperties": false
@@ -153,7 +155,7 @@
     },
     "usage": {
       "type": "object",
-      "description": "Manifest-local token usage. Deliberately NOT the runtime-boundary Usage type: the two contracts are decoupled so they can evolve independently (RM-12).",
+      "description": "Manifest-local token usage. Deliberately NOT the runtime-boundary Usage type: the two contracts are decoupled so they can evolve independently (RM-12). RM-24: `reported` must actually carry all three token counts, `partial` at least one, and `unavailable` must not masquerade as measured zeros.",
       "properties": {
         "availability": { "type": "string", "enum": ["reported", "partial", "unavailable"] },
         "inputTokens": { "type": "number", "minimum": 0 },
@@ -161,6 +163,37 @@
         "totalTokens": { "type": "number", "minimum": 0 }
       },
       "required": ["availability"],
+      "allOf": [
+        {
+          "$comment": "RM-24: `reported` means the full usage is known.",
+          "if": { "properties": { "availability": { "const": "reported" } }, "required": ["availability"] },
+          "then": { "required": ["inputTokens", "outputTokens", "totalTokens"] }
+        },
+        {
+          "$comment": "RM-24: `partial` means at least one token count was obtained.",
+          "if": { "properties": { "availability": { "const": "partial" } }, "required": ["availability"] },
+          "then": {
+            "anyOf": [
+              { "required": ["inputTokens"] },
+              { "required": ["outputTokens"] },
+              { "required": ["totalTokens"] }
+            ]
+          }
+        },
+        {
+          "$comment": "RM-24: `unavailable` must not carry token counts at all — zero is a measurement, not an absence.",
+          "if": { "properties": { "availability": { "const": "unavailable" } }, "required": ["availability"] },
+          "then": {
+            "not": {
+              "anyOf": [
+                { "required": ["inputTokens"] },
+                { "required": ["outputTokens"] },
+                { "required": ["totalTokens"] }
+              ]
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "sourceRef": {
@@ -170,7 +203,8 @@
         "ref": {
           "type": "string",
           "minLength": 1, "pattern": "\\S",
-          "description": "Path or identifier. Must not be a production Vault path or a host-specific absolute path."
+          "description": "Portable, repository- or package-relative path or identifier. Must not be a production Vault path, and absolute Windows, POSIX, UNC and home-relative paths are rejected (RM-21, RM-25).",
+          "not": { "pattern": "^(?:[A-Za-z]:[\\\\/]|/|\\\\\\\\|~)" }
         },
         "digest": { "$ref": "#/$defs/fingerprint" }
       },

@@ -25,6 +25,7 @@ export type {
   ReviewStatus,
   SchemaVersion,
   FingerprintAlg,
+  Sha256Hex,
   Fingerprint,
 } from './common';
 

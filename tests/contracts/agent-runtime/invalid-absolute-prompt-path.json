@@ -1,0 +1,80 @@
+{
+  "contractVersion": "agent-runtime/0.1",
+  "schemaVersion": "0.1",
+  "status": "draft",
+  "runtimeMetadata": {
+    "runtimeKind": "dsh",
+    "runtimeVersion": "0.1.6-alpha.2",
+    "capabilities": {
+      "structuredTask": true,
+      "modelSelection": true,
+      "reasoningControl": true,
+      "usageReporting": true,
+      "transportRetry": true,
+      "streaming": false,
+      "cancellation": false
+    }
+  },
+  "taskRequest": {
+    "taskId": "task-20260922T000000-001",
+    "promptRef": {
+      "id": "source-map.extract-units",
+      "version": "1",
+      "path": "C:\\Users\\someone\\prompts\\extract.md"
+    },
+    "input": [
+      {
+        "role": "context",
+        "content": "[00:02:10] ...",
+        "ref": {
+          "sourceId": "src-lecture03-transcript"
+        }
+      }
+    ],
+    "outputSchemaRef": {
+      "id": "source-map/0.1",
+      "version": "0.1",
+      "path": "schemas/source-map.v0.1.schema.json"
+    },
+    "model": {
+      "requested": "example-model-large"
+    },
+    "reasoning": {
+      "effort": "medium"
+    },
+    "limits": {
+      "maxOutputTokens": 4000
+    }
+  },
+  "invocationResult": {
+    "ok": true,
+    "result": {
+      "taskId": "task-20260922T000000-001",
+      "output": {
+        "raw": "{\"units\":[]}",
+        "format": "json"
+      },
+      "model": {
+        "requested": "example-model-large",
+        "resolved": {
+          "availability": "available",
+          "value": "example-model-large"
+        },
+        "provider": "example-provider",
+        "resolution": "matched"
+      },
+      "reasoning": {
+        "requested": "medium",
+        "applied": "medium"
+      },
+      "usage": {
+        "inputTokens": 1830,
+        "outputTokens": 604,
+        "totalTokens": 2434,
+        "availability": "reported"
+      },
+      "durationMs": 8421,
+      "warnings": []
+    }
+  }
+}

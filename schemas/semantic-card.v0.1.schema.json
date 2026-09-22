@@ -21,7 +21,7 @@
       "description": "A note anchor. block-id is preferred; heading-path is the fallback. Line numbers are never a long-term anchor (SC-11).",
       "properties": {
         "kind": { "type": "string", "enum": ["block-id", "heading-path"] },
-        "value": { "type": "string", "minLength": 1, "pattern": "\\S" }
+        "value": { "type": "string", "minLength": 1, "pattern": "\\S", "description": "The anchor itself: a block id or a heading path. Not a hash." }
       },
       "required": ["kind", "value"],
       "additionalProperties": false
@@ -31,7 +31,7 @@
       "description": "Content fingerprint. SHA-256 is the default algorithm (SC-19).",
       "properties": {
         "alg": { "type": "string", "enum": ["sha256"], "default": "sha256" },
-        "value": { "type": "string", "minLength": 1, "pattern": "\\S" }
+        "value": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$", "description": "SHA-256 digest as 64 lowercase-or-uppercase hex characters (RM-35). The HASHED OBJECT semantics (raw bytes vs canonical JSON) remain DEFERRED." }
       },
       "required": ["value"],
       "additionalProperties": false
@@ -45,8 +45,8 @@
         "note": { "type": "string", "maxLength": 160, "description": "Short explanation for a human reader. Never authoritative content." }
       },
       "anyOf": [
-        { "properties": { "sourceUnitId": { "minLength": 1, "pattern": "\\S" } }, "required": ["sourceUnitId"] },
-        { "properties": { "locator": { "minLength": 1, "pattern": "\\S" } }, "required": ["locator"] }
+        { "properties": { "sourceUnitId": { "type": "string", "minLength": 1, "pattern": "\\S" } }, "required": ["sourceUnitId"] },
+        { "properties": { "locator": { "type": "string", "minLength": 1, "pattern": "\\S" } }, "required": ["locator"] }
       ],
       "additionalProperties": false
     },
@@ -57,8 +57,8 @@
     },
     "epistemicBasis": {
       "type": "string",
-      "description": "Who assigned the epistemic state, so machine inference is distinguishable from human judgement (SC-14).",
-      "enum": ["source-explicit", "machine-inferred", "human-assigned", "derived"]
+      "description": "Who assigned the epistemic state, so machine inference is distinguishable from human judgement (SC-14). `human-verified` is the NARROW verification primitive (SC-28): it is the only basis that can justify `epistemicState: verified`, and it still requires at least one evidence reference or provenance entry. A machine may never emit it.",
+      "enum": ["source-explicit", "machine-inferred", "human-assigned", "human-verified", "derived"]
     }
   },
   "properties": {
@@ -140,16 +140,17 @@
         "required": ["anchor", "epistemicState"],
         "allOf": [
           {
-            "$comment": "SC-13: a machine inference may never be recorded as verified. `verified` requires a human-assigned basis or at least one evidence reference.",
+            "$comment": "SC-13 / SC-28: `verified` is unavailable to a machine. It requires an EXPLICIT verification basis — `human-verified` is the only value that can justify it — plus at least one evidence reference. Ordinary evidence (`evidenceRefs` alone, with no basis) is NOT verification, and `basis: machine-inferred` with `verified` is therefore also illegal, since the basis must literally equal `human-verified`.",
             "if": {
               "properties": { "epistemicState": { "const": "verified" } },
               "required": ["epistemicState"]
             },
             "then": {
-              "anyOf": [
-                { "properties": { "basis": { "const": "human-assigned" } }, "required": ["basis"] },
-                { "properties": { "evidenceRefs": { "minItems": 1 } }, "required": ["evidenceRefs"] }
-              ]
+              "properties": {
+                "basis": { "const": "human-verified" },
+                "evidenceRefs": { "type": "array", "minItems": 1 }
+              },
+              "required": ["basis", "evidenceRefs"]
             }
           }
         ],
@@ -190,7 +191,7 @@
           "basis": { "$ref": "#/$defs/epistemicBasis" },
           "reviewFlag": { "type": "string", "enum": ["NEEDS_REVIEW", "CONFLICT", "LOW_CONFIDENCE"] }
         },
-        "required": ["type", "epistemicState"],
+        "required": ["type", "target", "epistemicState"],
         "allOf": [
           {
             "$comment": "SC-17: a relation without provenance must be flagged for review.",
@@ -198,16 +199,17 @@
             "then": { "required": ["reviewFlag"] }
           },
           {
-            "$comment": "SC-13 applies to edges too: an inferred edge may not be verified by the machine alone.",
+            "$comment": "SC-13 / SC-28 applies to edges too: verification requires an explicit `human-verified` basis plus at least one provenance entry. A machine inference can never be `verified`, and provenance alone is not verification.",
             "if": {
               "properties": { "epistemicState": { "const": "verified" } },
               "required": ["epistemicState"]
             },
             "then": {
-              "anyOf": [
-                { "properties": { "basis": { "const": "human-assigned" } }, "required": ["basis"] },
-                { "properties": { "provenance": { "minItems": 1 } }, "required": ["provenance"] }
-              ]
+              "properties": {
+                "basis": { "const": "human-verified" },
+                "provenance": { "type": "array", "minItems": 1 }
+              },
+              "required": ["basis", "provenance"]
             }
           }
         ],

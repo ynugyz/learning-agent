@@ -17,12 +17,12 @@
         },
         "start": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "end": { "type": "string", "minLength": 1, "pattern": "\\S" },
-        "value": { "type": "string", "minLength": 1, "pattern": "\\S" }
+        "value": { "type": "string", "minLength": 1, "pattern": "\\S", "description": "A single-value locator, e.g. a slide number ('14') or a section name. Not a hash." }
       },
       "required": ["kind"],
       "anyOf": [
-        { "properties": { "value": { "minLength": 1, "pattern": "\\S" } }, "required": ["value"] },
-        { "properties": { "start": { "minLength": 1, "pattern": "\\S" } }, "required": ["start"] }
+        { "properties": { "value": { "type": "string", "minLength": 1, "pattern": "\\S" } }, "required": ["value"] },
+        { "properties": { "start": { "type": "string", "minLength": 1, "pattern": "\\S" } }, "required": ["start"] }
       ],
       "additionalProperties": false
     },
@@ -139,9 +139,13 @@
     },
     "coverage": {
       "type": "object",
-      "description": "Declared coverage. There is deliberately no absolute 'complete' value: the strongest claim available is that no gap was found (SM-17).",
+      "description": "Declared coverage (SM-17, SM-27). REQUIRED at the top level: the absence of a coverage audit must be stated as `assessment: not_assessed` rather than expressed by omitting the field, so 'we did not check' can never be mistaken for 'we checked and found nothing'. There is deliberately no absolute 'complete' value: the strongest claim available is that no gap was found.",
       "properties": {
-        "assessment": { "type": "string", "enum": ["not_assessed", "assessed_no_known_gap", "known_gaps"] },
+        "assessment": {
+          "type": "string",
+          "enum": ["not_assessed", "assessed_no_known_gap", "known_gaps"],
+          "description": "`not_assessed` means no coverage audit was performed. It is a required, explicit statement — not a default."
+        },
         "note": { "type": "string", "maxLength": 300 }
       },
       "required": ["assessment"],
@@ -215,6 +219,6 @@
       "description": "Mapping-session notes. Never lesson content (SM-1)."
     }
   },
-  "required": ["contractVersion", "schemaVersion", "status", "sourcePackageId", "sources", "units"],
+  "required": ["contractVersion", "schemaVersion", "status", "sourcePackageId", "sources", "coverage", "units"],
   "additionalProperties": false
 }

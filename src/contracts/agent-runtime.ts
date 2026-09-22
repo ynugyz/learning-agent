@@ -56,7 +56,13 @@ export interface RuntimeMetadata {
   readonly capabilities: RuntimeCapabilities;
 }
 
-/** A prompt asset identified by id AND version (RT-12). */
+/**
+ * A prompt asset identified by id AND version (RT-12).
+ *
+ * `path` is a repository-relative asset location; absolute Windows/POSIX/UNC
+ * paths are rejected by the schema exactly as for `outputSchemaRef.path`
+ * (RT-26).
+ */
 export interface PromptRef {
   readonly id: string;
   readonly version: string;
@@ -92,9 +98,15 @@ export interface OutputSchemaRef {
   readonly path?: string;
 }
 
-/** Requested model. May not be what actually runs; see `ModelIdentity`. */
+/**
+ * Requested model (RT-28).
+ *
+ * `requested` is required: when the request carries a `model` object it must
+ * actually request something. An empty object carries no information and is
+ * rejected. What actually runs may differ — see `ModelIdentity`.
+ */
 export interface ModelRequest {
-  readonly requested?: string;
+  readonly requested: string;
 }
 
 /** Requested reasoning configuration (RT-17). */
@@ -154,18 +166,34 @@ export type ResolvedModel =
   | { readonly availability: 'unavailable'; readonly reason: string };
 
 /**
- * Requested versus resolved model (RT-13).
+ * Requested versus resolved model (RT-13, RT-31).
  *
  * `resolution` makes silent substitution visible — the most common invisible
- * cause of an invalid experiment comparison. A definitive resolution requires a
- * resolved value to have been available.
+ * cause of an invalid experiment comparison.
+ *
+ * A **definitive** resolution (`matched` / `substituted`) is a claim about a
+ * comparison, so it may only be made when BOTH sides exist: the `requested`
+ * model and an `available` resolved value. That is enforced by the schema and
+ * mirrored here with a union, so the invalid state is unrepresentable in the
+ * types as well.
  */
-export interface ModelIdentity {
-  readonly requested?: string;
-  readonly resolved?: ResolvedModel;
+export interface ModelIdentityBase {
   readonly provider?: string;
-  readonly resolution: 'matched' | 'substituted' | 'unknown';
 }
+
+export type ModelIdentity = ModelIdentityBase &
+  (
+    | {
+        readonly resolution: 'matched' | 'substituted';
+        readonly requested: string;
+        readonly resolved: { readonly availability: 'available'; readonly value: string };
+      }
+    | {
+        readonly resolution: 'unknown';
+        readonly requested?: string;
+        readonly resolved?: ResolvedModel;
+      }
+  );
 
 /**
  * Core runtime usage for one logical task (RT-18, RT-19).
@@ -188,7 +216,15 @@ export interface ReasoningApplied {
   readonly notes?: string;
 }
 
-/** Result of a successful invocation. */
+/**
+ * Result of a successful invocation.
+ *
+ * RT-30: a successful result must carry **at least one** of `output`, `model` or
+ * `usage`. A result containing only `taskId` is an *empty success* and is
+ * indistinguishable from a silent failure. This rule is enforced by the JSON
+ * Schema (`anyOf`) and cannot be expressed in the type system, so it is stated
+ * here rather than silently omitted.
+ */
 export interface RuntimeResult {
   readonly taskId: string;
   readonly output?: RuntimeOutput;
@@ -227,10 +263,16 @@ export interface RunError {
   readonly details?: Readonly<Record<string, unknown>>;
 }
 
-/** Discriminated union so the failure branch cannot be ignored (RT-8). */
+/**
+ * Truly mutually exclusive discriminated union (RT-8, RT-29).
+ *
+ * A success carries `result` and **no** `error`; a failure carries `error` and
+ * **no** `result`. The union shape makes that structural, and the schema
+ * additionally forbids the opposite field.
+ */
 export type RuntimeInvocationResult =
-  | { readonly ok: true; readonly result: RuntimeResult }
-  | { readonly ok: false; readonly error: RunError };
+  | { readonly ok: true; readonly result: RuntimeResult; readonly error?: never }
+  | { readonly ok: false; readonly error: RunError; readonly result?: never };
 
 /**
  * The boundary.

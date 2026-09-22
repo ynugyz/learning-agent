@@ -1,0 +1,310 @@
+{
+  "semantic-card": {
+    "claim-prose-escape": {
+      "keyword": "additionalProperties",
+      "instancePath": "/claims/0"
+    },
+    "empty-anchor-value": {
+      "keyword": "minLength",
+      "instancePath": "/humanNoteRef/anchor/value"
+    },
+    "empty-evidence-ref": {
+      "keyword": "anyOf",
+      "instancePath": "/claims/0/evidenceRefs/0"
+    },
+    "empty-knowledge-id": {
+      "keyword": "minLength",
+      "instancePath": "/knowledgeId"
+    },
+    "fingerprint-not-sha256-hex": {
+      "keyword": "pattern",
+      "instancePath": "/humanNoteFingerprint/value"
+    },
+    "integrity-ok-without-proof": {
+      "keyword": "required",
+      "instancePath": "/integrity"
+    },
+    "integrity-unknown-without-reason": {
+      "keyword": "required",
+      "instancePath": "/integrity"
+    },
+    "knowledge-truth-card-state": {
+      "keyword": "enum",
+      "instancePath": "/maintenanceState"
+    },
+    "legacy-cardstate-name": {
+      "keyword": "required",
+      "instancePath": ""
+    },
+    "relation-self-verified-with-machine-basis": {
+      "keyword": "if",
+      "instancePath": "/relations/0"
+    },
+    "relation-verified-with-provenance-but-no-basis": {
+      "keyword": "required",
+      "instancePath": "/relations/0"
+    },
+    "relation-without-target": {
+      "keyword": "required",
+      "instancePath": "/relations/0"
+    },
+    "self-verified-claim": {
+      "keyword": "if",
+      "instancePath": "/claims/1"
+    },
+    "self-verified-with-machine-basis": {
+      "keyword": "if",
+      "instancePath": "/claims/0"
+    },
+    "summary-over-budget": {
+      "keyword": "maxLength",
+      "instancePath": "/semanticCore/summary"
+    },
+    "unflagged-bare-relation": {
+      "keyword": "required",
+      "instancePath": "/relations/0"
+    },
+    "unresolved-without-id": {
+      "keyword": "required",
+      "instancePath": "/unresolved/0"
+    },
+    "verified-with-evidence-but-no-basis": {
+      "keyword": "required",
+      "instancePath": "/claims/0"
+    },
+    "verified-without-any-evidence": {
+      "keyword": "required",
+      "instancePath": "/claims/0"
+    },
+    "whitespace-knowledge-id": {
+      "keyword": "pattern",
+      "instancePath": "/knowledgeId"
+    }
+  },
+  "source-map": {
+    "conflict-with-empty-unit": {
+      "keyword": "pattern",
+      "instancePath": "/conflicts/0/unitRefs/1"
+    },
+    "conflict-with-one-unit": {
+      "keyword": "minItems",
+      "instancePath": "/conflicts/0/unitRefs"
+    },
+    "coverage-claims-complete": {
+      "keyword": "enum",
+      "instancePath": "/coverage/assessment"
+    },
+    "coverage-without-assessment": {
+      "keyword": "required",
+      "instancePath": "/coverage"
+    },
+    "disposition-write-back": {
+      "keyword": "additionalProperties",
+      "instancePath": "/units/0"
+    },
+    "empty-unit-id": {
+      "keyword": "minLength",
+      "instancePath": "/units/0/unitId"
+    },
+    "knowledge-network-observation": {
+      "keyword": "enum",
+      "instancePath": "/units/0/observations/0/observation"
+    },
+    "missing-coverage": {
+      "keyword": "required",
+      "instancePath": ""
+    },
+    "observation-without-advisory": {
+      "keyword": "required",
+      "instancePath": "/units/0/observations/0"
+    },
+    "opaque-locator-without-value": {
+      "keyword": "anyOf",
+      "instancePath": "/units/0/locator"
+    },
+    "preservation-not-marked-inference": {
+      "keyword": "required",
+      "instancePath": "/units/0/preservation"
+    },
+    "source-verified-status": {
+      "keyword": "enum",
+      "instancePath": "/units/0/epistemicStatus"
+    },
+    "unit-summary-over-budget": {
+      "keyword": "maxLength",
+      "instancePath": "/units/0/summary"
+    },
+    "unit-without-source-id": {
+      "keyword": "required",
+      "instancePath": "/units/0"
+    }
+  },
+  "agent-runtime": {
+    "absolute-prompt-path": {
+      "keyword": "not",
+      "instancePath": "/taskRequest/promptRef/path"
+    },
+    "empty-model-request": {
+      "keyword": "required",
+      "instancePath": "/taskRequest/model"
+    },
+    "empty-success": {
+      "keyword": "anyOf",
+      "instancePath": "/invocationResult/result"
+    },
+    "empty-task-input-ref": {
+      "keyword": "anyOf",
+      "instancePath": "/taskRequest/input/0/ref"
+    },
+    "failure-with-result": {
+      "keyword": "not",
+      "instancePath": "/invocationResult"
+    },
+    "failure-without-error": {
+      "keyword": "required",
+      "instancePath": "/invocationResult"
+    },
+    "implementation-note-host-path": {
+      "keyword": "additionalProperties",
+      "instancePath": "/runtimeMetadata"
+    },
+    "matched-without-requested-model": {
+      "keyword": "if",
+      "instancePath": "/invocationResult/result/model"
+    },
+    "matched-without-resolved-value": {
+      "keyword": "required",
+      "instancePath": "/invocationResult/result/model/resolved"
+    },
+    "missing-task-request-fields": {
+      "keyword": "required",
+      "instancePath": "/taskRequest"
+    },
+    "output-schema-absolute-path": {
+      "keyword": "pattern",
+      "instancePath": "/taskRequest/outputSchemaRef/path"
+    },
+    "output-schema-without-version": {
+      "keyword": "required",
+      "instancePath": "/taskRequest/outputSchemaRef"
+    },
+    "prompt-without-version": {
+      "keyword": "required",
+      "instancePath": "/taskRequest/promptRef"
+    },
+    "resolved-available-without-value": {
+      "keyword": "required",
+      "instancePath": "/invocationResult/result/model/resolved"
+    },
+    "resolved-unavailable-with-value": {
+      "keyword": "not",
+      "instancePath": "/invocationResult/result/model/resolved"
+    },
+    "resolved-unavailable-without-reason": {
+      "keyword": "if",
+      "instancePath": "/invocationResult/result/model/resolved"
+    },
+    "streaming-claimed-supported": {
+      "keyword": "const",
+      "instancePath": "/runtimeMetadata/capabilities/streaming"
+    },
+    "success-with-error": {
+      "keyword": "not",
+      "instancePath": "/invocationResult"
+    },
+    "usage-with-cost": {
+      "keyword": "additionalProperties",
+      "instancePath": "/invocationResult/result/usage"
+    }
+  },
+  "run-manifest": {
+    "case-id-present-with-reason": {
+      "keyword": "not",
+      "instancePath": "/caseId"
+    },
+    "case-id-present-without-value": {
+      "keyword": "required",
+      "instancePath": "/caseId"
+    },
+    "credential-in-notes": {
+      "keyword": "maxLength",
+      "instancePath": "/notes"
+    },
+    "fingerprint-not-sha256-hex": {
+      "keyword": "pattern",
+      "instancePath": "/sourceBundle/refs/0/digest/value"
+    },
+    "git-present-without-commit": {
+      "keyword": "required",
+      "instancePath": "/git"
+    },
+    "git-present-without-dirty": {
+      "keyword": "required",
+      "instancePath": "/git"
+    },
+    "git-unavailable-with-commit": {
+      "keyword": "not",
+      "instancePath": "/git"
+    },
+    "host-path-in-repo-ref": {
+      "keyword": "not",
+      "instancePath": "/git/worktreeRef"
+    },
+    "missing-case-id": {
+      "keyword": "required",
+      "instancePath": ""
+    },
+    "missing-schema-version": {
+      "keyword": "required",
+      "instancePath": ""
+    },
+    "missing-versions": {
+      "keyword": "required",
+      "instancePath": ""
+    },
+    "model-available-with-reason": {
+      "keyword": "not",
+      "instancePath": "/model/resolved"
+    },
+    "model-resolved-available-without-value": {
+      "keyword": "required",
+      "instancePath": "/model/resolved"
+    },
+    "resolution-without-requested": {
+      "keyword": "required",
+      "instancePath": "/runtime"
+    },
+    "runtime-present-with-reason": {
+      "keyword": "not",
+      "instancePath": "/runtime"
+    },
+    "runtime-present-without-resolved": {
+      "keyword": "required",
+      "instancePath": "/runtime"
+    },
+    "runtime-unavailable-without-reason": {
+      "keyword": "required",
+      "instancePath": "/runtime"
+    },
+    "source-bundle-absolute-path": {
+      "keyword": "not",
+      "instancePath": "/sourceBundle/refs/0/ref"
+    },
+    "source-bundle-posix-absolute-path": {
+      "keyword": "not",
+      "instancePath": "/sourceBundle/refs/0/ref"
+    },
+    "usage-partial-without-counts": {
+      "keyword": "if",
+      "instancePath": "/usage"
+    },
+    "usage-reported-without-counts": {
+      "keyword": "required",
+      "instancePath": "/usage"
+    },
+    "usage-unavailable-with-zeros": {
+      "keyword": "not",
+      "instancePath": "/usage"
+    }
+  }
+}

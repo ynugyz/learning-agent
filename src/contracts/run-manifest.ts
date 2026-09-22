@@ -22,7 +22,14 @@
 
 import type { Fingerprint, ReviewStatus, SchemaVersion } from './common';
 
-/** One input consumed by a run. `ref` must not be a production Vault or host path. */
+/**
+ * One input consumed by a run (RM-25).
+ *
+ * `ref` is a **portable** repository- or package-relative path or identifier.
+ * It must not be a production Vault path, and absolute Windows / POSIX / UNC /
+ * home-relative paths are rejected by the schema, because a host-specific path
+ * destroys portability (`RM-21`).
+ */
 export interface ManifestSourceRef {
   readonly kind: 'source-map' | 'semantic-card' | 'evidence' | 'prompt' | 'schema' | 'other';
   readonly ref: string;
@@ -118,17 +125,30 @@ export interface ManifestPlatform {
 }
 
 /**
- * Manifest-local token usage.
+ * Manifest-local token usage (RM-24).
  *
  * Deliberately NOT the runtime-boundary `Usage`: the two contracts are
  * decoupled so either can evolve without breaking the other (CH-08).
+ *
+ * The availability tag carries its own obligations, exactly as the schema
+ * requires: `reported` means the full usage is known, `partial` means at least
+ * one count was obtained, and `unavailable` means **no** count is present —
+ * zero is a measurement, not an absence.
  */
-export interface ManifestUsage {
-  readonly availability: 'reported' | 'partial' | 'unavailable';
-  readonly inputTokens?: number;
-  readonly outputTokens?: number;
-  readonly totalTokens?: number;
-}
+export type ManifestUsage =
+  | {
+      readonly availability: 'reported';
+      readonly inputTokens: number;
+      readonly outputTokens: number;
+      readonly totalTokens: number;
+    }
+  | {
+      readonly availability: 'partial';
+      readonly inputTokens?: number;
+      readonly outputTokens?: number;
+      readonly totalTokens?: number;
+    }
+  | { readonly availability: 'unavailable' };
 
 /**
  * A field deliberately withheld (RM-14).

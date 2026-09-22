@@ -6,7 +6,7 @@
 > This contract has **not passed human review** as a finished design. Milestone
 > M0 itself is still awaiting final human approval.
 
-- Requirement IDs: `RT-1` … `RT-25` (see the requirement index in §11)
+- Requirement IDs: `RT-1` … `RT-32` (see the requirement index in §11)
 - Related: `docs/ARCHITECTURE.md` §4, `AGENTS.md` §3.3, `specs/run-manifest-v0.1.md`
 - Machine contract: `schemas/agent-runtime.v0.1.schema.json`
 - Type draft: `src/contracts/agent-runtime.ts`
@@ -95,6 +95,51 @@ DSH-specific data may exist inside `src/runtime/dsh`, may be persisted there,
 and must be reduced to the neutral shapes here before crossing back. If the
 pipeline needs a DSH concept, the fix is to add a **neutral** concept to this
 contract — not to leak the DSH one.
+
+### RT-26 — Every path in the contract is portable
+
+**Adjudicated (M1A-V2).** The absolute-path ban previously covered only
+`outputSchemaRef.path`. `promptRef.path` is the same kind of field — a
+repository-relative asset location — so it carries the identical restriction.
+Absolute Windows, POSIX, UNC and home-relative paths are rejected in both.
+
+### RT-27 — A context reference must reference something
+
+`input[].ref` exists to record where context came from. An empty `{}` records
+nothing while looking like provenance, so at least one of `sourceId`,
+`sourceUnitId` or `locator` is required when `ref` is present.
+
+### RT-28 — A `model` object must actually request a model
+
+When `TaskRequest.model` is present, `requested` is required. An empty object
+carries no information; omitting the whole field is the honest way to say
+"no model preference".
+
+### RT-29 — Success and failure are truly mutually exclusive
+
+**Adjudicated (M1A-V2).** `RuntimeInvocationResult` is a real discriminated
+union: a success carries `result` and **must not** carry `error`; a failure
+carries `error` and **must not** carry `result`. Previously both fields could
+coexist, so a result could arrive alongside an error and callers could pick
+whichever suited them.
+
+### RT-30 — There is no empty success
+
+A successful `RuntimeResult` must carry **at least one** of `output`, `model` or
+`usage`. A result containing only `taskId` is indistinguishable from a silent
+failure, which is exactly what `RT-8` forbids.
+
+### RT-31 — A definitive resolution needs both sides
+
+`resolution: matched | substituted` is a claim about a comparison, so it is only
+representable together with the **requested** model and an **available**
+resolved value.
+
+### RT-32 — Availability branches are mutually exclusive
+
+`available` must not carry a `reason`, and `unavailable` must not carry a
+`value`. A status may never be asserted while the contradicting data sits beside
+it.
 
 ### RT-11 — No optional string may carry host-specific information
 
@@ -329,6 +374,9 @@ failure branch (`RT-8`).
 - **`RunError.retryable`:** always required.
 - **`RuntimeCapabilities.streaming` / `.cancellation`:** present but pinned
   `false` (`RT-14`, `RT-15`).
+- **`RT-30`:** a successful `RuntimeResult` must carry at least one of `output`, `model` or `usage`. Schema-enforced via `anyOf`.
+- **`RT-29`:** the success branch forbids `error` and the failure branch forbids `result`. Schema-enforced via `not`.
+- **`RT-32`:** `available` forbids `reason`; `unavailable` forbids `value`.
 - **Every present identifier/version is non-empty** (`RT-24`).
 
 ---
@@ -349,7 +397,6 @@ failure branch (`RT-8`).
 | RT-21 | The interface moves text in and text out; it must not reference orchestration concepts (layers, plans, cards) or host-specific paths. |
 | RT-23 | A `TaskRequest` is one logical task and must not be read as one API call. |
 | RT-24 | Every present identifier, version and reference is non-empty. |
-| RT-25 | `outputSchemaRef` stays optional at the boundary, but when present it must name an explicit schema version and a repository-relative path; unversioned references and local machine paths are rejected. |
 
 ---
 
@@ -565,6 +612,13 @@ failure branch (`RT-8`).
 | RT-23 | A logical task may be satisfied by any number of transport calls. |
 | RT-24 | Every present identifier, version and reference is non-empty. |
 | RT-25 | `outputSchemaRef` stays optional at the boundary, but when present it must name an explicit schema version and a repository-relative path; unversioned references and local machine paths are rejected. |
+| RT-26 | Every path field is portable; absolute Windows, POSIX, UNC and home-relative paths are rejected, for `promptRef.path` exactly as for `outputSchemaRef.path`. |
+| RT-27 | `input[].ref`, when present, must identify at least one real reference; an empty object is not provenance. |
+| RT-28 | `TaskRequest.model`, when present, must carry `requested`. |
+| RT-29 | `RuntimeInvocationResult` is truly mutually exclusive: a success carries no `error` and a failure carries no `result`. |
+| RT-30 | A successful `RuntimeResult` carries at least one of `output`, `model` or `usage`; a `taskId`-only result is an empty success and is rejected. |
+| RT-31 | `resolution: matched` or `substituted` requires both a requested model and an available resolved value. |
+| RT-32 | Availability branches are mutually exclusive: `available` carries no reason, `unavailable` carries no value. |
 
 ### Reconciliation with the previous revision
 

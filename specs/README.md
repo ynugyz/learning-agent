@@ -15,10 +15,10 @@ matter of taste.
 
 | Spec | Contract | Requirement IDs |
 | --- | --- | --- |
-| [`semantic-card-v0.1.md`](semantic-card-v0.1.md) | SemanticCard v0.1 — machine semantic index | `SC-1` … `SC-26` |
-| [`source-map-v0.1.md`](source-map-v0.1.md) | SourceMap v0.1 — structure & coverage ledger | `SM-1` … `SM-26` |
-| [`agent-runtime-v0.1.md`](agent-runtime-v0.1.md) | AgentRuntime Boundary v0.1 — capability boundary | `RT-1` … `RT-24` |
-| [`run-manifest-v0.1.md`](run-manifest-v0.1.md) | RunManifest v0.1 — reproducibility record | `RM-1` … `RM-22` |
+| [`semantic-card-v0.1.md`](semantic-card-v0.1.md) | SemanticCard v0.1 — machine semantic index | `SC-1` … `SC-29` |
+| [`source-map-v0.1.md`](source-map-v0.1.md) | SourceMap v0.1 — structure & coverage ledger | `SM-1` … `SM-27` |
+| [`agent-runtime-v0.1.md`](agent-runtime-v0.1.md) | AgentRuntime Boundary v0.1 — capability boundary | `RT-1` … `RT-32` |
+| [`run-manifest-v0.1.md`](run-manifest-v0.1.md) | RunManifest v0.1 — reproducibility record | `RM-1` … `RM-26` |
 
 Every spec carries the same sections: design rationale, scope, field table,
 required vs optional with conditions, enumerations, invariants, example,
@@ -57,3 +57,7 @@ record and future experiments cite them.
 - [`../docs/reviews/M1A_HUMAN_ADJUDICATION_REV1.md`](../docs/reviews/M1A_HUMAN_ADJUDICATION_REV1.md)
   — the human ruling on those findings and what REV1 changed in response.
   Findings not covered by a ruling remain **OPEN** on purpose.
+- [../docs/reviews/M1A_FINAL_AUDIT_FIXES.md](../docs/reviews/M1A_FINAL_AUDIT_FIXES.md)
+  — M1A-V2 hardening: which declared guarantees became machine-enforced, and what stays open.
+- [../docs/reviews/M1A_EXECUTABLE_VERIFICATION.md](../docs/reviews/M1A_EXECUTABLE_VERIFICATION.md)
+  — compiler and JSON Schema evidence for the contracts.

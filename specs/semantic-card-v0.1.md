@@ -7,7 +7,7 @@
 > This contract has **not passed human review** as a finished design. Milestone
 > M0 itself is still awaiting final human approval.
 
-- Requirement IDs: `SC-1` … `SC-27` (see the requirement index in §9)
+- Requirement IDs: `SC-1` … `SC-29` (see the requirement index in §9)
 - Related: `specs/source-map-v0.1.md`, `docs/ARCHITECTURE.md` §2 Layer C, §3, §5
 - Machine contract: `schemas/semantic-card.v0.1.schema.json`
 - Type draft: `src/contracts/semantic-card.ts`
@@ -85,6 +85,30 @@ inferred, often wrong, and exactly the kind of statement that silently becomes
 "true" once stored. Relations therefore carry their own `epistemicState`,
 `basis` and optional `provenance`, and may be individually flagged for review
 (`SC-16`, `SC-17`).
+
+### SC-28 — Verification is a narrow, explicitly-attributed act
+
+**Adjudicated (M1A-V2).** The previous revision allowed `epistemicState:
+verified` to be reached through *either* a human basis *or* the mere presence of
+evidence. That made ordinary evidence into verification, so a machine could
+launder an inference into an established fact simply by attaching a reference.
+
+The rule is now narrow:
+
+1. `verified` requires `basis: human-verified` — a **dedicated** basis value that
+   a machine may never emit;
+2. it **also** requires at least one evidence reference or provenance entry, so
+   verification is never unsupported;
+3. `basis: machine-inferred` with `verified` is therefore **always** invalid,
+   evidence or not.
+
+Evidence alone is not verification (`SC-13`). The same rule applies to
+`relations[]`, because an edge is a claim too.
+
+### SC-29 — An edge must point somewhere
+
+`relations[].target` is **required**. An edge to nowhere is not an edge, and a
+relation cannot be recorded as an unaimed intent.
 
 ### SC-7 — Synchronisation is explicit, in both directions
 
@@ -198,6 +222,12 @@ open unresolved items, and its integrity bookkeeping.
   `claims[].epistemicState` is `verified`, `basis` must be `human-assigned`, or
   the claim must carry at least one `evidenceRefs` entry. Schema-enforced via
   `if/then`.
+- **`SC-28` — verification is narrow:** when `claims[].epistemicState` or
+  `relations[].epistemicState` is `verified`, `basis` must be `human-verified`
+  **and** an evidence reference / provenance entry must be present.
+  Schema-enforced via `if`/`then`. `machine-inferred` + `verified` is always
+  rejected, because the basis must literally equal `human-verified`.
+- **`SC-29` — an edge must point somewhere:** `relations[].target` is required.
 - **`SC-17` — a relation without provenance must be flagged:** when
   `relations[].provenance` is absent, `reviewFlag` is required.
   Schema-enforced via `if/then`.
@@ -219,7 +249,7 @@ open unresolved items, and its integrity bookkeeping.
 | `status` | `draft`, `NEEDS_REVIEW`, `reviewed` |
 | `maintenanceState` | `stable`, `needs_review`, `conflicted`, `stale` |
 | `claim/relation epistemicState` | `asserted`, `inferred`, `uncertain`, `disputed`, `verified`, `deprecated`, `unspecified` |
-| `basis` | `source-explicit`, `machine-inferred`, `human-assigned`, `derived` |
+| `basis` | `source-explicit`, `machine-inferred`, `human-assigned`, **`human-verified`** (the only value that can justify `verified`), `derived` |
 | `anchor.kind` | `block-id` (**preferred**), `heading-path` (**fallback**) |
 | `fingerprint.alg` | `sha256` (**default**) |
 | `relations[].type` | `prerequisite`, `part-of`, `expands`, `refines`, `corrects`, `example-of`, `counterexample-of`, `conflicts-with`, `contrasts-with`, `applies-to`, `derived-from`, `related` |
@@ -472,6 +502,8 @@ and must not be renumbered (`CH-21`).
 | SC-25 | The contract must not assume or imply any storage layout (`D-0010`). |
 | SC-26 | The contract must support incremental update: one claim or relation can change without rewriting the card. |
 | SC-27 | Every `unresolved` entry carries a stable opaque `unresolvedId`; the card still holds only current-open items and no closed history. |
+| SC-28 | Verification is narrow and explicitly attributed: `verified` requires `basis: human-verified` plus an evidence reference or provenance entry; a machine inference may never be `verified`, and evidence alone is not verification. |
+| SC-29 | `relations[].target` is required: an edge must point somewhere. |
 
 ### Reconciliation with the previous revision
 
@@ -480,6 +512,6 @@ and must not be renumbered (`CH-21`).
 | `epistemicState` at card level | replaced by `maintenanceState` (`SC-5`, `SC-8`) |
 | `claims[].note` | **removed** (`SC-4`) |
 | `humanNoteRef.anchor` as a bare string | replaced by a typed anchor (`SC-11`) |
-| a range of IDs beyond the defined set, cited but never defined | removed; the set is now `SC-1`…`SC-27`, all defined in the index above |
+| a range of IDs beyond the defined set, cited but never defined | removed; the set is now `SC-1`…`SC-29`, all defined in the index above |
 | unbounded `summary` / `gist` | capped (`SC-9`) |
 | `fingerprint.alg` mandatory one-value enum | optional, SHA-256 default (`SC-19`) |

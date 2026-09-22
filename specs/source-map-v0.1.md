@@ -7,7 +7,7 @@
 > This contract has **not passed human review** as a finished design. Milestone
 > M0 itself is still awaiting final human approval.
 
-- Requirement IDs: `SM-1` … `SM-26` (see the requirement index in §9)
+- Requirement IDs: `SM-1` … `SM-27` (see the requirement index in §10)
 - Related: `specs/semantic-card-v0.1.md`, `docs/ARCHITECTURE.md` §2 Layer A/B, §5
 - Machine contract: `schemas/source-map.v0.1.schema.json`
 - Type draft: `src/contracts/source-map.ts`
@@ -94,6 +94,20 @@ priority without any claim about their knowledge status (`SM-6`).
 Exam and administrative material is **registered** as ordinary units; whether it
 ever enters the long-term knowledge base is decided by later stages (`SM-15`).
 
+### SM-27 — Coverage is a required, explicit statement
+
+**Adjudicated (M1A-V2).** `coverage` was optional, so "we never assessed
+coverage" could be expressed by *omitting the field* — indistinguishable, to a
+reader or a validator, from "we assessed it and found nothing". It is now
+**top-level required**:
+
+- no audit performed → `assessment: not_assessed`, stated explicitly;
+- no gap found → `assessment: assessed_no_known_gap`;
+- gaps found → `assessment: known_gaps`.
+
+An absent `coverage` object is invalid. "We did not check" is a fact worth
+recording, and it must be recorded rather than implied (`SM-17`).
+
 ### SM-8 — Missing and low-quality material is recorded, not smoothed over
 
 `quality`, `missingOrUnavailable` and `conflicts` (`SM-13`, `SM-14`, `SM-18`)
@@ -151,7 +165,7 @@ declared gaps; conflicts observed *between sources*.
 | `sources[].quality.issues` | O | array of enum | Specific problems. |
 | `sources[].quality.note` | O | string (≤300) | Free-form observation. |
 | `missingOrUnavailable` | O | array | Declared gaps (`SM-14`). |
-| `coverage` | O | object | Declared coverage, without any absolute claim (`SM-17`). |
+| `coverage` | **M** | object | **Required** (`SM-27`). Declared coverage, without any absolute claim (`SM-17`). |
 | `coverage.assessment` | M (cond.) | enum | `not_assessed` / `assessed_no_known_gap` / `known_gaps`. |
 | `coverage.note` | O | string (≤300) | Why the assessment is what it is. |
 | `units` | M | array | The Source Unit Ledger (`SM-3`). |
@@ -215,7 +229,7 @@ declared gaps; conflicts observed *between sources*.
   `advisory: true`. Every value in the vocabulary must be decidable **from the
   package alone** (`SM-5`); there is no value that requires consulting the
   existing knowledge network.
-- **`coverage.assessment`:** may not express absolute completeness. The
+- **`coverage` is always present** (`SM-27`). Its `assessment` may not express absolute completeness. The
   strongest positive value is `assessed_no_known_gap`, which is honest about
   being an assessment rather than a proof (`SM-17`).
 - **`conflicts[].unitRefs`:** at least two **non-empty** entries, enforced,
@@ -555,6 +569,7 @@ Small, but includes the content types most likely to be lost.
 | SM-24 | Every present identifier, locator or reference is non-empty. |
 | SM-25 | The map is usable as a coverage checklist keyed by `unitId`. |
 | SM-26 | `summary` is a pointer and never a transcript substitute. |
+| SM-27 | `coverage` is top-level required; the absence of a coverage audit is stated as `assessment: not_assessed` and may never be expressed by omitting the field. |
 
 ### Reconciliation with the previous revision
 

@@ -51,13 +51,25 @@ export type SchemaVersion = '0.1';
 export type FingerprintAlg = 'sha256';
 
 /**
+ * A SHA-256 digest as 64 hex characters (RM-26).
+ *
+ * The schema enforces `^[A-Fa-f0-9]{64}$`, so a branded string is used here
+ * rather than a plain `string`: a model name or an anchor value is structurally
+ * a string too, and without the brand those are interchangeable at the type
+ * level even though the contract forbids confusing them.
+ *
+ * TODO: what exactly is hashed — raw bytes, canonical JSON, or something else —
+ * remains DEFERRED. Only the digest's *shape* is fixed at v0.1.
+ */
+export type Sha256Hex = string & { readonly __brand: 'sha256-hex' };
+
+/**
  * Content fingerprint. Shared by SemanticCard (note-side and card-side hashes)
  * and RunManifest (source-bundle digests) with the same meaning.
  *
- * `alg` is optional and defaults to SHA-256 (`RM-15`). TODO: what exactly is
- * hashed (raw bytes vs canonical JSON) is still unspecified.
+ * `alg` is optional and defaults to SHA-256 (`RM-15`).
  */
 export interface Fingerprint {
   readonly alg?: FingerprintAlg;
-  readonly value: string;
+  readonly value: Sha256Hex;
 }

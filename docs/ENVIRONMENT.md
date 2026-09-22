@@ -86,22 +86,50 @@ Presence checked, values intentionally omitted (`.env` is git-ignored):
 
 ## Project dependencies
 
-**None installed.** Since M1A a `package.json` scaffold exists (declaring
-TypeScript as the primary language, `DECISIONS.md` D-0005) but it declares
-**zero dependencies** and there is no lockfile. `npm run typecheck` therefore
-does **not** work yet: it requires a deliberate
-`npm install --save-dev --save-exact typescript`, which must commit a lockfile
-in the same change (`DECISIONS.md` D-0004). Nothing beyond the toolchain below
-is required to read or review this repository.
+Two **dev-only** tools are exactly pinned in `package.json` since M1A-V
+(`DECISIONS.md` D-0013): `typescript@5.9.3` and `ajv@8.20.0`. There are **no
+runtime dependencies**; `dependencies` is empty on purpose. `package-lock.json`
+is committed.
 
-The TypeScript contract drafts in `src/contracts/*.ts` are **unverified by a
-compiler** for exactly this reason. They are declarations, not a build.
+Install and verify:
+
+```powershell
+npm install
+npx --no-install tsc --noEmit        # contract declarations must compile
+node tools/contract-tests.mjs        # JSON Schema fixture verification
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\check.ps1   # everything
+```
+
+### Host-specific npm cache workaround (NOT a project convention)
+
+On **this** machine the default npm cache lives at
+`%LOCALAPPDATA%\npm-cache`, which is outside the writable workspace, so
+`npm install` fails with:
+
+```
+npm error code EPERM
+npm error path ...\npm-cache\_cacache\tmp\...
+```
+
+This is an environment/sandbox restriction, **not a network or registry
+problem** — the registry itself is reachable. The workaround is to point the
+cache inside the workspace **for the command being run**:
+
+```powershell
+npm install --cache .\.npm-cache
+```
+
+`.npm-cache/` is git-ignored, so nothing from it is ever committed. **No
+`.npmrc` is committed**, deliberately: forcing a repo-local cache on every other
+machine would impose this host's quirk on machines that do not have it. Resolved
+package URLs in `package-lock.json` still point at the default public registry.
 
 ## Reproducing this record
 
 ```powershell
 git --version; node --version; npm --version; pnpm --version
 python --version; uv --version; dsh --version
+npx --no-install tsc --version; node -e "console.log(require('ajv/package.json').version)"
 ```
 
 ## Known drift risks

@@ -1,5 +1,12 @@
 # M1A Executable Contract Verification (M1A-V)
 
+> **Scope of this document: the M1A-V revision.** M1A-V2 superseded parts of it:
+> see [`M1A_FINAL_AUDIT_FIXES.md`](M1A_FINAL_AUDIT_FIXES.md) for what changed.
+> The counts below were updated to reflect the current corpus, but the harness
+> description, the guarantee list and the "not verified" list in this document
+> describe **M1A-V** and are kept as the historical record of that revision.
+> Read the M1A-V2 document for the current state.
+>
 > Proves that the four M1A contracts hold **as machine-checkable artefacts**
 > under a real TypeScript compiler and a real JSON Schema validator, rather than
 > only as prose.
@@ -57,7 +64,7 @@ milestone:
 ### 2.2 JSON Schema fixtures
 
 ```
-node tools/contract-tests.mjs     →  checks=56 failures=0  →  PASSED
+node tools/contract-tests.mjs     →  checks=84 failures=0  →  PASSED
 ```
 
 | Contract | Canonical valid fixture | Invalid fixtures | Total checks |
@@ -66,18 +73,23 @@ node tools/contract-tests.mjs     →  checks=56 failures=0  →  PASSED
 | SourceMap v0.1 | 1 accepted | 12 rejected | 13 |
 | AgentRuntime Boundary v0.1 | 1 accepted | 11 rejected | 12 |
 | RunManifest v0.1 | 1 accepted | 12 rejected | 13 |
-| **Total** | **4** | **48** | **52** (+4 spec/fixture identity checks = **56**) |
+| **Total** | **4** | **75** | **75** (+4 spec/fixture identity checks + 1 declaration-coverage check = **84**) |
 
-The runner asserts three things per invalid fixture, which is what separates a
-meaningful negative test from a decorative one:
+At M1A-V the runner asserted three things per invalid fixture:
 
 1. it **is rejected**;
 2. it is rejected **for a rule violation, not a malformed document** — every
-   failing JSON Schema keyword must be on a reviewed allowlist, so a `type`
-   error (proving only that the fixture was broken) fails the test;
-3. it is rejected **via `if`/`then` where a conditional rule is under test**, so
-   the conditional machinery is genuinely exercised rather than a plain
-   `required` coincidentally firing.
+   failing JSON Schema keyword had to be on a reviewed allowlist, so a `type`
+   error (proving only that the fixture was broken) failed the test;
+3. where a conditional rule was under test, the `if`/`then` machinery had to be
+   the thing that fired.
+
+**Known weakness of this revision, fixed in M1A-V2:** an allowlist is not an
+expectation. A fixture could be rejected by *any* allowlisted keyword — including
+`required` firing for an entirely unrelated reason — and still pass. M1A-V2
+replaced the allowlist with a per-fixture declared `keyword` **and**
+`instancePath` (`tests/contracts/expectations.json`). See
+[`M1A_FINAL_AUDIT_FIXES.md`](M1A_FINAL_AUDIT_FIXES.md).
 
 ### 2.3 Required regression coverage
 
@@ -138,7 +150,7 @@ authoritative.
 | 1 | Every contract declaration type-checks under strict TypeScript | `tsc --noEmit` = 0 errors |
 | 2 | Every schema is a valid draft-2020-12 schema Ajv can compile | 4/4 schemas compiled in the runner |
 | 3 | Each canonical example is structurally valid per its schema | 4/4 valid fixtures accepted |
-| 4 | 48 hand-specified invalid inputs are rejected | 48/48 rejected, each via an allowlisted keyword |
+| 4 | 75 hand-specified invalid inputs are rejected | 75/75 rejected, each via an allowlisted keyword (M1A-V2 upgraded this to a declared expectation per fixture) |
 | 5 | Non-empty identifiers really are non-empty (incl. whitespace) | `minLength` + `pattern: "\\S"` fixtures |
 | 6 | No field exists that accepts arbitrary note prose | `additionalProperties` rejection of `claims[].note` |
 | 7 | Tagged-union states cannot be asserted without their data | 12 conditional-rule fixtures |
@@ -165,7 +177,7 @@ authoritative.
 
 ## 4. Fixture corpus design
 
-`tests/contracts/<contract>/valid.json` is hand-written. The 48 invalid fixtures
+`tests/contracts/<contract>/valid.json` is hand-written. The 75 invalid fixtures
 are **generated** by `tools/generate-contract-fixtures.mjs`, which applies one
 named mutation per fixture to a deep clone of the valid document.
 
@@ -189,7 +201,7 @@ test would have been a worse trade than using a plain placeholder.
 ```
 == Executable contract verification ==
   PASS  TypeScript contract declarations compile (tsc --noEmit)
-  PASS  contract fixtures verified (checks=56 failures=0)
+  PASS  contract fixtures verified (checks=84 failures=0)
 ```
 
 plus, from M1A-V:
@@ -242,7 +254,7 @@ so it is not mistaken for one later.
 M1A-V's stated goal — prove the contracts hold under a real compiler and a real
 JSON Schema validator — is **met for structural constraints**:
 
-- 56/56 checks pass (4 valid accepted, 48 invalid rejected, 4 spec/fixture identity assertions);
+- 84/84 checks pass (4 valid accepted, 75 invalid rejected, 4 spec/fixture identity assertions, 1 declaration-coverage check);
 - `tsc --noEmit` is clean;
 - the three blockers each have dedicated, named regressions that fail for the
   intended keyword;

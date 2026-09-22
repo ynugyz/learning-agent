@@ -193,10 +193,13 @@ export interface MissingItem {
 }
 
 /**
- * Declared coverage (SM-17).
+ * Declared coverage (SM-17, SM-27). **Required** on the map.
  *
- * There is deliberately no absolute "complete" value. The strongest available
- * claim is that no gap was found, which is an assessment rather than a proof.
+ * The absence of a coverage audit must be stated as `assessment: 'not_assessed'`
+ * rather than expressed by omitting the field, so "we did not check" can never
+ * be mistaken for "we checked and found nothing". There is deliberately no
+ * absolute "complete" value: the strongest available claim is that no gap was
+ * found, which is an assessment rather than a proof.
  */
 export interface Coverage {
   readonly assessment: 'not_assessed' | 'assessed_no_known_gap' | 'known_gaps';
@@ -230,7 +233,8 @@ export interface SourceMap {
   readonly sourcePackageId: string;
   readonly sources: readonly SourceEntry[];
   readonly missingOrUnavailable?: readonly MissingItem[];
-  readonly coverage?: Coverage;
+  /** Required (SM-27): use `assessment: 'not_assessed'` to state that no audit was done. */
+  readonly coverage: Coverage;
   /** The Source Unit Ledger. May be empty only when the package is genuinely empty or unreadable. */
   readonly units: readonly SourceUnit[];
   readonly conflicts?: readonly SourceConflict[];

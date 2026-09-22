@@ -47,11 +47,19 @@ export type EpistemicState =
   | 'deprecated'
   | 'unspecified';
 
-/** Who assigned an epistemic state (SC-14). */
+/**
+ * Who assigned an epistemic state (SC-14).
+ *
+ * `human-verified` is the NARROW verification primitive (SC-28): the only basis
+ * that can justify `epistemicState: 'verified'`, and it still requires at least
+ * one evidence reference (claims) or provenance entry (relations). A machine
+ * may never emit it, and ordinary evidence is **not** verification.
+ */
 export type EpistemicBasis =
   | 'source-explicit'
   | 'machine-inferred'
   | 'human-assigned'
+  | 'human-verified'
   | 'derived';
 
 /**
@@ -115,6 +123,11 @@ export interface SectionIndexEntry {
  * There is deliberately NO free-text field: a claim's content lives in the note
  * and the card points at it. `anchor` is required — a claim can never be
  * recorded without a location.
+ *
+ * Verification (SC-28): `epistemicState: 'verified'` requires
+ * `basis: 'human-verified'` **and** at least one `evidenceRefs` entry. A machine
+ * inference (`basis: 'machine-inferred'`) can never be `verified`, and evidence
+ * on its own is not verification.
  */
 export interface ClaimRef {
   readonly anchor: Anchor;
@@ -146,15 +159,19 @@ export interface RelationTarget {
 }
 
 /**
- * A typed knowledge relation (SC-6, SC-17).
+ * A typed knowledge relation (SC-6, SC-17, SC-28).
  *
  * An edge is an inference about a claim; it carries its own state and basis.
  * When `provenance` is absent, `reviewFlag` is required: a bare inferred edge is
  * a contract violation.
+ *
+ * `target` is **required**: an edge to nowhere is not an edge. Verification
+ * follows the same rule as claims — `'verified'` requires
+ * `basis: 'human-verified'` plus at least one `provenance` entry.
  */
 export interface KnowledgeRelation {
   readonly type: RelationType;
-  readonly target?: RelationTarget;
+  readonly target: RelationTarget;
   readonly provenance?: readonly EvidenceRef[];
   readonly epistemicState: EpistemicState;
   readonly basis?: EpistemicBasis;

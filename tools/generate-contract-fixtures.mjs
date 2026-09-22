@@ -109,6 +109,56 @@ const contracts = [
         delete doc.maintenanceState;
         return doc;
       },
+
+      // ---- M1A-V2 hardening regressions ----
+
+      // SC-28: `verified` with a machine basis is ALWAYS illegal — this is the
+      // headline rule of the final audit. Evidence does not rescue it.
+      'self-verified-with-machine-basis': (doc) => {
+        doc.claims[0].epistemicState = 'verified';
+        doc.claims[0].basis = 'machine-inferred';
+        doc.claims[0].evidenceRefs = [{ sourceUnitId: 'su-lecture03-0011' }];
+        return doc;
+      },
+      // SC-28: evidence alone is NOT verification — a basis is required.
+      'verified-with-evidence-but-no-basis': (doc) => {
+        doc.claims[0].epistemicState = 'verified';
+        delete doc.claims[0].basis;
+        doc.claims[0].evidenceRefs = [{ sourceUnitId: 'su-lecture03-0011' }];
+        return doc;
+      },
+      // SC-28: even a human-verified claim still needs its evidence.
+      'verified-without-any-evidence': (doc) => {
+        doc.claims[0].epistemicState = 'verified';
+        doc.claims[0].basis = 'human-verified';
+        delete doc.claims[0].evidenceRefs;
+        return doc;
+      },
+      // SC-28 on edges: a machine-verified relation is illegal.
+      'relation-self-verified-with-machine-basis': (doc) => {
+        doc.relations[0].epistemicState = 'verified';
+        doc.relations[0].basis = 'machine-inferred';
+        doc.relations[0].provenance = [{ sourceUnitId: 'su-lecture03-0011' }];
+        return doc;
+      },
+      // SC-28 on edges: provenance alone is not verification.
+      'relation-verified-with-provenance-but-no-basis': (doc) => {
+        doc.relations[0].epistemicState = 'verified';
+        delete doc.relations[0].basis;
+        doc.relations[0].provenance = [{ sourceUnitId: 'su-lecture03-0011' }];
+        return doc;
+      },
+      // SC-15: an edge to nowhere is not an edge.
+      'relation-without-target': (doc) => {
+        delete doc.relations[0].target;
+        doc.relations[0].provenance = [{ sourceUnitId: 'su-lecture03-0011' }];
+        return doc;
+      },
+      // SC-20: a fingerprint value must be a 64-character SHA-256 hex digest.
+      'fingerprint-not-sha256-hex': (doc) => {
+        doc.humanNoteFingerprint = { alg: 'sha256', value: 'abc123' };
+        return doc;
+      },
     },
   },
   {
@@ -175,6 +225,20 @@ const contracts = [
         doc.units[0].summary = 'y'.repeat(281);
         return doc;
       },
+
+      // ---- M1A-V2 hardening regressions ----
+
+      // SM-27: coverage is top-level required, so its absence is invalid.
+      'missing-coverage': (doc) => {
+        delete doc.coverage;
+        return doc;
+      },
+      // SM-27: `not_assessed` is how "we did not audit coverage" is stated.
+      // Omitting the field must never be the way to say it.
+      'coverage-without-assessment': (doc) => {
+        delete doc.coverage.assessment;
+        return doc;
+      },
     },
   },
   {
@@ -235,6 +299,58 @@ const contracts = [
       // RT-20: not every task names a schema, but a structured one does.
       'missing-task-request-fields': (doc) => {
         delete doc.taskRequest.input;
+        return doc;
+      },
+
+      // ---- M1A-V2 hardening regressions ----
+
+      // RT-29: a success must not carry an error.
+      'success-with-error': (doc) => {
+        doc.invocationResult.error = { kind: 'unknown', message: 'contradicts ok:true', retryable: false };
+        return doc;
+      },
+      // RT-29: a failure must not carry a result.
+      'failure-with-result': (doc) => {
+        doc.invocationResult = {
+          ok: false,
+          error: { kind: 'transport-failed', message: 'failed', retryable: true, stage: 'transport' },
+          result: { taskId: 'task-20260922T000000-001', output: { raw: '', format: 'text' } },
+        };
+        return doc;
+      },
+      // RT-30: a result carrying only taskId is an empty success.
+      'empty-success': (doc) => {
+        doc.invocationResult = { ok: true, result: { taskId: 'task-20260922T000000-001' } };
+        return doc;
+      },
+      // RT-31: `matched` needs BOTH the requested model and an available value.
+      'matched-without-requested-model': (doc) => {
+        delete doc.invocationResult.result.model.requested;
+        return doc;
+      },
+      // RT-27: an empty ref object is not provenance.
+      'empty-task-input-ref': (doc) => {
+        doc.taskRequest.input[0].ref = {};
+        return doc;
+      },
+      // RT-28: a `model` object that requests nothing carries no information.
+      'empty-model-request': (doc) => {
+        doc.taskRequest.model = {};
+        return doc;
+      },
+      // RT-26: prompt paths get the same absolute-path ban as schema paths.
+      'absolute-prompt-path': (doc) => {
+        doc.taskRequest.promptRef.path = 'C:\\Users\\someone\\prompts\\extract.md';
+        return doc;
+      },
+      // CH-03 / RT-18: an unavailable resolved model must say why.
+      'resolved-unavailable-with-value': (doc) => {
+        doc.invocationResult.result.model.resolved = {
+          availability: 'unavailable',
+          reason: 'runtime does not expose it',
+          value: 'example-model-large',
+        };
+        doc.invocationResult.result.model.resolution = 'unknown';
         return doc;
       },
     },
@@ -306,6 +422,56 @@ const contracts = [
       },
       'host-path-in-repo-ref': (doc) => {
         doc.git.worktreeRef = 'C:\\Users\\someone\\vault';
+        return doc;
+      },
+
+      // ---- M1A-V2 hardening regressions ----
+
+      // RM-23: tagged-union branches are mutually exclusive.
+      'case-id-present-with-reason': (doc) => {
+        doc.caseId = { availability: 'present', value: 'case-asr-noise-001', reason: 'also present' };
+        return doc;
+      },
+      'git-unavailable-with-commit': (doc) => {
+        doc.git = { availability: 'unavailable', reason: 'outside a work tree', commit: 'ce8fd2a' };
+        return doc;
+      },
+      'runtime-present-with-reason': (doc) => {
+        doc.runtime.reason = 'contradicts availability present';
+        return doc;
+      },
+      'model-available-with-reason': (doc) => {
+        doc.model.resolved = { availability: 'available', value: 'example-model-large', reason: 'contradicts available' };
+        return doc;
+      },
+
+      // RM-24: usage availability must carry exactly what it claims.
+      'usage-reported-without-counts': (doc) => {
+        doc.usage = { availability: 'reported' };
+        return doc;
+      },
+      'usage-partial-without-counts': (doc) => {
+        doc.usage = { availability: 'partial' };
+        return doc;
+      },
+      'usage-unavailable-with-zeros': (doc) => {
+        doc.usage = { availability: 'unavailable', inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+        return doc;
+      },
+
+      // RM-25: portable references may not be absolute host paths.
+      'source-bundle-absolute-path': (doc) => {
+        doc.sourceBundle.refs[0].ref = 'C:\\Users\\someone\\vault\\lecture03.txt';
+        return doc;
+      },
+      'source-bundle-posix-absolute-path': (doc) => {
+        doc.sourceBundle.refs[0].ref = '/home/someone/vault/lecture03.txt';
+        return doc;
+      },
+
+      // RM-26: a fingerprint value must be a 64-character SHA-256 hex digest.
+      'fingerprint-not-sha256-hex': (doc) => {
+        doc.sourceBundle.refs[0].digest = { alg: 'sha256', value: 'not-a-hex-digest' };
         return doc;
       },
     },

@@ -34,8 +34,7 @@
     "requested": "example-model-large",
     "resolved": {
       "availability": "available"
-    },
-    "provider": "example-provider"
+    }
   },
   "reasoning": {
     "requested": "medium",

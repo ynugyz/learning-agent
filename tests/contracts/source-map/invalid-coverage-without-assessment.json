@@ -1,0 +1,168 @@
+{
+  "contractVersion": "source-map/0.1",
+  "schemaVersion": "0.1",
+  "status": "draft",
+  "sourcePackageId": "pkg-bayes-lecture03",
+  "sources": [
+    {
+      "sourceId": "src-lecture03-transcript",
+      "kind": "transcript",
+      "location": "fixtures/bayes-lecture03/transcript.asr.txt",
+      "quality": {
+        "rating": "noisy",
+        "issues": [
+          "asr-noise"
+        ],
+        "note": "Technical terms garbled around 00:12."
+      }
+    },
+    {
+      "sourceId": "src-lecture03-slides",
+      "kind": "slide",
+      "location": "fixtures/bayes-lecture03/slides.pdf",
+      "quality": {
+        "rating": "clean"
+      }
+    }
+  ],
+  "missingOrUnavailable": [
+    {
+      "description": "Final 10 minutes of the recording are absent.",
+      "expectedFrom": "src-lecture03-transcript",
+      "impact": "high"
+    }
+  ],
+  "coverage": {
+    "note": "Transcript truncated; slides complete."
+  },
+  "units": [
+    {
+      "unitId": "su-lecture03-0011",
+      "sourceId": "src-lecture03-transcript",
+      "locator": {
+        "kind": "timestamp-range",
+        "start": "00:02:10",
+        "end": "00:03:40"
+      },
+      "contentType": "definition",
+      "preservation": {
+        "priority": "must-preserve",
+        "isInference": true,
+        "rationale": "Introduces the concept everything later depends on."
+      },
+      "epistemicStatus": "source-explicit",
+      "summary": "Introduces the prior distribution and its role before data is observed.",
+      "keyTerms": [
+        "prior",
+        "parameter"
+      ],
+      "confidence": {
+        "level": "high",
+        "basis": "machine-inferred"
+      },
+      "observations": [
+        {
+          "observation": "has-formula",
+          "advisory": true,
+          "rationale": "Notation appears on the accompanying slide."
+        }
+      ]
+    },
+    {
+      "unitId": "su-lecture03-0017",
+      "sourceId": "src-lecture03-transcript",
+      "locator": {
+        "kind": "timestamp-range",
+        "start": "00:07:00",
+        "end": "00:07:45"
+      },
+      "contentType": "problem-solving-tip",
+      "preservation": {
+        "priority": "high",
+        "isInference": true,
+        "rationale": "A shortcut presented once; compression would lose it."
+      },
+      "epistemicStatus": "heuristic",
+      "summary": "Rule of thumb for spotting when a conjugate prior applies.",
+      "confidence": {
+        "level": "medium",
+        "basis": "machine-inferred"
+      }
+    },
+    {
+      "unitId": "su-lecture03-0019",
+      "sourceId": "src-lecture03-transcript",
+      "locator": {
+        "kind": "timestamp-range",
+        "start": "00:08:10",
+        "end": "00:08:55"
+      },
+      "contentType": "analogy",
+      "preservation": {
+        "priority": "normal",
+        "isInference": true
+      },
+      "epistemicStatus": "analogy",
+      "summary": "Teacher compares a prior to a bet placed before seeing the cards.",
+      "confidence": {
+        "level": "medium",
+        "basis": "machine-inferred"
+      }
+    },
+    {
+      "unitId": "su-lecture03-0022",
+      "sourceId": "src-lecture03-slides",
+      "locator": {
+        "kind": "slide",
+        "value": "14"
+      },
+      "contentType": "exam-pointer",
+      "preservation": {
+        "priority": "high",
+        "isInference": true,
+        "rationale": "Assessment-relevant statement, easy to drop."
+      },
+      "epistemicStatus": "source-explicit",
+      "summary": "States that prior selection is examinable.",
+      "confidence": {
+        "level": "high",
+        "basis": "machine-inferred"
+      }
+    },
+    {
+      "unitId": "su-lecture03-0031",
+      "sourceId": "src-lecture03-slides",
+      "locator": {
+        "kind": "slide",
+        "value": "15"
+      },
+      "contentType": "definition",
+      "preservation": {
+        "priority": "high",
+        "isInference": true
+      },
+      "epistemicStatus": "source-explicit",
+      "summary": "Uses the term 'flat prior' for the same idea.",
+      "confidence": {
+        "level": "medium",
+        "basis": "machine-inferred"
+      }
+    }
+  ],
+  "conflicts": [
+    {
+      "conflictId": "cf-lecture03-0001",
+      "kind": "terminology-mismatch",
+      "unitRefs": [
+        "su-lecture03-0011",
+        "su-lecture03-0031"
+      ],
+      "description": "Transcript says 'uninformative prior', slide says 'flat prior'.",
+      "severity": "medium",
+      "resolution": {
+        "status": "unresolved"
+      }
+    }
+  ],
+  "notes": "ASR quality degrades after 00:12."
+}

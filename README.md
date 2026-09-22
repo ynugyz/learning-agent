@@ -99,7 +99,7 @@ Verifies the expected skeleton exists, checks that credential files are
 git-ignored and never tracked/staged (without forbidding a local `.env`),
 scans the files Git would commit for secret-like content, validates that schema
 files parse as JSON, guards the core↔runtime dependency boundary, and **runs
-the executable contract verification**: `tsc --noEmit` plus 56 JSON Schema
+the executable contract verification**: `tsc --noEmit` plus 84 JSON Schema
 fixture assertions. See [tools/README.md](tools/README.md).
 
 ## Contract verification
@@ -109,7 +109,7 @@ prose:
 
 ```powershell
 npx --no-install tsc --noEmit        # contract declarations compile
-node tools/contract-tests.mjs        # 4 valid + 48 invalid fixtures, Ajv
+node tools/contract-tests.mjs        # 4 valid + 75 invalid fixtures, Ajv
 ```
 
 Evidence and honest limits: [M1A_EXECUTABLE_VERIFICATION.md](docs/reviews/M1A_EXECUTABLE_VERIFICATION.md).

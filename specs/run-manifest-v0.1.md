@@ -5,7 +5,7 @@
 > This contract has **not passed human review** as a finished design. Milestone
 > M0 itself is still awaiting final human approval.
 
-- Requirement IDs: `RM-1` … `RM-22` (see the requirement index in §10)
+- Requirement IDs: `RM-1` … `RM-26` (see the requirement index in §10)
 - Related: `AGENTS.md` §9, `docs/ARCHITECTURE.md` §6, `docs/ENVIRONMENT.md`,
   `specs/agent-runtime-v0.1.md`
 - Machine contract: `schemas/run-manifest.v0.1.schema.json`
@@ -68,6 +68,32 @@ manifest carrying conclusions stops being comparable across code changes.
 **Adjudicated (REV1).** Content fingerprints in this contract are SHA-256. The
 algorithm field is optional and, when omitted, means SHA-256 (`RM-15`). One
 default beats an unstated assumption that makes digests incomparable.
+
+### RM-23 — Tagged-union branches are mutually exclusive
+
+**Adjudicated (M1A-V2).** A `present` / `available` branch must not also carry
+the `reason` that belongs to the absent branch, and an absent branch must not
+carry the `value` belonging to the present one. Previously a manifest could
+assert `availability: present` *and* an `unavailable` reason side by side, which
+makes the record self-contradictory while still validating.
+
+### RM-24 — Usage must carry exactly what its availability claims
+
+`reported` requires all three token counts; `partial` requires at least one;
+`unavailable` must carry **none**. Omitting counts under `unavailable` is the
+only honest encoding: zero is a measurement, not an absence.
+
+### RM-25 — Portable references only
+
+`sourceBundle.refs[].ref` and comparable reference fields are repository- or
+package-relative. Absolute Windows, POSIX, UNC and home-relative paths are
+rejected, so a manifest never leaks host layout (`RM-21`).
+
+### RM-26 — Fingerprint digests have a fixed shape
+
+A fingerprint `value` must be 64 hexadecimal characters (`sha256`). The
+**hashed-object semantics** — raw bytes versus canonical JSON — remain
+**DEFERRED**; only the digest's shape is fixed.
 
 ### RM-8 — Manifests are generated run artifacts
 
@@ -244,8 +270,7 @@ convention.
     "resolved": {
       "availability": "available",
       "value": "example-model-large"
-    },
-    "provider": "example-provider"
+    }
   },
   "reasoning": {
     "requested": "medium",
@@ -385,6 +410,10 @@ convention.
 | RM-20 | Prompt and schema versions are present; an empty object asserts that none were used. |
 | RM-21 | The manifest contains no host-specific or sensitive local path. |
 | RM-22 | Manifests are generated artifacts under `runs/` and are retained with results only when promoted to a reference benchmark. |
+| RM-23 | `present`/`available` branches must not carry the absent branch's reason, and vice versa: tagged unions are mutually exclusive. |
+| RM-24 | `usage.availability` carries exactly what it claims: `reported` all three counts, `partial` at least one, `unavailable` none. |
+| RM-25 | Reference fields are portable; absolute and home-relative host paths are rejected. |
+| RM-26 | Fingerprint values are 64-character SHA-256 hex digests; hashed-object semantics remain deferred. |
 
 ### Reconciliation with the previous revision
 

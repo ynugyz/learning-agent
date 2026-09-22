@@ -46,7 +46,13 @@
       "properties": {
         "id": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "version": { "type": "string", "minLength": 1, "pattern": "\\S" },
-        "path": { "type": "string", "minLength": 1, "pattern": "\\S" }
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S",
+          "description": "Repository-relative prompt location. Absolute Windows, POSIX and UNC paths are rejected, exactly as for outputSchemaRef.path (RT-11, RT-26).",
+          "not": { "pattern": "^(?:[A-Za-z]:[\\\\/]|/|\\\\\\\\|~)" }
+        }
       },
       "required": ["id", "version"],
       "additionalProperties": false
@@ -59,11 +65,17 @@
         "content": { "type": "string" },
         "ref": {
           "type": "object",
+          "description": "Where the content came from (RT-27). When present it must identify at least one real reference: an empty object is not provenance.",
           "properties": {
             "sourceId": { "type": "string", "minLength": 1, "pattern": "\\S" },
             "sourceUnitId": { "type": "string", "minLength": 1, "pattern": "\\S" },
             "locator": { "type": "string", "minLength": 1, "pattern": "\\S" }
           },
+          "anyOf": [
+            { "required": ["sourceId"] },
+            { "required": ["sourceUnitId"] },
+            { "required": ["locator"] }
+          ],
           "additionalProperties": false
         }
       },
@@ -99,7 +111,9 @@
         },
         "model": {
           "type": "object",
+          "description": "Requested model (RT-28). When present it must actually request something: an empty object carries no information and is rejected.",
           "properties": { "requested": { "type": "string", "minLength": 1, "pattern": "\\S" } },
+          "required": ["requested"],
           "additionalProperties": false
         },
         "reasoning": {
@@ -146,7 +160,7 @@
           "description": "Tagged availability: a value when available, a reason when not.",
           "properties": {
             "availability": { "type": "string", "enum": ["available", "unavailable"] },
-            "value": { "type": "string", "minLength": 1, "pattern": "\\S" },
+            "value": { "type": "string", "minLength": 1, "pattern": "\\S", "description": "The model name that actually ran. Not a hash." },
             "reason": { "type": "string", "minLength": 1, "pattern": "\\S", "maxLength": 300 }
           },
           "required": ["availability"],
@@ -160,6 +174,15 @@
               "$comment": "RT-18: unavailable requires the reason.",
               "if": { "properties": { "availability": { "const": "unavailable" } }, "required": ["availability"] },
               "then": { "required": ["reason"] }
+            },
+            {
+              "$comment": "RT-32: the availability branches are mutually exclusive. `available` must not carry a reason and `unavailable` must not carry a value, so a status can never be asserted while the contradicting data sits beside it.",
+              "if": { "properties": { "availability": { "const": "available" } }, "required": ["availability"] },
+              "then": { "not": { "required": ["reason"] } }
+            },
+            {
+              "if": { "properties": { "availability": { "const": "unavailable" } }, "required": ["availability"] },
+              "then": { "not": { "required": ["value"] } }
             }
           ],
           "additionalProperties": false
@@ -170,7 +193,7 @@
       "required": ["resolution"],
       "allOf": [
         {
-          "$comment": "RT-13: a definitive resolution requires a resolved value to have been available.",
+          "$comment": "RT-13 / RT-31: a definitive resolution needs BOTH sides of the comparison — the requested model and an available resolved value. `matched` and `substituted` are claims about a comparison, so neither may be asserted with one side missing.",
           "if": {
             "properties": { "resolution": { "enum": ["matched", "substituted"] } },
             "required": ["resolution"]
@@ -178,11 +201,12 @@
           "then": {
             "properties": {
               "resolved": {
+                "type": "object",
                 "properties": { "availability": { "const": "available" } },
                 "required": ["availability", "value"]
               }
             },
-            "required": ["resolved"]
+            "required": ["requested", "resolved"]
           }
         }
       ],
@@ -221,6 +245,16 @@
         "warnings": { "type": "array", "items": { "type": "string" } }
       },
       "required": ["taskId"],
+      "allOf": [
+        {
+          "$comment": "RT-30: a successful result must actually carry something — at least one of output, model or usage. A result containing only `taskId` is an empty success and is indistinguishable from a silent failure.",
+          "anyOf": [
+            { "required": ["output"] },
+            { "required": ["model"] },
+            { "required": ["usage"] }
+          ]
+        }
+      ],
       "additionalProperties": false
     },
     "runError": {
@@ -248,16 +282,25 @@
     },
     "invocationResult": {
       "type": "object",
-      "description": "Discriminated union so the failure branch cannot be ignored (RT-8).",
+      "description": "TRULY MUTUALLY EXCLUSIVE discriminated union (RT-8, RT-29): a success carries a `result` and MUST NOT carry an `error`; a failure carries an `error` and MUST NOT carry a `result`. The failure branch cannot be omitted or ignored.",
       "properties": {
-        "ok": { "type": "boolean" },
+        "ok": {
+          "type": "boolean",
+          "description": "Discriminant. `true` means the runtime completed the task; it says nothing about whether the output was useful — see `output.parseError` and the `model-returned-empty` error kind."
+        },
         "result": { "$ref": "#/$defs/runtimeResult" },
         "error": { "$ref": "#/$defs/runError" }
       },
       "required": ["ok"],
       "allOf": [
-        { "if": { "properties": { "ok": { "const": true } }, "required": ["ok"] }, "then": { "required": ["result"] } },
-        { "if": { "properties": { "ok": { "const": false } }, "required": ["ok"] }, "then": { "required": ["error"] } }
+        {
+          "if": { "properties": { "ok": { "const": true } }, "required": ["ok"] },
+          "then": { "required": ["result"], "not": { "required": ["error"] } }
+        },
+        {
+          "if": { "properties": { "ok": { "const": false } }, "required": ["ok"] },
+          "then": { "required": ["error"], "not": { "required": ["result"] } }
+        }
       ],
       "additionalProperties": false
     }

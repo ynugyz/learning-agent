@@ -1,18 +1,20 @@
 /**
- * Executable contract verification — M1A-V
+ * Executable contract verification — M1A-V2
  *
  * DRAFT — NOT IMPLEMENTATION-STABLE.
  *
- * Proves that the four M1A contracts hold **as machine-checkable artefacts**,
- * not merely as prose:
+ * Proves that the four M1A contracts hold **as machine-checkable artefacts**:
  *
- *   1. the valid fixture of each contract is ACCEPTED by its JSON Schema;
- *   2. every invalid fixture is REJECTED by its JSON Schema;
- *   3. every invalid fixture fails for the reason it was written for, not by
- *      accident (each broken keyword is on a reviewed allowlist);
- *   4. each invalid fixture still satisfies the structural shape of the schema
- *      apart from its intended violation — so a rejection proves the intended
- *      rule fired, not that the document was malformed gibberish.
+ *   1. the canonical valid fixture of each contract is ACCEPTED;
+ *   2. every invalid fixture is REJECTED;
+ *   3. the rejection matches an **explicitly declared expectation** — a specific
+ *      JSON Schema keyword and an instance path prefix — rather than merely
+ *      "some keyword on an allowlist";
+ *   4. each spec's embedded example is byte-identical to its fixture.
+ *
+ * Point 3 is the M1A-V2 change. Under M1A-V a wrong-but-allowlisted keyword
+ * (e.g. `required` firing for an unrelated reason) would still have passed. Now
+ * the fixture must fail for the rule it was written for.
  *
  * Run:  node tools/contract-tests.mjs
  *
@@ -27,6 +29,7 @@ import Ajv2020 from 'ajv/dist/2020.js';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const fixturesRoot = join(repoRoot, 'tests', 'contracts');
+const expectationsPath = join(fixturesRoot, 'expectations.json');
 
 const contracts = [
   {
@@ -55,34 +58,7 @@ const contracts = [
   },
 ];
 
-/**
- * Keywords a fixture is ALLOWED to break.
- *
- * Rationale: `required` is included because the contract expresses its
- * conditional rules through `if`/`then`, and a `then` branch legitimately adds
- * `required` constraints ("if availability is `available`, then `value` is
- * required"). Excluding it would make every conditional rule look like an
- * accident.
- *
- * Anything OUTSIDE this list — a `type` error, for instance — means the fixture
- * was mutated into something malformed rather than into a rule violation, and
- * the test fails: a fixture that fails for the wrong reason proves nothing.
- */
-const ALLOWED_KEYWORDS = new Set([
-  'additionalProperties',
-  'enum',
-  'const',
-  'required',
-  'minLength',
-  'minItems',
-  'maxLength',
-  'if',
-  'then',
-  'not',
-  'anyOf',
-  'allOf',
-  'pattern',
-]);
+const expectations = JSON.parse(readFileSync(expectationsPath, 'utf8'));
 
 const readJson = (relativePath) => JSON.parse(readFileSync(join(repoRoot, relativePath), 'utf8'));
 
@@ -95,15 +71,38 @@ function collectKeywords(errors, into = new Set()) {
   return into;
 }
 
-/** A short, readable rendering of an Ajv error. */
-function describeError(error) {
-  const at = error.instancePath === '' ? '(root)' : error.instancePath;
-  return `${at} ${error.keyword} ${JSON.stringify(error.params)}`;
+const describeError = (error) =>
+  `${error.instancePath === '' ? '(root)' : error.instancePath} ${error.keyword} ${JSON.stringify(error.params)}`;
+
+/**
+ * Instance paths Ajv may blame for a failure.
+ *
+ * A conditional (`if`/`then`) rule is reported against the object that owns the
+ * conditional, not the leaf that violated the `then` branch — so a prefix match
+ * is used for conditional rules, while ordinary keyword failures still require
+ * the exact path.
+ */
+function instancePaths(errors, into = []) {
+  for (const error of errors ?? []) {
+    into.push(error.instancePath);
+    if (error.params?.errors) instancePaths(error.params.errors, into);
+  }
+  return into;
 }
+
+const CONDITIONAL_KEYWORDS = new Set(['if', 'then', 'anyOf', 'allOf', 'not']);
 
 const ajv = new Ajv2020({
   allErrors: true,
-  strict: false,
+  // M1A-V2: strict mode is ON. `strictRequired` stays off because schemas use
+  // `if`/`then` to add conditional `required` constraints, which strictRequired
+  // rejects as "required property not defined in properties" in some shapes.
+  // Every other strict check is active, and each relaxation is listed in
+  // docs/reviews/M1A_FINAL_AUDIT_FIXES.md.
+  strict: true,
+  strictRequired: false,
+  strictSchema: true,
+  strictTypes: true,
   allowUnionTypes: true,
 });
 
@@ -111,60 +110,67 @@ let checks = 0;
 let failures = 0;
 const report = [];
 
-function fail(message) {
+const fail = (message) => {
   failures += 1;
   console.error(`  FAIL  ${message}`);
-}
-
-function pass(message) {
-  console.log(`  PASS  ${message}`);
-}
+};
+const pass = (message) => console.log(`  PASS  ${message}`);
 
 for (const contract of contracts) {
   const schema = readJson(contract.schema);
   const validate = ajv.compile(schema);
   const dir = join(fixturesRoot, contract.name);
-  const files = readdirSync(dir).filter((f) => f.endsWith('.json')).sort();
 
   console.log(`\n== ${contract.name} ==`);
 
   // ---- 1. canonical valid fixture must be accepted -------------------------
-  const validPath = join(dir, 'valid.json');
-  const valid = JSON.parse(readFileSync(validPath, 'utf8'));
+  const valid = readJson(`tests/contracts/${contract.name}/valid.json`);
   checks += 1;
-  if (validate(valid)) {
-    pass('valid.json accepted');
-  } else {
-    fail(`valid.json REJECTED: ${(validate.errors ?? []).map(describeError).join(' | ')}`);
-  }
+  if (validate(valid)) pass('valid.json accepted');
+  else fail(`valid.json REJECTED: ${(validate.errors ?? []).map(describeError).join(' | ')}`);
 
-  // ---- 2+3+4. every invalid fixture must be rejected for its own reason -----
-  const invalidFiles = files.filter((f) => f.startsWith('invalid-'));
-  for (const file of invalidFiles) {
+  // ---- 2+3. every invalid fixture must be rejected for its declared reason --
+  const declared = expectations[contract.name] ?? {};
+  for (const [label, expectation] of Object.entries(declared)) {
     checks += 1;
-    const doc = JSON.parse(readFileSync(join(dir, file), 'utf8'));
-    const ok = validate(doc);
-
-    if (ok) {
-      fail(`${file} was ACCEPTED but must be rejected`);
+    const file = `invalid-${label}.json`;
+    let doc;
+    try {
+      doc = readJson(`tests/contracts/${contract.name}/${file}`);
+    } catch (error) {
+      fail(`${file} could not be read: ${error.message}`);
       continue;
     }
 
-    const keywords = collectKeywords(validate.errors);
-    const unexpected = [...keywords].filter((k) => !ALLOWED_KEYWORDS.has(k));
-
-    // Rejection reason must be a rule violation, never a malformed document.
-    if (unexpected.length > 0) {
-      fail(`${file} rejected for an unintended reason (${unexpected.join(', ')}): ${(validate.errors ?? []).map(describeError).slice(0, 4).join(' | ')}`);
+    if (validate(doc)) {
+      fail(`${file} was ACCEPTED but must be rejected (expected ${expectation.keyword} at ${expectation.instancePath || '(root)'})`);
       continue;
     }
 
-    pass(`${file} rejected via ${[...keywords].sort().join(', ')}`);
+    const errors = validate.errors ?? [];
+    const keywords = collectKeywords(errors);
+    const paths = instancePaths(errors);
+
+    if (!keywords.has(expectation.keyword)) {
+      fail(`${file} rejected, but NOT via the expected keyword "${expectation.keyword}" (saw: ${[...keywords].sort().join(', ')}): ${errors.map(describeError).slice(0, 3).join(' | ')}`);
+      continue;
+    }
+
+    if (expectation.instancePath !== undefined) {
+      const wanted = expectation.instancePath;
+      const matched = CONDITIONAL_KEYWORDS.has(expectation.keyword)
+        ? paths.some((p) => p === wanted || p.startsWith(wanted === '' ? '' : `${wanted}/`))
+        : paths.includes(wanted);
+      if (!matched) {
+        fail(`${file} rejected via ${expectation.keyword}, but at an unexpected path (want ${wanted === '' ? '(root)' : wanted}, saw: ${[...new Set(paths)].join(', ')})`);
+        continue;
+      }
+    }
+
+    pass(`${file} rejected via ${expectation.keyword} at ${expectation.instancePath === '' ? '(root)' : expectation.instancePath}`);
   }
 
   // ---- 4. the spec's embedded example must equal the fixture ---------------
-  // The spec example and the canonical fixture are two copies of the same
-  // document. Keeping them in sync by hand guarantees drift, so it is asserted.
   checks += 1;
   const specText = readFileSync(join(repoRoot, contract.spec), 'utf8');
   const headingIndex = specText.indexOf(contract.specHeading);
@@ -174,20 +180,32 @@ for (const contract of contracts) {
     fail(`${contract.spec}: could not locate the fenced example after "${contract.specHeading}"`);
   } else {
     const embedded = specText.slice(fenceStart + 7, fenceEnd).trim();
-    const canonical = JSON.stringify(valid, null, 2).trim();
-    if (embedded === canonical) {
+    if (embedded === JSON.stringify(valid, null, 2).trim()) {
       pass(`${contract.spec} example is identical to valid.json`);
     } else {
       fail(`${contract.spec} example DIFFERS from valid.json (run: node tools/sync-spec-examples.mjs)`);
     }
   }
 
-  report.push({
-    contract: contract.name,
-    valid: 1,
-    invalid: invalidFiles.length,
-  });
+  report.push({ contract: contract.name, valid: 1, invalid: Object.keys(declared).length });
 }
+
+// ---- 5. every fixture on disk must be declared in expectations -------------
+// A fixture nobody declares is a fixture nobody asserts, which is worse than
+// no fixture at all: it looks like coverage.
+checks += 1;
+const undeclared = [];
+for (const contract of contracts) {
+  const declared = expectations[contract.name] ?? {};
+  const dir = join(fixturesRoot, contract.name);
+  for (const file of readdirSync(dir)) {
+    if (!file.startsWith('invalid-') || !file.endsWith('.json')) continue;
+    const label = file.slice('invalid-'.length, -'.json'.length);
+    if (!(label in declared)) undeclared.push(`${contract.name}/${file}`);
+  }
+}
+if (undeclared.length === 0) pass('every invalid fixture has a declared expectation');
+else fail(`fixtures without expectations: ${undeclared.join(', ')}`);
 
 console.log('\n== summary ==');
 for (const row of report) {

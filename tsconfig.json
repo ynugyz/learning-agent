@@ -1,5 +1,5 @@
 {
-  "comment": "Scaffold only. `npm run typecheck` will fail until `typescript` is deliberately installed (see package.json comment and DECISIONS.md D-0005). M1A ships drafts, not a build.",
+  "comment": "Types-only project. `npm run typecheck` (tsc --noEmit) compiles src/contracts/*.ts; TypeScript 5.9.3 is an exact-pinned devDependency (DECISIONS.md D-0013). No emit, no build: these are contract declarations, and the only implementation is a compiler check.",
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],

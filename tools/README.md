@@ -8,7 +8,7 @@ dev-only; there is still no build system and no runtime dependency.
 | --- | --- | --- |
 | `check.ps1` | PowerShell 5.1 | Full repository check: skeleton, secret hygiene + self-test, contract markers, dependency boundary, schema well-formedness, line endings, ignore policy, dependency policy, and **it also runs the two verification scripts below** and reports Git status. |
 | `contract-tests.mjs` | Node ESM | Validates `tests/contracts/**` against the four JSON Schemas with Ajv, asserting each invalid fixture is rejected for an allowed reason. |
-| `generate-contract-fixtures.mjs` | Node ESM | Regenerates the 48 invalid fixtures from the canonical valid ones, one named mutation each. Run only when a mutation or a valid fixture changes. |
+| `generate-contract-fixtures.mjs` | Node ESM | Regenerates the 75 invalid fixtures from the canonical valid ones, one named mutation each. Run only when a mutation or a valid fixture changes. |
 
 ## Usage
 
