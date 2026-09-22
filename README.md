@@ -41,23 +41,29 @@ README.md            This file
 .gitattributes       Line-ending policy: LF in the repo, CRLF for Windows scripts
 .editorconfig        Editor defaults matching .gitattributes
 .env.example         Variable NAMES only; copy to .env (git-ignored)
+.npmrc               Registry + local npm cache (host workaround; see its comments)
+package.json         Scripts + exactly pinned DEV-only tooling; no runtime deps
+package-lock.json    Lockfile for the pinned dev tooling (committed)
 
 docs/                ARCHITECTURE.md, DECISIONS.md, ERROR_TAXONOMY.md, ENVIRONMENT.md
+docs/reviews/        Independent challenge + human adjudication + executable verification
 specs/               Human-readable specifications for protocols and artifacts
-schemas/             Machine-readable JSON Schemas for the same artifacts
+schemas/             Machine-readable JSON Schemas (live drafts; archive/m0-draft superseded)
 prompts/             Versioned prompt assets
-src/core/            Evidence, SourceMap, LessonModel, SemanticCard concepts
+src/contracts/       The four core contract type declarations (shared, no behaviour)
+src/core/            Runtime-independent concepts and logic (not implemented)
 src/pipeline/        Layer A->G orchestration; no runtime-specific code
 src/modules/         Deterministic single-purpose modules
-src/runtime/         AgentRuntime interface (runtime-agnostic)
+src/runtime/         Concrete AgentRuntime implementations
 src/runtime/dsh/     DSH adapter — the ONLY place DSH specifics may appear
+tests/contracts/     Valid + invalid fixtures proving the contracts are enforced
 benchmark/cases/     Benchmark input cases (no fabricated Gold answers)
 benchmark/gold/      Human-authored Gold data (placeholders until authored)
 benchmark/results/   Reviewed, promoted experiment results
 test-vault/          Disposable sandbox vault; never a production Vault
 runs/                Generated run artifacts (git-ignored)
 obsidian-plugin/     Future Obsidian integration (not started)
-tools/               Reproducible repository checks
+tools/               Repository checks and contract verification
 ```
 
 ## Environment
@@ -74,20 +80,41 @@ Verified on 2026-09-22 (see [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)):
 | Python | 3.14.7 |
 | uv | 0.12.10 |
 | DSH (`@deepseek-ai/dsh`) | 0.1.6-alpha.2 |
+| TypeScript (dev-only, exact) | 5.9.3 |
+| Ajv (dev-only, exact) | 8.20.0 |
 
-No project dependencies are installed yet: M0 declares none. Dependency
-decisions are recorded in [docs/DECISIONS.md](docs/DECISIONS.md).
+There are **no runtime dependencies**. Two dev-only tools are exactly pinned for
+executable contract verification (`npm install`); see
+[docs/DECISIONS.md](docs/DECISIONS.md) D-0013 and
+[docs/ENVIRONMENT.md](docs/ENVIRONMENT.md).
 
 ## Repository checks
 
 ```powershell
+npm install                                          # installs the pinned dev tooling
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\check.ps1
 ```
 
 Verifies the expected skeleton exists, checks that credential files are
 git-ignored and never tracked/staged (without forbidding a local `.env`),
-scans the files Git would commit for secret-like content, and validates that
-schema files parse as JSON. See [tools/README.md](tools/README.md).
+scans the files Git would commit for secret-like content, validates that schema
+files parse as JSON, guards the core↔runtime dependency boundary, and **runs
+the executable contract verification**: `tsc --noEmit` plus 56 JSON Schema
+fixture assertions. See [tools/README.md](tools/README.md).
+
+## Contract verification
+
+The four M1A contracts are checked as machine-readable artefacts, not only as
+prose:
+
+```powershell
+npx --no-install tsc --noEmit        # contract declarations compile
+node tools/contract-tests.mjs        # 4 valid + 48 invalid fixtures, Ajv
+```
+
+Evidence and honest limits: [M1A_EXECUTABLE_VERIFICATION.md](docs/reviews/M1A_EXECUTABLE_VERIFICATION.md).
+Cross-artifact reference integrity is **not** covered — JSON Schema validates
+one document at a time — and no implementation exists yet.
 
 ## Safety boundaries
 

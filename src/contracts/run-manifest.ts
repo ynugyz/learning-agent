@@ -20,7 +20,7 @@
  * @packageDocumentation
  */
 
-import type { ReviewStatus, SchemaVersion, Fingerprint } from './semantic-card';
+import type { Fingerprint, ReviewStatus, SchemaVersion } from './common';
 
 /** One input consumed by a run. `ref` must not be a production Vault or host path. */
 export interface ManifestSourceRef {

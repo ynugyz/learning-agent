@@ -15,14 +15,14 @@
           "type": "string",
           "enum": ["timestamp-range", "page-range", "slide", "section", "line-range", "span", "opaque"]
         },
-        "start": { "type": "string", "minLength": 1 },
-        "end": { "type": "string", "minLength": 1 },
-        "value": { "type": "string", "minLength": 1 }
+        "start": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "end": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "value": { "type": "string", "minLength": 1, "pattern": "\\S" }
       },
       "required": ["kind"],
       "anyOf": [
-        { "properties": { "value": { "minLength": 1 } }, "required": ["value"] },
-        { "properties": { "start": { "minLength": 1 } }, "required": ["start"] }
+        { "properties": { "value": { "minLength": 1, "pattern": "\\S" } }, "required": ["value"] },
+        { "properties": { "start": { "minLength": 1, "pattern": "\\S" } }, "required": ["start"] }
       ],
       "additionalProperties": false
     },
@@ -84,7 +84,7 @@
     "status": { "type": "string", "enum": ["draft", "NEEDS_REVIEW", "reviewed"] },
     "sourcePackageId": {
       "type": "string",
-      "minLength": 1,
+      "minLength": 1, "pattern": "\\S",
       "description": "One SourceMap corresponds to one ingestion source package, which is not required to equal 'one lesson' (SM-19)."
     },
     "sources": {
@@ -92,14 +92,14 @@
       "items": {
         "type": "object",
         "properties": {
-          "sourceId": { "type": "string", "minLength": 1 },
+          "sourceId": { "type": "string", "minLength": 1, "pattern": "\\S" },
           "kind": {
             "type": "string",
             "enum": ["transcript", "slide", "textbook", "student-note", "board-image", "handout", "audio", "video", "other"]
           },
           "location": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 1, "pattern": "\\S",
             "description": "Where the evidence lives. Must not point at a production Vault during experiments."
           },
           "quality": {
@@ -129,8 +129,8 @@
       "items": {
         "type": "object",
         "properties": {
-          "description": { "type": "string", "minLength": 1, "maxLength": 600 },
-          "expectedFrom": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1, "pattern": "\\S", "maxLength": 600 },
+          "expectedFrom": { "type": "string", "minLength": 1, "pattern": "\\S" },
           "impact": { "type": "string", "enum": ["low", "medium", "high", "unknown"] }
         },
         "required": ["description"],
@@ -153,8 +153,8 @@
       "items": {
         "type": "object",
         "properties": {
-          "unitId": { "type": "string", "minLength": 1 },
-          "sourceId": { "type": "string", "minLength": 1 },
+          "unitId": { "type": "string", "minLength": 1, "pattern": "\\S" },
+          "sourceId": { "type": "string", "minLength": 1, "pattern": "\\S" },
           "locator": { "$ref": "#/$defs/locator" },
           "contentType": { "$ref": "#/$defs/contentType" },
           "preservation": { "$ref": "#/$defs/preservation" },
@@ -164,7 +164,7 @@
             "maxLength": 280,
             "description": "Bounded, pointer-grade description. Never a transcript substitute (SM-26)."
           },
-          "keyTerms": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 64 } },
+          "keyTerms": { "type": "array", "items": { "type": "string", "minLength": 1, "pattern": "\\S", "maxLength": 64 } },
           "confidence": {
             "type": "object",
             "properties": {
@@ -186,14 +186,14 @@
       "items": {
         "type": "object",
         "properties": {
-          "conflictId": { "type": "string", "minLength": 1 },
+          "conflictId": { "type": "string", "minLength": 1, "pattern": "\\S" },
           "kind": { "type": "string", "enum": ["contradiction", "disagreement", "terminology-mismatch", "scope-mismatch"] },
           "unitRefs": {
             "type": "array",
             "minItems": 2,
-            "items": { "type": "string", "minLength": 1 }
+            "items": { "type": "string", "minLength": 1, "pattern": "\\S" }
           },
-          "description": { "type": "string", "minLength": 1, "maxLength": 600 },
+          "description": { "type": "string", "minLength": 1, "pattern": "\\S", "maxLength": 600 },
           "severity": { "type": "string", "enum": ["low", "medium", "high", "unknown"] },
           "resolution": {
             "type": "object",

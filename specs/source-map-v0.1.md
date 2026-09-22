@@ -298,83 +298,161 @@ Small, but includes the content types most likely to be lost.
       "sourceId": "src-lecture03-transcript",
       "kind": "transcript",
       "location": "fixtures/bayes-lecture03/transcript.asr.txt",
-      "quality": { "rating": "noisy", "issues": ["asr-noise"], "note": "Technical terms garbled around 00:12." }
+      "quality": {
+        "rating": "noisy",
+        "issues": [
+          "asr-noise"
+        ],
+        "note": "Technical terms garbled around 00:12."
+      }
     },
     {
       "sourceId": "src-lecture03-slides",
       "kind": "slide",
       "location": "fixtures/bayes-lecture03/slides.pdf",
-      "quality": { "rating": "clean" }
+      "quality": {
+        "rating": "clean"
+      }
     }
   ],
   "missingOrUnavailable": [
-    { "description": "Final 10 minutes of the recording are absent.", "expectedFrom": "src-lecture03-transcript", "impact": "high" }
+    {
+      "description": "Final 10 minutes of the recording are absent.",
+      "expectedFrom": "src-lecture03-transcript",
+      "impact": "high"
+    }
   ],
-  "coverage": { "assessment": "known_gaps", "note": "Transcript truncated; slides complete." },
+  "coverage": {
+    "assessment": "known_gaps",
+    "note": "Transcript truncated; slides complete."
+  },
   "units": [
     {
       "unitId": "su-lecture03-0011",
       "sourceId": "src-lecture03-transcript",
-      "locator": { "kind": "timestamp-range", "start": "00:02:10", "end": "00:03:40" },
+      "locator": {
+        "kind": "timestamp-range",
+        "start": "00:02:10",
+        "end": "00:03:40"
+      },
       "contentType": "definition",
-      "preservation": { "priority": "must-preserve", "isInference": true, "rationale": "Introduces the concept everything later depends on." },
+      "preservation": {
+        "priority": "must-preserve",
+        "isInference": true,
+        "rationale": "Introduces the concept everything later depends on."
+      },
       "epistemicStatus": "source-explicit",
       "summary": "Introduces the prior distribution and its role before data is observed.",
-      "keyTerms": ["prior", "parameter"],
-      "confidence": { "level": "high", "basis": "machine-inferred" },
+      "keyTerms": [
+        "prior",
+        "parameter"
+      ],
+      "confidence": {
+        "level": "high",
+        "basis": "machine-inferred"
+      },
       "observations": [
-        { "observation": "has-formula", "advisory": true, "rationale": "Notation appears on the accompanying slide." }
+        {
+          "observation": "has-formula",
+          "advisory": true,
+          "rationale": "Notation appears on the accompanying slide."
+        }
       ]
     },
     {
       "unitId": "su-lecture03-0017",
       "sourceId": "src-lecture03-transcript",
-      "locator": { "kind": "timestamp-range", "start": "00:07:00", "end": "00:07:45" },
+      "locator": {
+        "kind": "timestamp-range",
+        "start": "00:07:00",
+        "end": "00:07:45"
+      },
       "contentType": "problem-solving-tip",
-      "preservation": { "priority": "high", "isInference": true, "rationale": "A shortcut presented once; compression would lose it." },
+      "preservation": {
+        "priority": "high",
+        "isInference": true,
+        "rationale": "A shortcut presented once; compression would lose it."
+      },
       "epistemicStatus": "heuristic",
       "summary": "Rule of thumb for spotting when a conjugate prior applies.",
-      "confidence": { "level": "medium", "basis": "machine-inferred" }
+      "confidence": {
+        "level": "medium",
+        "basis": "machine-inferred"
+      }
     },
     {
       "unitId": "su-lecture03-0019",
       "sourceId": "src-lecture03-transcript",
-      "locator": { "kind": "timestamp-range", "start": "00:08:10", "end": "00:08:55" },
+      "locator": {
+        "kind": "timestamp-range",
+        "start": "00:08:10",
+        "end": "00:08:55"
+      },
       "contentType": "analogy",
-      "preservation": { "priority": "normal", "isInference": true },
+      "preservation": {
+        "priority": "normal",
+        "isInference": true
+      },
       "epistemicStatus": "analogy",
       "summary": "Teacher compares a prior to a bet placed before seeing the cards.",
-      "confidence": { "level": "medium", "basis": "machine-inferred" }
+      "confidence": {
+        "level": "medium",
+        "basis": "machine-inferred"
+      }
     },
     {
       "unitId": "su-lecture03-0022",
       "sourceId": "src-lecture03-slides",
-      "locator": { "kind": "slide", "value": "14" },
+      "locator": {
+        "kind": "slide",
+        "value": "14"
+      },
       "contentType": "exam-pointer",
-      "preservation": { "priority": "high", "isInference": true, "rationale": "Assessment-relevant statement, easy to drop." },
+      "preservation": {
+        "priority": "high",
+        "isInference": true,
+        "rationale": "Assessment-relevant statement, easy to drop."
+      },
       "epistemicStatus": "source-explicit",
       "summary": "States that prior selection is examinable.",
-      "confidence": { "level": "high", "basis": "machine-inferred" }
+      "confidence": {
+        "level": "high",
+        "basis": "machine-inferred"
+      }
     },
     {
       "unitId": "su-lecture03-0031",
       "sourceId": "src-lecture03-slides",
-      "locator": { "kind": "slide", "value": "15" },
+      "locator": {
+        "kind": "slide",
+        "value": "15"
+      },
       "contentType": "definition",
-      "preservation": { "priority": "high", "isInference": true },
+      "preservation": {
+        "priority": "high",
+        "isInference": true
+      },
       "epistemicStatus": "source-explicit",
       "summary": "Uses the term 'flat prior' for the same idea.",
-      "confidence": { "level": "medium", "basis": "machine-inferred" }
+      "confidence": {
+        "level": "medium",
+        "basis": "machine-inferred"
+      }
     }
   ],
   "conflicts": [
     {
       "conflictId": "cf-lecture03-0001",
       "kind": "terminology-mismatch",
-      "unitRefs": ["su-lecture03-0011", "su-lecture03-0031"],
+      "unitRefs": [
+        "su-lecture03-0011",
+        "su-lecture03-0031"
+      ],
       "description": "Transcript says 'uninformative prior', slide says 'flat prior'.",
       "severity": "medium",
-      "resolution": { "status": "unresolved" }
+      "resolution": {
+        "status": "unresolved"
+      }
     }
   ],
   "notes": "ASR quality degrades after 00:12."
@@ -403,7 +481,51 @@ Small, but includes the content types most likely to be lost.
 
 ---
 
-## 9. Requirement index
+## 9. Known ambiguities and open questions
+
+### Explicitly deferred by human ruling (M1A-V)
+
+- **CH-26 — no internal progressive-loading affordance. DEFERRED.** `SM-23`
+  states the requirement and `summary` is capped, but no per-unit ordering or
+  index field is added. The right affordance depends on the real size and shape
+  of a SourceMap, which no experiment has produced yet. Adding one now would be
+  designing against an imagined document.
+- **CH-27 — no L0/L1 routing support. DEFERRED.** `AGENTS.md` §8 lists L0/L1 as
+  intended layers. Neither this contract nor any other currently supports them,
+  and this revision deliberately does **not** introduce an L0/L1 contract. It
+  waits for progressive-loading experiments on real vaults.
+
+### Known ambiguities (accepted at v0.1)
+
+- **A1 — `summary` budget.** `SM-26` caps it at 280 characters with no evidence.
+  Too short makes routing useless; too long reintroduces duplication.
+- **A2 — `contentType: unknown` is a loophole.** An implementation can mark
+  everything `unknown` and satisfy the schema while defeating `SM-7`.
+- **A3 — precedence between the judgement axes. CH-18, still OPEN.** A unit
+  carries `contentType` × `preservation.priority` × `epistemicStatus` ×
+  `confidence`. What wins when they disagree is unstated.
+- **A4 — `conflicts[].resolution` may be Layer D leakage.** Recording a human
+  resolution here is arguably alignment work that belongs on a card.
+- **A5 — unit identity minting scheme.** `SM-4` requires stability across
+  re-processing, but the derivation (hash of locator? sequence? source digest?)
+  is not fixed, so two implementations may mint different ids for the same unit.
+- **A6 — `confidence` has no defined relationship to `preservation.priority`.**
+  A low-confidence unit may be marked `must-preserve` and vice versa.
+- **A7 — `disposition.reason` for dropped units is gone entirely.** Whether a
+  downstream artifact must justify *not* handling a `unitId` is now a question
+  for the future Coverage Audit, not for this contract.
+
+### Open questions requiring human review
+
+| ID | Question |
+| --- | --- |
+| Q1 | Is the 280-character `summary` budget right, and should it be schema-enforced? |
+| Q2 | How are `unitId`s minted so that two implementations agree? (`A5`) |
+| Q3 | Which axis wins when `contentType`, `preservation` and `epistemicStatus` disagree? (`CH-18`) |
+| Q4 | Should `conflicts[].resolution` move out of Layer B? (`A4`) |
+| Q5 | Must a downstream stage justify leaving a `unitId` unhandled, and where? (`A7`) |
+
+## 10. Requirement index
 
 | ID | Requirement |
 | --- | --- |

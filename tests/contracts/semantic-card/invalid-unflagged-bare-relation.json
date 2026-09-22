@@ -1,0 +1,121 @@
+{
+  "contractVersion": "semantic-card/0.1",
+  "schemaVersion": "0.1",
+  "status": "draft",
+  "knowledgeId": "kc-01J8ZQ4T7K9M2P5R8V3W6Y0B",
+  "label": "Prior distribution",
+  "maintenanceState": "needs_review",
+  "semanticCore": {
+    "summary": "Prior distribution encoding belief about a parameter before observing data; a modelling choice, not a property of the data.",
+    "scopeNote": "Does not cover how to choose a prior objectively."
+  },
+  "humanNoteRef": {
+    "path": "notes/bayes/prior.md",
+    "anchor": {
+      "kind": "block-id",
+      "value": "blk-3f9a1c"
+    }
+  },
+  "sectionIndex": [
+    {
+      "anchor": {
+        "kind": "heading-path",
+        "value": "Definition"
+      },
+      "heading": "Definition",
+      "gist": "Formal statement.",
+      "covers": [
+        "prior",
+        "parameter"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "heading-path",
+        "value": "Common mistakes"
+      },
+      "heading": "Common mistakes",
+      "gist": "Prior vs posterior confusion."
+    }
+  ],
+  "claims": [
+    {
+      "anchor": {
+        "kind": "block-id",
+        "value": "blk-3f9a1d"
+      },
+      "epistemicState": "asserted",
+      "basis": "source-explicit",
+      "evidenceRefs": [
+        {
+          "sourceUnitId": "su-lecture03-0011"
+        }
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "block-id",
+        "value": "blk-3f9a1e"
+      },
+      "epistemicState": "uncertain",
+      "basis": "machine-inferred"
+    }
+  ],
+  "relations": [
+    {
+      "type": "prerequisite",
+      "target": {
+        "knowledgeId": "kc-01J8ZQ4T7K9M2P5R8V3W6Y0C"
+      },
+      "epistemicState": "inferred",
+      "basis": "machine-inferred"
+    },
+    {
+      "type": "conflicts-with",
+      "target": {
+        "knowledgeId": "kc-01J8ZQ4T7K9M2P5R8V3W6Y0D"
+      },
+      "epistemicState": "disputed",
+      "basis": "machine-inferred",
+      "reviewFlag": "NEEDS_REVIEW"
+    }
+  ],
+  "learningAssets": [
+    {
+      "kind": "definition",
+      "ref": {
+        "anchor": {
+          "kind": "block-id",
+          "value": "blk-3f9a1c"
+        }
+      }
+    },
+    {
+      "kind": "common-mistake",
+      "ref": {
+        "anchor": {
+          "kind": "heading-path",
+          "value": "Common mistakes"
+        }
+      },
+      "summary": "Prior vs posterior confusion."
+    }
+  ],
+  "unresolved": [
+    {
+      "unresolvedId": "ur-01J8ZQ4T7K9M2P5R8V3W6Y0E",
+      "kind": "conflict",
+      "description": "Lecture and textbook disagree on whether an uninformative prior is well-defined here.",
+      "blocking": true,
+      "candidateResolutions": [
+        "treat textbook as authoritative",
+        "record both and defer"
+      ]
+    }
+  ],
+  "integrity": {
+    "state": "unknown",
+    "checkedAt": "2026-09-22T00:00:00+08:00",
+    "unavailableReason": "No fingerprint computed for this draft instance."
+  }
+}

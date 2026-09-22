@@ -7,7 +7,7 @@
 > This contract has **not passed human review** as a finished design. Milestone
 > M0 itself is still awaiting final human approval.
 
-- Requirement IDs: `SC-1` … `SC-26` (see the requirement index in §9)
+- Requirement IDs: `SC-1` … `SC-27` (see the requirement index in §9)
 - Related: `specs/source-map-v0.1.md`, `docs/ARCHITECTURE.md` §2 Layer C, §3, §5
 - Machine contract: `schemas/semantic-card.v0.1.schema.json`
 - Type draft: `src/contracts/semantic-card.ts`
@@ -134,7 +134,7 @@ open unresolved items, and its integrity bookkeeping.
 | `status` | M | enum | Review state of **this instance**: `draft` / `NEEDS_REVIEW` / `reviewed`. |
 | `knowledgeId` | M | string (opaque) | Stable identity (`SC-3`). Never path- or title-derived. |
 | `label` | O | string | Human-readable label. **No identity function**; may change freely. |
-| `cardState` | M | enum | **Maintenance** state of the card (`SC-5`, `SC-8`): `stable` / `needs_review` / `conflicted` / `stale`. |
+| `maintenanceState` | M | enum | **Maintenance** state of the card (`SC-5`, `SC-8`): `stable` / `needs_review` / `conflicted` / `stale`. |
 | `semanticCore` | M | object | Bounded machine-readable core. |
 | `semanticCore.summary` | M | string (≤280) | Navigation/matching description (`SC-9`). |
 | `semanticCore.scopeNote` | O | string (≤280) | What this card does **not** cover, to prevent false matches. |
@@ -169,6 +169,11 @@ open unresolved items, and its integrity bookkeeping.
 | `learningAssets[].ref` | M (cond.) | object | Where the asset is. Must identify something. |
 | `learningAssets[].summary` | O | string (≤160) | Retrieval label only. |
 | `unresolved` | O | array | **Current open** conflicts/gaps only (`SC-24`). |
+| `unresolved[].unresolvedId` | M (cond.) | string (non-empty, opaque) | Stable item identity so downstream artifacts can reference or close one without quoting its text (`SC-27`). |
+| `unresolved[].kind` | M (cond.) | enum | `conflict` / `ambiguity` / `missing-evidence` / `open-question`. |
+| `unresolved[].description` | M (cond.) | string (≤600) | What is unresolved. |
+| `unresolved[].blocking` | O | boolean | Whether this blocks further knowledge changes. |
+| `unresolved[].candidateResolutions` | O | array of string (each ≤200) | Options not yet chosen. |
 | `integrity` | M | object | Synchronisation bookkeeping (`SC-19`). |
 | `integrity.state` | M (cond.) | enum | `ok` / `stale` / `broken` / `unknown` / `NEEDS_REVIEW`. |
 | `integrity.checkedAgainst` | M (cond.) | object | **Proof** of `ok` (`SC-19`, `SC-21`). |
@@ -180,7 +185,7 @@ open unresolved items, and its integrity bookkeeping.
 ## 4. Required vs optional — with conditions
 
 - **Always required:** `contractVersion`, `schemaVersion`, `status`,
-  `knowledgeId`, `cardState`, `semanticCore.summary`, `humanNoteRef.path`,
+  `knowledgeId`, `maintenanceState`, `semanticCore.summary`, `humanNoteRef.path`,
   `sectionIndex`, `integrity`.
 - **Every identifier/anchor that is present must be non-empty** (`SC-20`).
   `minLength: 1` applies to every `*Id`, `anchor.value`, fingerprint `value`,
@@ -212,7 +217,7 @@ open unresolved items, and its integrity bookkeeping.
 | Enum | Values |
 | --- | --- |
 | `status` | `draft`, `NEEDS_REVIEW`, `reviewed` |
-| `cardState` | `stable`, `needs_review`, `conflicted`, `stale` |
+| `maintenanceState` | `stable`, `needs_review`, `conflicted`, `stale` |
 | `claim/relation epistemicState` | `asserted`, `inferred`, `uncertain`, `disputed`, `verified`, `deprecated`, `unspecified` |
 | `basis` | `source-explicit`, `machine-inferred`, `human-assigned`, `derived` |
 | `anchor.kind` | `block-id` (**preferred**), `heading-path` (**fallback**) |
@@ -243,37 +248,59 @@ anchor is non-empty.
   "status": "draft",
   "knowledgeId": "kc-01J8ZQ4T7K9M2P5R8V3W6Y0B",
   "label": "Prior distribution",
-  "cardState": "needs_review",
+  "maintenanceState": "needs_review",
   "semanticCore": {
     "summary": "Prior distribution encoding belief about a parameter before observing data; a modelling choice, not a property of the data.",
     "scopeNote": "Does not cover how to choose a prior objectively."
   },
   "humanNoteRef": {
     "path": "notes/bayes/prior.md",
-    "anchor": { "kind": "block-id", "value": "blk-3f9a1c" }
+    "anchor": {
+      "kind": "block-id",
+      "value": "blk-3f9a1c"
+    }
   },
   "sectionIndex": [
     {
-      "anchor": { "kind": "heading-path", "value": "Definition" },
+      "anchor": {
+        "kind": "heading-path",
+        "value": "Definition"
+      },
       "heading": "Definition",
       "gist": "Formal statement.",
-      "covers": ["prior", "parameter"]
+      "covers": [
+        "prior",
+        "parameter"
+      ]
     },
     {
-      "anchor": { "kind": "heading-path", "value": "Common mistakes" },
+      "anchor": {
+        "kind": "heading-path",
+        "value": "Common mistakes"
+      },
       "heading": "Common mistakes",
       "gist": "Prior vs posterior confusion."
     }
   ],
   "claims": [
     {
-      "anchor": { "kind": "block-id", "value": "blk-3f9a1d" },
+      "anchor": {
+        "kind": "block-id",
+        "value": "blk-3f9a1d"
+      },
       "epistemicState": "asserted",
       "basis": "source-explicit",
-      "evidenceRefs": [{ "sourceUnitId": "su-lecture03-0011" }]
+      "evidenceRefs": [
+        {
+          "sourceUnitId": "su-lecture03-0011"
+        }
+      ]
     },
     {
-      "anchor": { "kind": "block-id", "value": "blk-3f9a1e" },
+      "anchor": {
+        "kind": "block-id",
+        "value": "blk-3f9a1e"
+      },
       "epistemicState": "uncertain",
       "basis": "machine-inferred"
     }
@@ -281,33 +308,58 @@ anchor is non-empty.
   "relations": [
     {
       "type": "prerequisite",
-      "target": { "knowledgeId": "kc-01J8ZQ4T7K9M2P5R8V3W6Y0C" },
-      "provenance": [{ "sourceUnitId": "su-lecture03-0011" }],
+      "target": {
+        "knowledgeId": "kc-01J8ZQ4T7K9M2P5R8V3W6Y0C"
+      },
+      "provenance": [
+        {
+          "sourceUnitId": "su-lecture03-0011"
+        }
+      ],
       "epistemicState": "inferred",
       "basis": "machine-inferred"
     },
     {
       "type": "conflicts-with",
-      "target": { "knowledgeId": "kc-01J8ZQ4T7K9M2P5R8V3W6Y0D" },
+      "target": {
+        "knowledgeId": "kc-01J8ZQ4T7K9M2P5R8V3W6Y0D"
+      },
       "epistemicState": "disputed",
       "basis": "machine-inferred",
       "reviewFlag": "NEEDS_REVIEW"
     }
   ],
   "learningAssets": [
-    { "kind": "definition", "ref": { "anchor": { "kind": "block-id", "value": "blk-3f9a1c" } } },
+    {
+      "kind": "definition",
+      "ref": {
+        "anchor": {
+          "kind": "block-id",
+          "value": "blk-3f9a1c"
+        }
+      }
+    },
     {
       "kind": "common-mistake",
-      "ref": { "anchor": { "kind": "heading-path", "value": "Common mistakes" } },
+      "ref": {
+        "anchor": {
+          "kind": "heading-path",
+          "value": "Common mistakes"
+        }
+      },
       "summary": "Prior vs posterior confusion."
     }
   ],
   "unresolved": [
     {
+      "unresolvedId": "ur-01J8ZQ4T7K9M2P5R8V3W6Y0E",
       "kind": "conflict",
       "description": "Lecture and textbook disagree on whether an uninformative prior is well-defined here.",
       "blocking": true,
-      "candidateResolutions": ["treat textbook as authoritative", "record both and defer"]
+      "candidateResolutions": [
+        "treat textbook as authoritative",
+        "record both and defer"
+      ]
     }
   ],
   "integrity": {
@@ -341,6 +393,20 @@ anchor is non-empty.
 ---
 
 ## 8. Known ambiguities and open questions
+
+### Explicitly deferred by human ruling (M1A-V)
+
+- **CH-09 — reference shapes stay distinct.** `Anchor`, `EvidenceRef`,
+  `learningAssets[].ref` and the runtime's `input[].ref` are **not** unified.
+  Looking different is not a reason to merge: only primitives with *identical
+  semantics* are shared, and those live in `src/contracts/common.ts`. Forcing a
+  single "reference" type would lose the meaning each shape carries. **OPEN.**
+- **Three-carrier source of truth — DEFERRED.** The spec carries semantics, the
+  JSON Schema carries runtime data constraints, and the TypeScript carries the
+  developer type mapping. These three can currently diverge silently. No codegen
+  is introduced: generating one carrier from another is a design decision that
+  needs a milestone of its own. Divergence is detected only by the M1A-V
+  consistency tests, which check a subset.
 
 ### Known ambiguities (accepted at v0.1)
 
@@ -386,7 +452,7 @@ and must not be renumbered (`CH-21`).
 | SC-5 | Card-level state is maintenance state, never truth state. |
 | SC-6 | Relations are inferences: each carries its own epistemic state, basis and optional provenance. |
 | SC-7 | Synchronisation requires a fingerprint on both the note side and the card side. |
-| SC-8 | The card exposes exactly one card-level state field, and it is `cardState` (maintenance), not an epistemic one. |
+| SC-8 | The card exposes exactly one card-level state field, and it is `maintenanceState` (maintenance), not an epistemic one. |
 | SC-9 | Free text is limited to two purpose-stated, length-capped fields: `semanticCore.summary` (≤280) and `learningAssets[].summary` (≤160). |
 | SC-10 | `humanNoteRef` locates the source of truth and never points at a production Vault during experiments. |
 | SC-11 | Anchors use `block-id` where available and `heading-path` as fallback; line numbers are never a long-term anchor. |
@@ -405,14 +471,15 @@ and must not be renumbered (`CH-21`).
 | SC-24 | The card holds only **current open** unresolved/conflict items; closed history belongs to change/run history. |
 | SC-25 | The contract must not assume or imply any storage layout (`D-0010`). |
 | SC-26 | The contract must support incremental update: one claim or relation can change without rewriting the card. |
+| SC-27 | Every `unresolved` entry carries a stable opaque `unresolvedId`; the card still holds only current-open items and no closed history. |
 
 ### Reconciliation with the previous revision
 
 | Previous | Now |
 | --- | --- |
-| `epistemicState` at card level | replaced by `cardState` (`SC-5`, `SC-8`) |
+| `epistemicState` at card level | replaced by `maintenanceState` (`SC-5`, `SC-8`) |
 | `claims[].note` | **removed** (`SC-4`) |
 | `humanNoteRef.anchor` as a bare string | replaced by a typed anchor (`SC-11`) |
-| a range of IDs beyond the defined set, cited but never defined | removed; the set is now `SC-1`…`SC-26`, all defined in the index above |
+| a range of IDs beyond the defined set, cited but never defined | removed; the set is now `SC-1`…`SC-27`, all defined in the index above |
 | unbounded `summary` / `gist` | capped (`SC-9`) |
 | `fingerprint.alg` mandatory one-value enum | optional, SHA-256 default (`SC-19`) |

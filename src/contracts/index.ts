@@ -20,15 +20,19 @@
  * @packageDocumentation
  */
 
+// Primitives shared by two or more contracts with identical semantics.
 export type {
   ReviewStatus,
   SchemaVersion,
-  CardState,
+  FingerprintAlg,
+  Fingerprint,
+} from './common';
+
+export type {
+  MaintenanceState,
   EpistemicState,
   EpistemicBasis,
-  FingerprintAlg,
   Anchor,
-  Fingerprint,
   EvidenceRef,
   SemanticCore,
   HumanNoteRef,

@@ -43,6 +43,8 @@ dist/
 build/
 *.tsbuildinfo
 coverage/
+# npm cache redirected into the repo by .npmrc (see that file for why).
+.npm-cache/
 .eslintcache
 
 # --- Obsidian plugin build output ----------------------------

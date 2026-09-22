@@ -6,7 +6,7 @@
 > This contract has **not passed human review** as a finished design. Milestone
 > M0 itself is still awaiting final human approval.
 
-- Requirement IDs: `RT-1` … `RT-24` (see the requirement index in §11)
+- Requirement IDs: `RT-1` … `RT-25` (see the requirement index in §11)
 - Related: `docs/ARCHITECTURE.md` §4, `AGENTS.md` §3.3, `specs/run-manifest-v0.1.md`
 - Machine contract: `schemas/agent-runtime.v0.1.schema.json`
 - Type draft: `src/contracts/agent-runtime.ts`
@@ -210,9 +210,10 @@ wires the adapter in. That file does not exist yet.
 | `input[].role` | M (cond.) | enum | `system` / `context` / `instruction` / `example`. |
 | `input[].content` | M (cond.) | string | The content. |
 | `input[].ref` | O | object | Where the content came from, if from evidence. |
-| `outputSchemaRef` | **O** | object | **Optional at the boundary** (`RT-20`). |
+| `outputSchemaRef` | **O** | object | **Optional at the boundary** (`RT-20`). When present, `id` **and `version`** are required (`RT-25`). |
 | `outputSchemaRef.id` | M (cond.) | string (non-empty) | Schema identifier when present. |
-| `outputSchemaRef.path` | O | string (non-empty) | Repo-relative schema path. |
+| `outputSchemaRef.version` | M (cond.) | string (non-empty) | **Required when present**: an unversioned schema reference is as irreproducible as an unversioned prompt (`RT-25`). |
+| `outputSchemaRef.path` | O | string (non-empty) | Repo-relative schema path. Absolute Windows / POSIX / UNC paths are rejected (`RT-11`). |
 | `model` | O | object | Requested model (`RT-13`). |
 | `reasoning` | O | object | Requested reasoning configuration (`RT-17`). |
 | `limits` | O | object | Caller-imposed bounds; advisory (`RT-24`). |
@@ -348,6 +349,7 @@ failure branch (`RT-8`).
 | RT-21 | The interface moves text in and text out; it must not reference orchestration concepts (layers, plans, cards) or host-specific paths. |
 | RT-23 | A `TaskRequest` is one logical task and must not be read as one API call. |
 | RT-24 | Every present identifier, version and reference is non-empty. |
+| RT-25 | `outputSchemaRef` stays optional at the boundary, but when present it must name an explicit schema version and a repository-relative path; unversioned references and local machine paths are rejected. |
 
 ---
 
@@ -360,16 +362,80 @@ failure branch (`RT-8`).
   "contractVersion": "agent-runtime/0.1",
   "schemaVersion": "0.1",
   "status": "draft",
+  "runtimeMetadata": {
+    "runtimeKind": "dsh",
+    "runtimeVersion": "0.1.6-alpha.2",
+    "capabilities": {
+      "structuredTask": true,
+      "modelSelection": true,
+      "reasoningControl": true,
+      "usageReporting": true,
+      "transportRetry": true,
+      "streaming": false,
+      "cancellation": false
+    }
+  },
   "taskRequest": {
     "taskId": "task-20260922T000000-001",
-    "promptRef": { "id": "source-map.extract-units", "version": "1", "path": "prompts/source-map/extract-units.v1.md" },
+    "promptRef": {
+      "id": "source-map.extract-units",
+      "version": "1",
+      "path": "prompts/source-map/extract-units.v1.md"
+    },
     "input": [
-      { "role": "context", "content": "[00:02:10] ...", "ref": { "sourceId": "src-lecture03-transcript" } }
+      {
+        "role": "context",
+        "content": "[00:02:10] ...",
+        "ref": {
+          "sourceId": "src-lecture03-transcript"
+        }
+      }
     ],
-    "outputSchemaRef": { "id": "source-map/0.1", "path": "schemas/source-map.v0.1.schema.json" },
-    "model": { "requested": "example-model-large" },
-    "reasoning": { "effort": "medium" },
-    "limits": { "maxOutputTokens": 4000 }
+    "outputSchemaRef": {
+      "id": "source-map/0.1",
+      "version": "0.1",
+      "path": "schemas/source-map.v0.1.schema.json"
+    },
+    "model": {
+      "requested": "example-model-large"
+    },
+    "reasoning": {
+      "effort": "medium"
+    },
+    "limits": {
+      "maxOutputTokens": 4000
+    }
+  },
+  "invocationResult": {
+    "ok": true,
+    "result": {
+      "taskId": "task-20260922T000000-001",
+      "output": {
+        "raw": "{\"units\":[]}",
+        "format": "json"
+      },
+      "model": {
+        "requested": "example-model-large",
+        "resolved": {
+          "availability": "available",
+          "value": "example-model-large"
+        },
+        "provider": "example-provider",
+        "resolution": "matched"
+      },
+      "reasoning": {
+        "requested": "medium",
+        "applied": "medium"
+      },
+      "usage": {
+        "inputTokens": 1830,
+        "outputTokens": 604,
+        "totalTokens": 2434,
+        "availability": "reported"
+      },
+      "durationMs": 8421,
+      "warnings": []
+    }
   }
 }
 ```
@@ -498,12 +564,13 @@ failure branch (`RT-8`).
 | RT-22 | Credentials may not appear anywhere in the contract. |
 | RT-23 | A logical task may be satisfied by any number of transport calls. |
 | RT-24 | Every present identifier, version and reference is non-empty. |
+| RT-25 | `outputSchemaRef` stays optional at the boundary, but when present it must name an explicit schema version and a repository-relative path; unversioned references and local machine paths are rejected. |
 
 ### Reconciliation with the previous revision
 
 | Previous | Now |
 | --- | --- |
-| `outputSchemaRef` required | optional at the boundary (`RT-20`) |
+| `outputSchemaRef` required | optional at the boundary, but versioned when present (`RT-20`, `RT-25`) |
 | `Usage.cost` | **removed** (`RT-19`) |
 | `RuntimeMetadata.implementationNote` | **removed** (`RT-11`) |
 | `RuntimeResult.runtimeKind` / `runtimeVersion` | removed; identity travels in metadata and the manifest |

@@ -1,16 +1,27 @@
 # Tooling
 
-Reproducible repository checks. No project dependencies, no build system.
+Reproducible repository checks and contract verification. M1A-V introduced the
+only dev tooling in the project (`typescript`, `ajv`), both exactly pinned and
+dev-only; there is still no build system and no runtime dependency.
 
-| Script | Purpose |
-| --- | --- |
-| `check.ps1` | Validate the M0 skeleton, scan for secret-looking content, verify schemas parse as JSON, and report Git status. |
+| Script | Language | Purpose |
+| --- | --- | --- |
+| `check.ps1` | PowerShell 5.1 | Full repository check: skeleton, secret hygiene + self-test, contract markers, dependency boundary, schema well-formedness, line endings, ignore policy, dependency policy, and **it also runs the two verification scripts below** and reports Git status. |
+| `contract-tests.mjs` | Node ESM | Validates `tests/contracts/**` against the four JSON Schemas with Ajv, asserting each invalid fixture is rejected for an allowed reason. |
+| `generate-contract-fixtures.mjs` | Node ESM | Regenerates the 48 invalid fixtures from the canonical valid ones, one named mutation each. Run only when a mutation or a valid fixture changes. |
 
 ## Usage
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\check.ps1
+npm install                                          # installs the pinned dev tooling
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\check.ps1   # everything
+node tools/contract-tests.mjs                        # fixture verification alone
+npx --no-install tsc --noEmit                        # contract types alone
 ```
+
+`check.ps1` is the authoritative entry point: it fails if `node_modules` is
+absent rather than silently skipping the compile and fixture checks, so a fresh
+clone cannot pass without installing the pinned tooling.
 
 ## Secret hygiene behaviour
 

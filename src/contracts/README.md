@@ -25,7 +25,7 @@ dependency. See [`docs/DECISIONS.md`](../../docs/DECISIONS.md) D-0011 and D-0012
 
 | Change | Where |
 | --- | --- |
-| Card-level truth state replaced by a **maintenance** `cardState` | `semantic-card.ts` |
+| Card-level truth state replaced by a **maintenance** `maintenanceState` | `semantic-card.ts` |
 | `claims[].note` **removed** — no field may carry note prose | `semantic-card.ts` |
 | Every present identifier/anchor/fingerprint value is **non-empty** | all four |
 | A machine inference may never be `verified` | `semantic-card.ts`, schema `if/then` |
@@ -43,10 +43,38 @@ dependency. See [`docs/DECISIONS.md`](../../docs/DECISIONS.md) D-0011 and D-0012
 | `ManifestUsage` is **local**, not the runtime `Usage` | `run-manifest.ts` |
 | `schemaVersion` required | all four |
 
+## M1A-V: executably verified
+
+Since M1A-V these declarations are **compiled** and their contracts are
+**validated against real fixtures**:
+
+```powershell
+npx --no-install tsc --noEmit        # 0 errors required
+node tools/contract-tests.mjs        # 56 checks: 4 valid + 48 invalid + 4 spec/fixture identity
+```
+
+`tools/check.ps1` runs both automatically. Evidence — including what is still
+**not** machine-verified (cross-artifact references, TS↔schema equivalence,
+behaviour) — is in
+[`docs/reviews/M1A_EXECUTABLE_VERIFICATION.md`](../../docs/reviews/M1A_EXECUTABLE_VERIFICATION.md).
+
+## Shared primitives
+
+`common.ts` holds only primitives used by **two or more** contracts with
+**identical semantics**: `ReviewStatus`, `SchemaVersion`, `Fingerprint`,
+`FingerprintAlg`. It exists to stop one contract importing another (the old
+`CH-15`). It is deliberately **not** a "universal common" module — its header
+lists what is excluded and why.
+
+**No contract module may import another contract module**; `tools/check.ps1`
+enforces this.
+
 ## Files here are declarations only
 
-There is no `invoke()`, no loader, no validator, no coherence checker. Those are
-implementation and are deliberately absent (`AGENTS.md` §18).
+There is no `invoke()`, no loader, no coherence checker. Those are
+implementation and are deliberately absent (`AGENTS.md` §18). Validation lives
+in `tools/contract-tests.mjs`, outside this directory, because these files must
+carry no behaviour.
 
 ## Consistency with the specs
 

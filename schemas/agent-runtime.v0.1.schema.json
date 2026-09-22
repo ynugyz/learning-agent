@@ -31,10 +31,10 @@
       "properties": {
         "runtimeKind": {
           "type": "string",
-          "minLength": 1,
+          "minLength": 1, "pattern": "\\S",
           "description": "Neutral runtime family label. The only place a concrete runtime name legitimately appears."
         },
-        "runtimeVersion": { "type": "string", "minLength": 1 },
+        "runtimeVersion": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "capabilities": { "$ref": "#/$defs/runtimeCapabilities" }
       },
       "required": ["runtimeKind", "runtimeVersion", "capabilities"],
@@ -44,9 +44,9 @@
       "type": "object",
       "description": "Always required, with a version: an unversioned prompt cannot be recorded in a run manifest (RT-12).",
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "version": { "type": "string", "minLength": 1 },
-        "path": { "type": "string", "minLength": 1 }
+        "id": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "version": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "path": { "type": "string", "minLength": 1, "pattern": "\\S" }
       },
       "required": ["id", "version"],
       "additionalProperties": false
@@ -60,9 +60,9 @@
         "ref": {
           "type": "object",
           "properties": {
-            "sourceId": { "type": "string", "minLength": 1 },
-            "sourceUnitId": { "type": "string", "minLength": 1 },
-            "locator": { "type": "string", "minLength": 1 }
+            "sourceId": { "type": "string", "minLength": 1, "pattern": "\\S" },
+            "sourceUnitId": { "type": "string", "minLength": 1, "pattern": "\\S" },
+            "locator": { "type": "string", "minLength": 1, "pattern": "\\S" }
           },
           "additionalProperties": false
         }
@@ -74,7 +74,7 @@
       "type": "object",
       "description": "One LOGICAL runtime task (RT-3): the runtime may satisfy it with any number of model calls, or none. The core decides what runs; the runtime executes. Credentials may not appear anywhere in this object (RT-22).",
       "properties": {
-        "taskId": { "type": "string", "minLength": 1 },
+        "taskId": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "promptRef": { "$ref": "#/$defs/promptRef" },
         "promptText": {
           "type": "string",
@@ -83,17 +83,23 @@
         "input": { "type": "array", "items": { "$ref": "#/$defs/taskInput" } },
         "outputSchemaRef": {
           "type": "object",
-          "description": "OPTIONAL at the boundary (RT-20): the boundary must not force every caller to name a schema. A structured module may require it in its own signature. The runtime still does not validate against it (RT-7).",
+          "description": "OPTIONAL at the boundary (RT-20): the boundary must not force every caller to name a schema. A structured module may require it in its own signature. When PRESENT it must name an explicit version (RT-25): an unversioned schema reference is as irreproducible as an unversioned prompt. `path` is repository-relative and must never be a local machine path. The runtime still does not validate against it (RT-7).",
           "properties": {
-            "id": { "type": "string", "minLength": 1 },
-            "path": { "type": "string", "minLength": 1 }
+            "id": { "type": "string", "minLength": 1, "pattern": "\\S" },
+            "version": { "type": "string", "minLength": 1, "pattern": "\\S" },
+            "path": {
+              "type": "string",
+              "minLength": 1, "pattern": "\\S",
+              "pattern": "^(?![A-Za-z]:[\\\\/])(?!/)(?!\\\\\\\\).*$",
+              "description": "Repository-relative location. Absolute Windows, POSIX and UNC paths are rejected because a host-specific path breaks portability (RT-11)."
+            }
           },
-          "required": ["id"],
+          "required": ["id", "version"],
           "additionalProperties": false
         },
         "model": {
           "type": "object",
-          "properties": { "requested": { "type": "string", "minLength": 1 } },
+          "properties": { "requested": { "type": "string", "minLength": 1, "pattern": "\\S" } },
           "additionalProperties": false
         },
         "reasoning": {
@@ -134,14 +140,14 @@
       "type": "object",
       "description": "Requested versus resolved model. resolution makes silent substitution visible. A resolution status may not be asserted without the data that proves it (RT-13, RT-18).",
       "properties": {
-        "requested": { "type": "string", "minLength": 1 },
+        "requested": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "resolved": {
           "type": "object",
           "description": "Tagged availability: a value when available, a reason when not.",
           "properties": {
             "availability": { "type": "string", "enum": ["available", "unavailable"] },
-            "value": { "type": "string", "minLength": 1 },
-            "reason": { "type": "string", "minLength": 1, "maxLength": 300 }
+            "value": { "type": "string", "minLength": 1, "pattern": "\\S" },
+            "reason": { "type": "string", "minLength": 1, "pattern": "\\S", "maxLength": 300 }
           },
           "required": ["availability"],
           "allOf": [
@@ -158,7 +164,7 @@
           ],
           "additionalProperties": false
         },
-        "provider": { "type": "string", "minLength": 1 },
+        "provider": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "resolution": { "type": "string", "enum": ["matched", "substituted", "unknown"] }
       },
       "required": ["resolution"],
@@ -186,7 +192,7 @@
       "type": "object",
       "description": "Raw model output plus metadata. output is deliberately unvalidated by the runtime (RT-7). Runtime identity is not repeated here: it travels in RuntimeMetadata and the run manifest.",
       "properties": {
-        "taskId": { "type": "string", "minLength": 1 },
+        "taskId": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "output": {
           "type": "object",
           "properties": {
@@ -204,8 +210,8 @@
         "reasoning": {
           "type": "object",
           "properties": {
-            "requested": { "type": "string", "minLength": 1 },
-            "applied": { "type": "string", "minLength": 1 },
+            "requested": { "type": "string", "minLength": 1, "pattern": "\\S" },
+            "applied": { "type": "string", "minLength": 1, "pattern": "\\S" },
             "notes": { "type": "string", "maxLength": 300 }
           },
           "additionalProperties": false
@@ -229,7 +235,7 @@
             "configuration-invalid", "unknown"
           ]
         },
-        "message": { "type": "string", "minLength": 1 },
+        "message": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "retryable": { "type": "boolean" },
         "stage": { "type": "string", "enum": ["request", "transport", "model", "decode", "unknown"] },
         "details": {

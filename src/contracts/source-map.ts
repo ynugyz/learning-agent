@@ -20,7 +20,7 @@
  * @packageDocumentation
  */
 
-import type { ReviewStatus, SchemaVersion } from './semantic-card';
+import type { ReviewStatus, SchemaVersion } from './common';
 
 /** Evidence category present in a source package. */
 export type SourceKind =

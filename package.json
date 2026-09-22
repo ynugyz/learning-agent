@@ -2,17 +2,21 @@
   "name": "learning-agent",
   "version": "0.0.0",
   "private": true,
-  "description": "Personal Learning Agent — M1A core contract drafts. No implementation yet.",
+  "description": "Personal Learning Agent — M1A contract drafts plus executable contract verification. No product implementation yet.",
   "license": "UNLICENSED",
   "type": "module",
   "engines": {
     "node": ">=22"
   },
-  "comment": "DELIBERATELY EMPTY OF DEPENDENCIES. DECISIONS.md D-0005 selects TypeScript as the primary language; no dependency is installed by that decision. `npm run typecheck` requires a deliberate `npm install --save-dev --save-exact typescript` first, which must commit a lockfile in the same change (D-0004).",
+  "comment": "TypeScript is the primary implementation language (DECISIONS.md D-0005). M1A-V adds project-local DEV-ONLY tooling with exact pinned versions: typescript (compiler) and ajv (JSON Schema 2020-12 validator). There is no runtime dependency; `dependencies` stays empty on purpose. The lockfile is committed.",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test:contracts": "node tools/contract-tests.mjs",
     "check": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/check.ps1"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "ajv": "8.20.0"
+  }
 }

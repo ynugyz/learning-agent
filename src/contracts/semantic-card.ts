@@ -10,7 +10,9 @@
  * of the human note, never an independent source of truth.
  *
  * REV1 changes that matter to a reader of this file:
- *  - the card has NO truth-valued state; `cardState` is a MAINTENANCE state;
+ *  - the card has NO truth-valued state; `maintenanceState` is a MAINTENANCE
+ *    state (renamed from `cardState` in M1A-V so it cannot be misread as a
+ *    knowledge-truth roll-up);
  *  - `claims[].note` is GONE — no field may carry note prose;
  *  - every present identifier/anchor/fingerprint value is non-empty;
  *  - a machine inference may never be `verified`.
@@ -18,19 +20,17 @@
  * @packageDocumentation
  */
 
-/** Review state of an artifact instance. `draft` means no human has reviewed it. */
-export type ReviewStatus = 'draft' | 'NEEDS_REVIEW' | 'reviewed';
-
-/** Instance-format version, distinct from the contract name. */
-export type SchemaVersion = '0.1';
+import type { Fingerprint, ReviewStatus, SchemaVersion } from './common';
 
 /**
  * MAINTENANCE state of an index. Not a truth value (SC-5, SC-8).
  *
  * Whether the knowledge is true is a property of individual claims; whether the
- * card can be relied on as an index is a property of the card.
+ * card can be relied on as an index is a property of the card. The name is
+ * deliberately `maintenanceState` rather than a word like `state` or
+ * `cardState`, so it cannot be misread as a knowledge-truth roll-up.
  */
-export type CardState = 'stable' | 'needs_review' | 'conflicted' | 'stale';
+export type MaintenanceState = 'stable' | 'needs_review' | 'conflicted' | 'stale';
 
 /**
  * Epistemic state of a CLAIM or RELATION.
@@ -54,24 +54,18 @@ export type EpistemicBasis =
   | 'human-assigned'
   | 'derived';
 
-/** Hash algorithm. SHA-256 is the default (SC-19). */
-export type FingerprintAlg = 'sha256';
-
 /**
  * A note anchor (SC-11).
  *
  * `block-id` is preferred because it survives section renaming; `heading-path`
  * is the fallback for notes without block ids. Line numbers are never admitted,
  * because they are not stable across edits.
+ *
+ * Not shared: only SemanticCard anchors into a human note, so this stays here
+ * rather than in `common.ts`.
  */
 export interface Anchor {
   readonly kind: 'block-id' | 'heading-path';
-  readonly value: string;
-}
-
-/** Content fingerprint. SHA-256 assumed when `alg` is omitted (SC-19). */
-export interface Fingerprint {
-  readonly alg?: FingerprintAlg;
   readonly value: string;
 }
 
@@ -197,12 +191,17 @@ export interface LearningAsset {
 }
 
 /**
- * CURRENT OPEN unresolved item (SC-24).
+ * CURRENT OPEN unresolved item (SC-24, SC-27).
  *
  * Closed history is deliberately NOT stored here: it belongs to change/run
  * history, so the card does not accumulate an ever-growing resolved-conflict log.
+ * `unresolvedId` exists so a downstream artifact (a ChangePlan, a review note, a
+ * later run) can reference, discuss or close this specific item without
+ * quoting its text. It is opaque and must not be re-derived from the
+ * description, which is editable.
  */
 export interface UnresolvedItem {
+  readonly unresolvedId: string;
   readonly kind: 'conflict' | 'ambiguity' | 'missing-evidence' | 'open-question';
   readonly description: string;
   readonly blocking?: boolean;
@@ -250,7 +249,7 @@ export interface SemanticCard {
   readonly label?: string;
 
   /** Maintenance state. Never a truth value (SC-5). */
-  readonly cardState: CardState;
+  readonly maintenanceState: MaintenanceState;
 
   readonly semanticCore: SemanticCore;
   readonly humanNoteRef: HumanNoteRef;

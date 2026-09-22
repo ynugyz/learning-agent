@@ -442,6 +442,63 @@ else {
     foreach ($v in $boundaryViolations) { Test-Fail "DSH import outside the adapter: $($v.Filename):$($v.LineNumber)" }
 }
 
+# No contract module may import another contract module: anything genuinely
+# shared by two contracts with identical semantics belongs in ./common.
+$contractModules = @('semantic-card', 'source-map', 'agent-runtime', 'run-manifest')
+$crossImportViolations = @()
+foreach ($module in $contractModules) {
+    $file = Join-Path $contractDir "$module.ts"
+    if (-not (Test-Path -LiteralPath $file)) { continue }
+    foreach ($other in $contractModules) {
+        if ($other -eq $module) { continue }
+        $hits = @(Select-String -Path $file -Pattern ("from\s+'\./" + $other + "'") -ErrorAction SilentlyContinue)
+        foreach ($h in $hits) { $crossImportViolations += "$module.ts -> $other" }
+    }
+}
+if ($crossImportViolations.Count -eq 0) { Test-Pass 'no contract module imports another contract module (shared primitives live in common.ts)' }
+else { foreach ($v in $crossImportViolations) { Test-Fail "cross-contract import: $v" } }
+
+# ------------------------------- 3a. executable verification (M1A-V)
+Write-Section 'Executable contract verification'
+
+$nodeModules = Join-Path $RepoRoot 'node_modules'
+$hasTooling = (Test-Path -LiteralPath (Join-Path $nodeModules 'typescript')) -and
+              (Test-Path -LiteralPath (Join-Path $nodeModules 'ajv'))
+
+if (-not (Test-Path -LiteralPath $nodeModules)) {
+    Test-Fail 'node_modules is absent: run `npm install` (dev tooling is pinned in package.json)'
+}
+elseif (-not $hasTooling) {
+    Test-Fail 'typescript and/or ajv missing from node_modules; run `npm install`'
+}
+else {
+    # TypeScript compiler over the contract declarations.
+    Push-Location $RepoRoot
+    try {
+        $tscOut = & npx --no-install tsc --noEmit 2>&1
+        if ($LASTEXITCODE -eq 0) { Test-Pass 'TypeScript contract declarations compile (tsc --noEmit)' }
+        else {
+            Test-Fail 'tsc --noEmit reported errors'
+            $tscOut | Select-Object -First 12 | ForEach-Object { Write-Host "        $_" -ForegroundColor Gray }
+        }
+
+        # JSON Schema fixture verification, including the CH-01/02/03 regressions.
+        $testOut = & node (Join-Path $RepoRoot 'tools\contract-tests.mjs') 2>&1
+        $testExit = $LASTEXITCODE
+        $summary = @($testOut | Select-String -Pattern 'checks=' | Select-Object -Last 1)
+        $counts = @($testOut | Select-String -Pattern '^\s+(semantic-card|source-map|agent-runtime|run-manifest)\s+valid=')
+        foreach ($line in $counts) { Test-Info $line.Line.Trim() }
+        if ($testExit -eq 0) { Test-Pass "contract fixtures verified ($($summary.Line.Trim()))" }
+        else {
+            Test-Fail 'contract fixture verification FAILED'
+            $testOut | Select-String -Pattern 'FAIL' | Select-Object -First 10 | ForEach-Object { Write-Host "        $($_.Line.Trim())" -ForegroundColor Gray }
+        }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
 # ------------------------------------------------------------ 3. JSON schemas
 Write-Section 'Schema well-formedness'
 
@@ -525,20 +582,34 @@ else {
 # ----------------------------------------------------- 6. scope / dependency
 Write-Section 'Milestone scope and dependencies'
 
-# M1A added a package.json scaffold under DECISIONS.md D-0005 (TypeScript).
-# The decision explicitly installs nothing, so the scaffold must stay
-# dependency-free and must not ship a lockfile it cannot reproduce.
+# Dependency policy:
+#   - RUNTIME dependencies must stay empty (D-0005 installs no product dependency);
+#   - DEV dependencies are permitted (M1A-V) but must be EXACTLY pinned and
+#     backed by a committed lockfile.
 $pkgPath = Join-Path $RepoRoot 'package.json'
 if (Test-Path -LiteralPath $pkgPath) {
     try {
         $pkg = Get-Content -LiteralPath $pkgPath -Raw | ConvertFrom-Json
-        $depCount = 0
-        foreach ($bucket in @('dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies')) {
+
+        $runtimeDeps = 0
+        foreach ($bucket in @('dependencies', 'peerDependencies', 'optionalDependencies')) {
             $value = $pkg.$bucket
-            if ($null -ne $value) { $depCount += @($value.PSObject.Properties).Count }
+            if ($null -ne $value) { $runtimeDeps += @($value.PSObject.Properties).Count }
         }
-        if ($depCount -eq 0) { Test-Pass 'package.json exists with zero dependencies (design-only scaffold)' }
-        else { Test-Warn "package.json declares $depCount dependency slot(s); verify DECISIONS.md D-0005 and commit a lockfile" }
+        if ($runtimeDeps -eq 0) { Test-Pass 'package.json declares zero RUNTIME dependencies' }
+        else { Test-Fail "package.json declares $runtimeDeps runtime dependency slot(s); D-0005 permits none" }
+
+        $devDeps = @()
+        if ($null -ne $pkg.devDependencies) { $devDeps = @($pkg.devDependencies.PSObject.Properties) }
+        if ($devDeps.Count -eq 0) { Test-Warn 'no devDependencies declared; executable verification needs typescript and ajv' }
+        else {
+            $loose = @($devDeps | Where-Object { $_.Value -notmatch '^\d+\.\d+\.\d+$' })
+            if ($loose.Count -eq 0) { Test-Pass "all $($devDeps.Count) dev dependencies pinned to exact versions" }
+            else { foreach ($l in $loose) { Test-Fail "devDependency $($l.Name) is not exactly pinned: $($l.Value)" } }
+        }
+        $hasLock = Test-Path -LiteralPath (Join-Path $RepoRoot 'package-lock.json')
+        if ($devDeps.Count -gt 0 -and -not $hasLock) { Test-Fail 'devDependencies are declared but package-lock.json is missing' }
+        elseif ($hasLock) { Test-Pass 'package-lock.json is present for the pinned dev tooling' }
     }
     catch { Test-Warn "package.json is not valid JSON: $($_.Exception.Message)" }
 

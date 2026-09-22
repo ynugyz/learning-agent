@@ -21,7 +21,7 @@
  * @packageDocumentation
  */
 
-import type { ReviewStatus, SchemaVersion } from './semantic-card';
+import type { ReviewStatus, SchemaVersion } from './common';
 
 /**
  * Declared capabilities, checked BEFORE relying on an optional capability.
@@ -75,13 +75,20 @@ export interface TaskInput {
 }
 
 /**
- * The schema the CALLER will validate against (RT-7).
+ * The schema the CALLER will validate against (RT-7, RT-20, RT-25).
  *
- * Optional at the boundary (RT-20): not every task is schema-shaped. A
- * structured module may require it in its own signature.
+ * Optional at the boundary: not every task is schema-shaped. **When present it
+ * must name a version** — an unversioned schema reference makes the run
+ * irreproducible, exactly as an unversioned prompt would (`RT-12`).
+ *
+ * `path` is a repository-relative schema location, never a local machine path.
  */
 export interface OutputSchemaRef {
+  /** Schema identifier, e.g. `source-map/0.1`. */
   readonly id: string;
+  /** Schema version. Required: an unversioned reference is not reproducible. */
+  readonly version: string;
+  /** Repo-relative path, e.g. `schemas/source-map.v0.1.schema.json`. Never absolute. */
   readonly path?: string;
 }
 

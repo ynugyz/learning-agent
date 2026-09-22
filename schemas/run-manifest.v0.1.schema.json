@@ -12,18 +12,18 @@
       "description": "Content fingerprint. SHA-256 is the default and the only supported algorithm at v0.1 (RM-15).",
       "properties": {
         "alg": { "type": "string", "enum": ["sha256"], "default": "sha256" },
-        "value": { "type": "string", "minLength": 1 }
+        "value": { "type": "string", "minLength": 1, "pattern": "\\S" }
       },
       "required": ["value"],
       "additionalProperties": false
     },
-    "reason": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "reason": { "type": "string", "minLength": 1, "pattern": "\\S", "maxLength": 300 },
     "caseId": {
       "type": "object",
       "description": "Tagged union: either the case, or an explicit reason there is none. Distinguishes an exploratory run from one whose case reference was lost (RM-17).",
       "properties": {
         "availability": { "type": "string", "enum": ["present", "not-applicable", "unavailable"] },
-        "value": { "type": "string", "minLength": 1 },
+        "value": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "reason": { "$ref": "#/$defs/reason" }
       },
       "required": ["availability"],
@@ -46,14 +46,15 @@
       "description": "Repository state. A commit hash alone misleads when the tree was modified, and a non-repository run must not fabricate a clean tree (RM-4, RM-13).",
       "properties": {
         "availability": { "type": "string", "enum": ["present", "unavailable"] },
-        "commit": { "type": "string", "minLength": 1 },
-        "branch": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "branch": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "dirty": { "type": "boolean" },
-        "dirtyPaths": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "dirtyPaths": { "type": "array", "items": { "type": "string", "minLength": 1, "pattern": "\\S" } },
         "worktreeRef": {
           "type": "string",
-          "minLength": 1,
-          "description": "Symbolic reference only. Never an absolute local path (RM-21)."
+          "minLength": 1, "pattern": "\\S",
+          "description": "Symbolic reference only, e.g. a branch name. Absolute Windows, POSIX, UNC and home-relative paths are rejected because they leak host layout (RM-21).",
+          "not": { "pattern": "^(?:[A-Za-z]:[\\\\/]|/|\\\\\\\\|~)" }
         },
         "reason": { "$ref": "#/$defs/reason" }
       },
@@ -80,8 +81,8 @@
         "requested": {
           "type": "object",
           "properties": {
-            "kind": { "type": "string", "minLength": 1 },
-            "version": { "type": "string", "minLength": 1 }
+            "kind": { "type": "string", "minLength": 1, "pattern": "\\S" },
+            "version": { "type": "string", "minLength": 1, "pattern": "\\S" }
           },
           "required": ["kind"],
           "additionalProperties": false
@@ -90,8 +91,8 @@
           "type": "object",
           "description": "The runtime version actually resolved at run time (RM-8).",
           "properties": {
-            "kind": { "type": "string", "minLength": 1 },
-            "version": { "type": "string", "minLength": 1 }
+            "kind": { "type": "string", "minLength": 1, "pattern": "\\S" },
+            "version": { "type": "string", "minLength": 1, "pattern": "\\S" }
           },
           "required": ["kind", "version"],
           "additionalProperties": false
@@ -123,13 +124,13 @@
       "type": "object",
       "description": "Requested versus resolved model (RM-9).",
       "properties": {
-        "requested": { "type": "string", "minLength": 1 },
+        "requested": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "resolved": {
           "type": "object",
           "description": "Tagged union: a value when available, a reason when not (RM-12).",
           "properties": {
             "availability": { "type": "string", "enum": ["available", "unavailable"] },
-            "value": { "type": "string", "minLength": 1 },
+            "value": { "type": "string", "minLength": 1, "pattern": "\\S" },
             "reason": { "$ref": "#/$defs/reason" }
           },
           "required": ["availability"],
@@ -145,7 +146,7 @@
           ],
           "additionalProperties": false
         },
-        "provider": { "type": "string", "minLength": 1 }
+        "provider": { "type": "string", "minLength": 1, "pattern": "\\S" }
       },
       "required": ["resolved"],
       "additionalProperties": false
@@ -168,7 +169,7 @@
         "kind": { "type": "string", "enum": ["source-map", "semantic-card", "evidence", "prompt", "schema", "other"] },
         "ref": {
           "type": "string",
-          "minLength": 1,
+          "minLength": 1, "pattern": "\\S",
           "description": "Path or identifier. Must not be a production Vault path or a host-specific absolute path."
         },
         "digest": { "$ref": "#/$defs/fingerprint" }
@@ -181,9 +182,9 @@
     "contractVersion": { "type": "string", "const": "run-manifest/0.1" },
     "schemaVersion": { "$ref": "#/$defs/schemaVersion" },
     "status": { "type": "string", "enum": ["draft", "NEEDS_REVIEW", "reviewed"] },
-    "runId": { "type": "string", "minLength": 1 },
+    "runId": { "type": "string", "minLength": 1, "pattern": "\\S" },
     "caseId": { "$ref": "#/$defs/caseId" },
-    "startedAt": { "type": "string", "minLength": 1, "description": "ISO-8601 timestamp with offset." },
+    "startedAt": { "type": "string", "minLength": 1, "pattern": "\\S", "description": "ISO-8601 timestamp with offset." },
     "finishedAt": {
       "type": "string",
       "description": "Absent for a crashed or still-running experiment, so a partial manifest remains valid (RM-18)."
@@ -194,8 +195,8 @@
     "reasoning": {
       "type": "object",
       "properties": {
-        "requested": { "type": "string", "minLength": 1 },
-        "applied": { "type": "string", "minLength": 1 },
+        "requested": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "applied": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "notes": { "type": "string", "maxLength": 300 }
       },
       "additionalProperties": false
@@ -204,9 +205,9 @@
       "type": "object",
       "description": "The version bundle that makes the run reproducible. An empty object is an assertion that none were used (RM-20).",
       "properties": {
-        "prompts": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 } },
-        "schemas": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 } },
-        "contracts": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 } }
+        "prompts": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1, "pattern": "\\S" } },
+        "schemas": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1, "pattern": "\\S" } },
+        "contracts": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1, "pattern": "\\S" } }
       },
       "required": ["prompts", "schemas"],
       "additionalProperties": false
@@ -214,7 +215,7 @@
     "sourceBundle": {
       "type": "object",
       "properties": {
-        "packageId": { "type": "string", "minLength": 1 },
+        "packageId": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "refs": { "type": "array", "items": { "$ref": "#/$defs/sourceRef" } },
         "digest": { "$ref": "#/$defs/fingerprint" }
       },
@@ -226,7 +227,7 @@
       "properties": {
         "environmentRef": {
           "type": "string",
-          "minLength": 1,
+          "minLength": 1, "pattern": "\\S",
           "description": "Pointer to a recorded environment document, e.g. docs/ENVIRONMENT.md."
         }
       },
@@ -240,7 +241,7 @@
       "items": {
         "type": "object",
         "properties": {
-          "field": { "type": "string", "minLength": 1 },
+          "field": { "type": "string", "minLength": 1, "pattern": "\\S" },
           "reason": { "type": "string", "enum": ["secret", "unavailable", "not-applicable", "policy"] }
         },
         "required": ["field", "reason"],

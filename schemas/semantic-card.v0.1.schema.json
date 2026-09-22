@@ -13,7 +13,7 @@
     },
     "knowledgeId": {
       "type": "string",
-      "minLength": 1,
+      "minLength": 1, "pattern": "\\S",
       "description": "Stable OPAQUE identity (SC-3). Must not encode or derive from a note title, file path, heading text or location. Concrete format (UUID/ULID/other) is deliberately not frozen at v0.1."
     },
     "anchor": {
@@ -21,7 +21,7 @@
       "description": "A note anchor. block-id is preferred; heading-path is the fallback. Line numbers are never a long-term anchor (SC-11).",
       "properties": {
         "kind": { "type": "string", "enum": ["block-id", "heading-path"] },
-        "value": { "type": "string", "minLength": 1 }
+        "value": { "type": "string", "minLength": 1, "pattern": "\\S" }
       },
       "required": ["kind", "value"],
       "additionalProperties": false
@@ -31,7 +31,7 @@
       "description": "Content fingerprint. SHA-256 is the default algorithm (SC-19).",
       "properties": {
         "alg": { "type": "string", "enum": ["sha256"], "default": "sha256" },
-        "value": { "type": "string", "minLength": 1 }
+        "value": { "type": "string", "minLength": 1, "pattern": "\\S" }
       },
       "required": ["value"],
       "additionalProperties": false
@@ -40,13 +40,13 @@
       "type": "object",
       "description": "Reference to evidence. Must identify something: at least one of sourceUnitId or locator, and every present value must be non-empty (SC-20).",
       "properties": {
-        "sourceUnitId": { "type": "string", "minLength": 1 },
-        "locator": { "type": "string", "minLength": 1 },
+        "sourceUnitId": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "locator": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "note": { "type": "string", "maxLength": 160, "description": "Short explanation for a human reader. Never authoritative content." }
       },
       "anyOf": [
-        { "properties": { "sourceUnitId": { "minLength": 1 } }, "required": ["sourceUnitId"] },
-        { "properties": { "locator": { "minLength": 1 } }, "required": ["locator"] }
+        { "properties": { "sourceUnitId": { "minLength": 1, "pattern": "\\S" } }, "required": ["sourceUnitId"] },
+        { "properties": { "locator": { "minLength": 1, "pattern": "\\S" } }, "required": ["locator"] }
       ],
       "additionalProperties": false
     },
@@ -75,7 +75,7 @@
       "maxLength": 200,
       "description": "Human-readable label. Has NO identity function and may change freely (SC-3)."
     },
-    "cardState": {
+    "maintenanceState": {
       "type": "string",
       "enum": ["stable", "needs_review", "conflicted", "stale"],
       "description": "MAINTENANCE state of this index, not a truth value (SC-5, SC-8)."
@@ -86,7 +86,7 @@
       "properties": {
         "summary": {
           "type": "string",
-          "minLength": 1,
+          "minLength": 1, "pattern": "\\S",
           "maxLength": 280,
           "description": "Navigation and matching description. Purpose-stated and length-capped so it cannot become a note summary (SC-9)."
         },
@@ -103,7 +103,7 @@
       "type": "object",
       "description": "Where the source of truth lives. Never a production Vault path in experiments (SC-10).",
       "properties": {
-        "path": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1, "pattern": "\\S" },
         "anchor": { "$ref": "#/$defs/anchor" }
       },
       "required": ["path"],
@@ -120,7 +120,7 @@
           "anchor": { "$ref": "#/$defs/anchor" },
           "heading": { "type": "string", "maxLength": 160 },
           "gist": { "type": "string", "maxLength": 280, "description": "One-line pointer. Not a content copy." },
-          "covers": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 64 } }
+          "covers": { "type": "array", "items": { "type": "string", "minLength": 1, "pattern": "\\S", "maxLength": 64 } }
         },
         "required": ["anchor"],
         "additionalProperties": false
@@ -175,8 +175,8 @@
             "description": "At least one target reference, and every present reference must be non-empty (SC-15, SC-20).",
             "properties": {
               "knowledgeId": { "$ref": "#/$defs/knowledgeId" },
-              "sourceUnitId": { "type": "string", "minLength": 1 },
-              "externalRef": { "type": "string", "minLength": 1 }
+              "sourceUnitId": { "type": "string", "minLength": 1, "pattern": "\\S" },
+              "externalRef": { "type": "string", "minLength": 1, "pattern": "\\S" }
             },
             "anyOf": [
               { "required": ["knowledgeId"] },
@@ -233,8 +233,8 @@
             "description": "Must identify somewhere: at least one non-empty reference (SC-20).",
             "properties": {
               "anchor": { "$ref": "#/$defs/anchor" },
-              "sourceUnitId": { "type": "string", "minLength": 1 },
-              "path": { "type": "string", "minLength": 1 }
+              "sourceUnitId": { "type": "string", "minLength": 1, "pattern": "\\S" },
+              "path": { "type": "string", "minLength": 1, "pattern": "\\S" }
             },
             "anyOf": [
               { "required": ["anchor"] },
@@ -259,12 +259,17 @@
       "items": {
         "type": "object",
         "properties": {
+          "unresolvedId": {
+            "type": "string",
+            "minLength": 1, "pattern": "\\S",
+            "description": "Stable OPAQUE item identity (SC-27), so a downstream artifact can reference or close this item without quoting its editable description."
+          },
           "kind": { "type": "string", "enum": ["conflict", "ambiguity", "missing-evidence", "open-question"] },
-          "description": { "type": "string", "minLength": 1, "maxLength": 600 },
+          "description": { "type": "string", "minLength": 1, "pattern": "\\S", "maxLength": 600 },
           "blocking": { "type": "boolean" },
-          "candidateResolutions": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 200 } }
+          "candidateResolutions": { "type": "array", "items": { "type": "string", "minLength": 1, "pattern": "\\S", "maxLength": 200 } }
         },
-        "required": ["kind", "description"],
+        "required": ["unresolvedId", "kind", "description"],
         "additionalProperties": false
       }
     },
@@ -273,7 +278,7 @@
       "description": "Synchronisation bookkeeping. A state may not be asserted without the data that justifies it (SC-19, SC-21).",
       "properties": {
         "state": { "type": "string", "enum": ["ok", "stale", "broken", "unknown", "NEEDS_REVIEW"] },
-        "checkedAt": { "type": "string", "minLength": 1, "description": "Required whenever any state is asserted." },
+        "checkedAt": { "type": "string", "minLength": 1, "pattern": "\\S", "description": "Required whenever any state is asserted." },
         "checkedAgainst": {
           "type": "object",
           "description": "Proof that the state was computed. Required when state is `ok`.",
@@ -286,7 +291,7 @@
         },
         "unavailableReason": {
           "type": "string",
-          "minLength": 1,
+          "minLength": 1, "pattern": "\\S",
           "maxLength": 300,
           "description": "Why a state could not be established. Required when state is `unknown`."
         }
@@ -308,7 +313,7 @@
     }
   },
   "required": [
-    "contractVersion", "schemaVersion", "status", "knowledgeId", "cardState",
+    "contractVersion", "schemaVersion", "status", "knowledgeId", "maintenanceState",
     "semanticCore", "humanNoteRef", "sectionIndex", "integrity"
   ],
   "additionalProperties": false
