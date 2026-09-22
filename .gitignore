@@ -1,0 +1,73 @@
+# ============================================================
+# Learning Agent — Git ignore policy
+# Rule of thumb: commit protocols, schemas, specs, prompts, code
+# and reviewed benchmark results. Never commit secrets, generated
+# run output, or production Vault data.
+# ============================================================
+
+# --- Secrets (never commit) ---------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+credentials.json
+service-account*.json
+
+# --- Generated experiment output -----------------------------
+# Runs are reproducible artifacts, not source. Promote reviewed
+# results into benchmark/results/ instead.
+runs/*
+!runs/README.md
+!runs/.gitignore
+
+# --- Python --------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Node / TypeScript --------------------------------------
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+coverage/
+.eslintcache
+
+# --- Obsidian plugin build output ----------------------------
+obsidian-plugin/main.js
+obsidian-plugin/styles.css
+
+# --- Test vault ---------------------------------------------
+# The test vault is disposable sandbox data and must never be
+# confused with the user's production Vault. Only the machine
+# layer metadata that defines the sandbox is tracked.
+test-vault/*
+!test-vault/README.md
+!test-vault/.learning-agent
+!test-vault/.gitkeep
+
+# --- OS / editor noise ---------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*~
+
+# --- Local scratch -------------------------------------------
+tmp/
+scratch/
+*.local

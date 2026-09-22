@@ -1,0 +1,38 @@
+# Line-ending and diff policy.
+#
+# Text files are stored with LF in the repository for stable diffs and
+# cross-platform reproducibility. Windows executables (PowerShell, cmd, bat)
+# are stored with CRLF because PowerShell 5.1 is a supported shell here.
+#
+# After changing these rules, renormalize the index:
+#   git add --renormalize .
+
+* text=auto eol=lf
+
+*.ps1   text eol=crlf
+*.psm1  text eol=crlf
+*.psd1  text eol=crlf
+*.cmd   text eol=crlf
+*.bat   text eol=crlf
+
+# Binary assets are never normalized or diffed as text.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.pdf   binary
+*.zip   binary
+*.gz    binary
+*.woff  binary
+*.woff2 binary
+*.mp3   binary
+*.mp4   binary
+*.wav   binary
+*.db    binary
+*.sqlite binary
+
+# Keep lockfiles out of diff noise once dependencies exist.
+pnpm-lock.yaml  -diff linguist-generated
+package-lock.json -diff linguist-generated

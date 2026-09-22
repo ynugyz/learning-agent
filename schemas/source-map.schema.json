@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://learning-agent.local/schemas/source-map.schema.json",
+  "title": "SourceMap",
+  "$comment": "DRAFT — NEEDS_REVIEW. Field set is a hypothesis; no code reads it yet. See docs/DECISIONS.md D-0007 and specs/source-map.md (not authored yet).",
+  "description": "Layer B artifact. Records where lesson content came from, so every downstream claim can be traced back to a source location. A SourceMap is evidence navigation, not knowledge.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version this instance conforms to.",
+      "default": "0.1.0-draft"
+    },
+    "status": {
+      "type": "string",
+      "description": "Review status of this artifact.",
+      "enum": ["draft", "NEEDS_REVIEW", "reviewed"]
+    },
+    "sourceId": {
+      "type": "string",
+      "description": "Stable identifier of the source bundle this map describes.",
+      "minLength": 1
+    },
+    "sources": {
+      "type": "array",
+      "description": "Evidence items referenced by the map (Layer A).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "kind": {
+            "type": "string",
+            "description": "Evidence category. Extend only with review.",
+            "enum": ["transcript", "slide", "textbook", "student-note", "board-image", "other"]
+          },
+          "location": {
+            "type": "string",
+            "description": "Where the evidence lives (URI or repo-relative path). Must not point at a production Vault."
+          },
+          "byteOrTimeRange": {
+            "type": "string",
+            "description": "Optional locator inside the evidence, e.g. a timestamp range or page range. Free-form until specified."
+          },
+          "quality": {
+            "type": "string",
+            "description": "Optional observed quality of the evidence, e.g. caused by ASR noise.",
+            "enum": ["unknown", "clean", "noisy", "partial", "unreadable"]
+          }
+        },
+        "required": ["id", "kind", "location"],
+        "additionalProperties": false
+      }
+    },
+    "entries": {
+      "type": "array",
+      "description": "Mapping from a lesson-side unit to one or more evidence locations.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "targetId": {
+            "type": "string",
+            "description": "Identifier of the lesson-side unit (e.g. a LessonModel segment id)."
+          },
+          "sourceRefs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "sourceId": { "type": "string" },
+                "locator": {
+                  "type": "string",
+                  "description": "Locator inside that source. Free-form until specified."
+                }
+              },
+              "required": ["sourceId"],
+              "additionalProperties": false
+            }
+          },
+          "confidence": {
+            "type": "string",
+            "description": "How certain the mapping is. Never treat a machine confidence as a verified fact.",
+            "enum": ["low", "medium", "high"]
+          }
+        },
+        "required": ["targetId", "sourceRefs"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["version", "status", "sourceId"],
+  "additionalProperties": false
+}

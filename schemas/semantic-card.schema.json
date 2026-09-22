@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://learning-agent.local/schemas/semantic-card.schema.json",
+  "title": "SemanticCard",
+  "$comment": "DRAFT — NEEDS_REVIEW. Field set is a hypothesis; no code reads it yet. See docs/DECISIONS.md D-0007, docs/ARCHITECTURE.md §2 Layer C and §3, AGENTS.md §7.",
+  "description": "Layer C artifact. A compact machine-readable representation of one human note. It must NOT duplicate the full human note; it exists for navigation, retrieval, routing, network understanding, change planning and token efficiency. It is never an independent source of truth.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "default": "0.1.0-draft"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "NEEDS_REVIEW", "reviewed"]
+    },
+    "knowledgeId": {
+      "type": "string",
+      "description": "Stable join key between the human note and this card (AGENTS.md §7). MUST remain stable across note edits while the concept is unchanged. Instability is error SEM-ID-INSTABILITY.",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "description": "Compact semantic description — a pointer to meaning, not a copy of the note.",
+      "minLength": 1
+    },
+    "humanNoteRef": {
+      "type": "string",
+      "description": "Path or reference to the human note this card mirrors. Required in spirit: a card without a human note has no source of truth."
+    },
+    "sectionIndex": {
+      "type": "array",
+      "description": "Index of the human note's sections, so a reader can jump to the right place instead of loading the whole note.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "anchor": { "type": "string" },
+          "heading": { "type": "string" },
+          "summary": { "type": "string" }
+        },
+        "required": ["anchor"],
+        "additionalProperties": false
+      }
+    },
+    "relations": {
+      "type": "array",
+      "description": "Typed relations to other cards in the knowledge network.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Relation vocabulary. Alignment operations (AGENTS.md §6 Layer D) are a separate concern; this is the stored network edge.",
+            "enum": [
+              "prerequisite",
+              "part-of",
+              "expands",
+              "refines",
+              "corrects",
+              "example-of",
+              "conflicts-with",
+              "related"
+            ]
+          },
+          "targetKnowledgeId": { "type": "string", "minLength": 1 },
+          "note": { "type": "string" }
+        },
+        "required": ["type", "targetKnowledgeId"],
+        "additionalProperties": false
+      }
+    },
+    "provenance": {
+      "type": "array",
+      "description": "Evidence supporting this card's important claims. A machine claim without provenance is error SEM-PROVENANCE-MISSING.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sourceId": { "type": "string" },
+          "locator": { "type": "string" }
+        },
+        "required": ["sourceId"],
+        "additionalProperties": false
+      }
+    },
+    "epistemicStatus": {
+      "type": "string",
+      "description": "Overall epistemic state of the card's content. Storing an inference must never promote it to a fact (SEM-INFERENCE-AS-FACT).",
+      "enum": ["asserted-by-source", "inferred", "uncertain", "conflicting", "verified"]
+    },
+    "learningAssets": {
+      "type": "array",
+      "description": "Index of learning aids associated with this concept (exercises, examples, mnemonics, ...).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": { "type": "string" },
+          "ref": { "type": "string" }
+        },
+        "required": ["kind", "ref"],
+        "additionalProperties": false
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "description": "Whether this card is still consistent with its human note and evidence.",
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["unknown", "ok", "stale", "broken", "NEEDS_REVIEW"]
+        },
+        "checkedAt": { "type": "string" },
+        "checkedAgainstCommit": { "type": "string" }
+      },
+      "required": ["state"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["version", "status", "knowledgeId", "description"],
+  "additionalProperties": false
+}
