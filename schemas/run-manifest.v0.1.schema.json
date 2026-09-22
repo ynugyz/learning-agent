@@ -1,24 +1,177 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://learning-agent.local/schemas/run-manifest.v0.1.schema.json",
-  "title": "RunManifest v0.1",
-  "$comment": "DRAFT — NOT IMPLEMENTATION-STABLE. Has NOT passed human review. See specs/run-manifest-v0.1.md.",
-  "description": "Reproducibility record for one experiment run. Answers 'is comparing this run with another valid?' without re-running anything. Contains no secrets and no conclusions.",
+  "title": "RunManifest v0.1 (REV1)",
+  "$comment": "DRAFT — NOT IMPLEMENTATION-STABLE. Revised under human adjudication during M1A REV1. Has NOT passed human review. See specs/run-manifest-v0.1.md and docs/reviews/M1A_HUMAN_ADJUDICATION_REV1.md.",
+  "description": "Reproducibility record for one experiment run. Answers 'is comparing this run with another valid?' without re-running anything. Absence of a core field is never silent: it is tagged unavailable with a reason. Contains no secrets, no host-specific paths and no conclusions.",
   "type": "object",
   "$defs": {
-    "digestRef": {
+    "schemaVersion": { "type": "string", "const": "0.1" },
+    "fingerprint": {
+      "type": "object",
+      "description": "Content fingerprint. SHA-256 is the default and the only supported algorithm at v0.1 (RM-15).",
+      "properties": {
+        "alg": { "type": "string", "enum": ["sha256"], "default": "sha256" },
+        "value": { "type": "string", "minLength": 1 }
+      },
+      "required": ["value"],
+      "additionalProperties": false
+    },
+    "reason": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "caseId": {
+      "type": "object",
+      "description": "Tagged union: either the case, or an explicit reason there is none. Distinguishes an exploratory run from one whose case reference was lost (RM-17).",
+      "properties": {
+        "availability": { "type": "string", "enum": ["present", "not-applicable", "unavailable"] },
+        "value": { "type": "string", "minLength": 1 },
+        "reason": { "$ref": "#/$defs/reason" }
+      },
+      "required": ["availability"],
+      "allOf": [
+        {
+          "$comment": "RM-12: present requires the value.",
+          "if": { "properties": { "availability": { "const": "present" } }, "required": ["availability"] },
+          "then": { "required": ["value"] }
+        },
+        {
+          "$comment": "RM-12: an absent case requires a reason.",
+          "if": { "properties": { "availability": { "enum": ["not-applicable", "unavailable"] } }, "required": ["availability"] },
+          "then": { "required": ["reason"] }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "gitState": {
+      "type": "object",
+      "description": "Repository state. A commit hash alone misleads when the tree was modified, and a non-repository run must not fabricate a clean tree (RM-4, RM-13).",
+      "properties": {
+        "availability": { "type": "string", "enum": ["present", "unavailable"] },
+        "commit": { "type": "string", "minLength": 1 },
+        "branch": { "type": "string", "minLength": 1 },
+        "dirty": { "type": "boolean" },
+        "dirtyPaths": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "worktreeRef": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Symbolic reference only. Never an absolute local path (RM-21)."
+        },
+        "reason": { "$ref": "#/$defs/reason" }
+      },
+      "required": ["availability"],
+      "allOf": [
+        {
+          "$comment": "RM-12: present requires commit and dirty.",
+          "if": { "properties": { "availability": { "const": "present" } }, "required": ["availability"] },
+          "then": { "required": ["commit", "dirty"] }
+        },
+        {
+          "$comment": "RM-13: unavailable requires a reason.",
+          "if": { "properties": { "availability": { "const": "unavailable" } }, "required": ["availability"] },
+          "then": { "required": ["reason"] }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "runtimeInfo": {
+      "type": "object",
+      "description": "Requested versus resolved runtime. A resolution status is only representable when BOTH sides are present, so it is always computable from this manifest (RM-11).",
+      "properties": {
+        "availability": { "type": "string", "enum": ["present", "unavailable"] },
+        "requested": {
+          "type": "object",
+          "properties": {
+            "kind": { "type": "string", "minLength": 1 },
+            "version": { "type": "string", "minLength": 1 }
+          },
+          "required": ["kind"],
+          "additionalProperties": false
+        },
+        "resolved": {
+          "type": "object",
+          "description": "The runtime version actually resolved at run time (RM-8).",
+          "properties": {
+            "kind": { "type": "string", "minLength": 1 },
+            "version": { "type": "string", "minLength": 1 }
+          },
+          "required": ["kind", "version"],
+          "additionalProperties": false
+        },
+        "resolution": { "type": "string", "enum": ["matched", "substituted", "unknown"] },
+        "reason": { "$ref": "#/$defs/reason" }
+      },
+      "required": ["availability"],
+      "allOf": [
+        {
+          "$comment": "RM-11: resolution requires both requested and resolved.",
+          "if": { "required": ["resolution"] },
+          "then": { "required": ["requested", "resolved"] }
+        },
+        {
+          "$comment": "RM-12: present requires both sides of the comparison.",
+          "if": { "properties": { "availability": { "const": "present" } }, "required": ["availability"] },
+          "then": { "required": ["requested", "resolved"] }
+        },
+        {
+          "$comment": "RM-12: unavailable requires a reason.",
+          "if": { "properties": { "availability": { "const": "unavailable" } }, "required": ["availability"] },
+          "then": { "required": ["reason"] }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "modelInfo": {
+      "type": "object",
+      "description": "Requested versus resolved model (RM-9).",
+      "properties": {
+        "requested": { "type": "string", "minLength": 1 },
+        "resolved": {
+          "type": "object",
+          "description": "Tagged union: a value when available, a reason when not (RM-12).",
+          "properties": {
+            "availability": { "type": "string", "enum": ["available", "unavailable"] },
+            "value": { "type": "string", "minLength": 1 },
+            "reason": { "$ref": "#/$defs/reason" }
+          },
+          "required": ["availability"],
+          "allOf": [
+            {
+              "if": { "properties": { "availability": { "const": "available" } }, "required": ["availability"] },
+              "then": { "required": ["value"] }
+            },
+            {
+              "if": { "properties": { "availability": { "const": "unavailable" } }, "required": ["availability"] },
+              "then": { "required": ["reason"] }
+            }
+          ],
+          "additionalProperties": false
+        },
+        "provider": { "type": "string", "minLength": 1 }
+      },
+      "required": ["resolved"],
+      "additionalProperties": false
+    },
+    "usage": {
+      "type": "object",
+      "description": "Manifest-local token usage. Deliberately NOT the runtime-boundary Usage type: the two contracts are decoupled so they can evolve independently (RM-12).",
+      "properties": {
+        "availability": { "type": "string", "enum": ["reported", "partial", "unavailable"] },
+        "inputTokens": { "type": "number", "minimum": 0 },
+        "outputTokens": { "type": "number", "minimum": 0 },
+        "totalTokens": { "type": "number", "minimum": 0 }
+      },
+      "required": ["availability"],
+      "additionalProperties": false
+    },
+    "sourceRef": {
       "type": "object",
       "properties": {
-        "kind": {
-          "type": "string",
-          "enum": ["source-map", "semantic-card", "evidence", "prompt", "schema", "other"]
-        },
+        "kind": { "type": "string", "enum": ["source-map", "semantic-card", "evidence", "prompt", "schema", "other"] },
         "ref": {
           "type": "string",
           "minLength": 1,
-          "description": "Path or identifier. Must not be a production Vault path."
+          "description": "Path or identifier. Must not be a production Vault path or a host-specific absolute path."
         },
-        "digest": { "type": "string" }
+        "digest": { "$ref": "#/$defs/fingerprint" }
       },
       "required": ["kind", "ref"],
       "additionalProperties": false
@@ -26,88 +179,34 @@
   },
   "properties": {
     "contractVersion": { "type": "string", "const": "run-manifest/0.1" },
+    "schemaVersion": { "$ref": "#/$defs/schemaVersion" },
     "status": { "type": "string", "enum": ["draft", "NEEDS_REVIEW", "reviewed"] },
     "runId": { "type": "string", "minLength": 1 },
-    "caseId": {
-      "type": "object",
-      "description": "Distinguishes an exploratory run from a run whose case reference was lost.",
-      "properties": {
-        "value": { "type": "string" },
-        "availability": { "type": "string", "enum": ["present", "not-applicable", "unknown"] }
-      },
-      "required": ["availability"],
-      "additionalProperties": false
-    },
+    "caseId": { "$ref": "#/$defs/caseId" },
     "startedAt": { "type": "string", "minLength": 1, "description": "ISO-8601 timestamp with offset." },
     "finishedAt": {
       "type": "string",
-      "description": "Absent for a crashed or still-running experiment, so a partial manifest remains valid."
+      "description": "Absent for a crashed or still-running experiment, so a partial manifest remains valid (RM-18)."
     },
-    "git": {
-      "type": "object",
-      "description": "A commit hash alone is misleading when the tree was modified; dirty state is first-class.",
-      "properties": {
-        "commit": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Full commit SHA, or the literal 'unknown' when the run happened outside a repository."
-        },
-        "branch": { "type": "string" },
-        "dirty": { "type": "boolean" },
-        "dirtyPaths": { "type": "array", "items": { "type": "string" } },
-        "repoRef": { "type": "string" }
-      },
-      "required": ["commit", "dirty"],
-      "additionalProperties": false
-    },
-    "runtime": {
-      "type": "object",
-      "description": "Requested versus actually resolved runtime.",
-      "properties": {
-        "kind": { "type": "string", "minLength": 1 },
-        "version": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Version actually resolved at run time, not read from documentation."
-        },
-        "resolution": { "type": "string", "enum": ["matched", "substituted", "unknown"] }
-      },
-      "required": ["kind", "version", "resolution"],
-      "additionalProperties": false
-    },
-    "model": {
-      "type": "object",
-      "properties": {
-        "requested": { "type": "string" },
-        "resolved": {
-          "type": "object",
-          "properties": {
-            "value": { "type": "string" },
-            "availability": { "type": "string", "enum": ["reported", "unavailable", "unknown"] }
-          },
-          "required": ["availability"],
-          "additionalProperties": false
-        },
-        "provider": { "type": "string" }
-      },
-      "additionalProperties": false
-    },
+    "git": { "$ref": "#/$defs/gitState" },
+    "runtime": { "$ref": "#/$defs/runtimeInfo" },
+    "model": { "$ref": "#/$defs/modelInfo" },
     "reasoning": {
       "type": "object",
       "properties": {
-        "requested": { "type": "string" },
-        "applied": { "type": "string" },
-        "notes": { "type": "string" }
+        "requested": { "type": "string", "minLength": 1 },
+        "applied": { "type": "string", "minLength": 1 },
+        "notes": { "type": "string", "maxLength": 300 }
       },
       "additionalProperties": false
     },
     "versions": {
       "type": "object",
-      "description": "The version bundle that makes the run reproducible. An empty object is an assertion of 'none used'.",
+      "description": "The version bundle that makes the run reproducible. An empty object is an assertion that none were used (RM-20).",
       "properties": {
-        "prompts": { "type": "object", "additionalProperties": { "type": "string" } },
-        "schemas": { "type": "object", "additionalProperties": { "type": "string" } },
-        "contracts": { "type": "object", "additionalProperties": { "type": "string" } }
+        "prompts": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 } },
+        "schemas": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 } },
+        "contracts": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 } }
       },
       "required": ["prompts", "schemas"],
       "additionalProperties": false
@@ -115,40 +214,29 @@
     "sourceBundle": {
       "type": "object",
       "properties": {
-        "packageId": { "type": "string" },
-        "refs": { "type": "array", "items": { "$ref": "#/$defs/digestRef" } },
-        "digest": { "type": "string" }
+        "packageId": { "type": "string", "minLength": 1 },
+        "refs": { "type": "array", "items": { "$ref": "#/$defs/sourceRef" } },
+        "digest": { "$ref": "#/$defs/fingerprint" }
       },
       "additionalProperties": false
     },
     "platform": {
       "type": "object",
+      "description": "Environment reference. Reduced to a pointer so no host-specific data enters the manifest (RM-21).",
       "properties": {
-        "os": { "type": "string" },
-        "node": { "type": "string" },
-        "shell": { "type": "string" },
         "environmentRef": {
           "type": "string",
-          "description": "Pointer to a recorded environment document, e.g. docs/ENVIRONMENT.md. A pointer, not data."
+          "minLength": 1,
+          "description": "Pointer to a recorded environment document, e.g. docs/ENVIRONMENT.md."
         }
       },
       "additionalProperties": false
     },
-    "usage": {
-      "type": "object",
-      "properties": {
-        "inputTokens": { "type": "number", "minimum": 0 },
-        "outputTokens": { "type": "number", "minimum": 0 },
-        "totalTokens": { "type": "number", "minimum": 0 },
-        "availability": { "type": "string", "enum": ["reported", "partial", "unavailable"] }
-      },
-      "required": ["availability"],
-      "additionalProperties": false
-    },
+    "usage": { "$ref": "#/$defs/usage" },
     "durationMs": { "type": "number", "minimum": 0 },
     "omissions": {
       "type": "array",
-      "description": "Records THAT a field was withheld, without recording its value. Exists because omitting a secret-bearing field is otherwise indistinguishable from having nothing to omit.",
+      "description": "Records THAT a field was withheld, never its value. The only sanctioned way to reference a withheld secret (RM-14).",
       "items": {
         "type": "object",
         "properties": {
@@ -161,12 +249,13 @@
     },
     "notes": {
       "type": "string",
-      "description": "Free-form and non-secret. Must not contain conclusions, scores or interpretations."
+      "maxLength": 600,
+      "description": "Free-form and non-secret. Must not contain conclusions, scores or interpretations (RM-6)."
     }
   },
   "required": [
-    "contractVersion", "status", "runId", "startedAt",
-    "git", "runtime", "model", "versions"
+    "contractVersion", "schemaVersion", "status", "runId", "caseId",
+    "startedAt", "git", "runtime", "model", "versions"
   ],
   "additionalProperties": false
 }

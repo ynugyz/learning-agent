@@ -86,9 +86,16 @@ Presence checked, values intentionally omitted (`.env` is git-ignored):
 
 ## Project dependencies
 
-**None.** M0 declares no `package.json`, no `pyproject.toml`, no lockfile
-(`DECISIONS.md` D-0004). There is nothing to reproduce yet beyond the toolchain
-above.
+**None installed.** Since M1A a `package.json` scaffold exists (declaring
+TypeScript as the primary language, `DECISIONS.md` D-0005) but it declares
+**zero dependencies** and there is no lockfile. `npm run typecheck` therefore
+does **not** work yet: it requires a deliberate
+`npm install --save-dev --save-exact typescript`, which must commit a lockfile
+in the same change (`DECISIONS.md` D-0004). Nothing beyond the toolchain below
+is required to read or review this repository.
+
+The TypeScript contract drafts in `src/contracts/*.ts` are **unverified by a
+compiler** for exactly this reason. They are declarations, not a build.
 
 ## Reproducing this record
 
@@ -102,7 +109,14 @@ python --version; uv --version; dsh --version
 - DSH is an `alpha` release and is not pinned at M0; it can change without any
   commit here, and the pinning strategy is still undecided
   (`DECISIONS.md` D-0003).
-- Two independent language toolchains (Node/TypeScript, Python) are installed
-  and the implementation language is still undecided (`DECISIONS.md` D-0005).
-- `pwsh` absent means documentation must not assume PowerShell 7 semantics;
-  `tools/check.ps1` therefore targets Windows PowerShell 5.1.
+- The implementation language is **decided**: TypeScript for `src/**` and the
+  future Obsidian plugin; Python is not a core runtime language
+  (`DECISIONS.md` D-0005). The risk is not the choice but that **no TypeScript
+  toolchain is installed**, so contract drafts cannot be type-checked.
+- `pwsh` is not on this shell's `PATH`; `tools/check.ps1` therefore targets
+  Windows PowerShell 5.1 so it stays runnable from a plain `powershell`
+  invocation.
+- `platform` data is deliberately **not** duplicated into run manifests
+  (`RM-21`): a manifest points here via `environmentRef`. If this document
+  changes, old manifests point at a different environment. That is a recorded
+  trade-off, not an oversight.

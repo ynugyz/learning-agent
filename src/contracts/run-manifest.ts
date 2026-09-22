@@ -1,65 +1,88 @@
 /**
- * RunManifest v0.1 — TypeScript draft
+ * RunManifest v0.1 (REV1) — TypeScript draft
  *
  * DRAFT — NOT IMPLEMENTATION-STABLE.
  * Mirrors `schemas/run-manifest.v0.1.schema.json` and
- * `specs/run-manifest-v0.1.md`. Has NOT passed human review.
+ * `specs/run-manifest-v0.1.md`. Revised under human adjudication during
+ * M1A REV1; see `docs/reviews/M1A_HUMAN_ADJUDICATION_REV1.md`.
  *
- * A reproducibility record, not a log and not a result: it answers "is
- * comparing this run with another valid?" without re-running anything. It
- * contains no secrets and no conclusions.
+ * A reproducibility record: it answers "is comparing this run with another
+ * valid?" without re-running anything. It contains no secrets, no host-specific
+ * paths and no conclusions.
+ *
+ * REV1 changes that matter to a reader of this file:
+ *  - `runtime` carries BOTH `requested` and `resolved` (RM-11);
+ *  - core fields are tagged unions: absent means `unavailable` + `reason` (RM-12);
+ *  - `ManifestUsage` is a local definition, NOT the runtime-boundary `Usage`;
+ *  - `schemaVersion` is required;
+ *  - fingerprinting defaults to SHA-256.
  *
  * @packageDocumentation
  */
 
-import type { ReviewStatus } from './semantic-card';
-import type { Usage } from './agent-runtime';
+import type { ReviewStatus, SchemaVersion, Fingerprint } from './semantic-card';
 
-/** One input consumed by a run. `ref` must not be a production Vault path. */
+/** One input consumed by a run. `ref` must not be a production Vault or host path. */
 export interface ManifestSourceRef {
   readonly kind: 'source-map' | 'semantic-card' | 'evidence' | 'prompt' | 'schema' | 'other';
   readonly ref: string;
-  /** TODO(RM-A1): the digest algorithm is unspecified, so digests are not comparable. */
-  readonly digest?: string;
+  readonly digest?: Fingerprint;
 }
 
 /**
- * Repository state.
+ * Which benchmark case a run belongs to (RM-17).
  *
- * A commit hash alone misleads whenever the tree was modified, so dirty state
- * is first-class rather than inferred (RM-3).
+ * Tagged union: distinguishes an exploratory run (`not-applicable`) from one
+ * whose case reference was lost (`unavailable`), and both require a reason.
  */
-export interface ManifestGitState {
-  /** Full commit SHA, or the literal `'unknown'` when run outside a repository. */
-  readonly commit: string;
-  readonly branch?: string;
-  readonly dirty: boolean;
-  /** TODO(RM-A2): required-in-spirit when `dirty` is true, but not schema-enforced. */
-  readonly dirtyPaths?: readonly string[];
-  readonly repoRef?: string;
-}
-
-/** Runtime identity, requested versus resolved. */
-export interface ManifestRuntime {
-  readonly kind: string;
-  /** Version actually resolved at run time (DECISIONS.md D-0003). */
-  readonly version: string;
-  readonly resolution: 'matched' | 'substituted' | 'unknown';
-}
+export type ManifestCaseId =
+  | { readonly availability: 'present'; readonly value: string }
+  | { readonly availability: 'not-applicable'; readonly reason: string }
+  | { readonly availability: 'unavailable'; readonly reason: string };
 
 /**
- * Model identity.
+ * Repository state (RM-4, RM-13).
  *
- * TODO(RM-A4): `resolved` nests an availability enum while `requested` is a
- * bare string. The asymmetry is deliberate (absence must be visible) but reads
- * inconsistently.
+ * A commit hash alone misleads when the tree was modified, and a run outside a
+ * repository says so instead of fabricating a clean tree.
  */
+export type ManifestGitState =
+  | {
+      readonly availability: 'present';
+      readonly commit: string;
+      readonly dirty: boolean;
+      readonly branch?: string;
+      /** TODO(RM-A1): required in spirit when `dirty`, not schema-enforced. */
+      readonly dirtyPaths?: readonly string[];
+      /** Symbolic reference only. Never an absolute local path (RM-21). */
+      readonly worktreeRef?: string;
+    }
+  | { readonly availability: 'unavailable'; readonly reason: string };
+
+/**
+ * Requested versus resolved runtime (RM-8, RM-11).
+ *
+ * `resolution` is only representable when BOTH sides are present, so it is
+ * always computable from the manifest's own data — the previous revision could
+ * assert `matched` while recording no requested runtime at all.
+ */
+export type ManifestRuntime =
+  | {
+      readonly availability: 'present';
+      /** The `version` may be omitted when the requested version was itself unspecified. */
+      readonly requested: { readonly kind: string; readonly version?: string };
+      readonly resolved: { readonly kind: string; readonly version: string };
+      readonly resolution?: 'matched' | 'substituted' | 'unknown';
+    }
+  | { readonly availability: 'unavailable'; readonly reason: string };
+
+/** Requested versus resolved model (RM-9). */
 export interface ManifestModel {
   readonly requested?: string;
-  readonly resolved?: {
-    readonly value?: string;
-    readonly availability: 'reported' | 'unavailable' | 'unknown';
-  };
+  /** Tagged union: a value when available, a reason when not (RM-12). */
+  readonly resolved:
+    | { readonly availability: 'available'; readonly value: string }
+    | { readonly availability: 'unavailable'; readonly reason: string };
   readonly provider?: string;
 }
 
@@ -71,10 +94,10 @@ export interface ManifestReasoning {
 }
 
 /**
- * The version bundle that makes the run reproducible.
+ * The version bundle that makes the run reproducible (RM-20).
  *
  * Always present, though the maps may be empty: an empty object asserts "none
- * were used", whereas omission is ambiguous (RM-7).
+ * were used", whereas omission is ambiguous.
  */
 export interface ManifestVersions {
   readonly prompts: Readonly<Record<string, string>>;
@@ -86,30 +109,34 @@ export interface ManifestVersions {
 export interface ManifestSourceBundle {
   readonly packageId?: string;
   readonly refs?: readonly ManifestSourceRef[];
-  readonly digest?: string;
+  readonly digest?: Fingerprint;
 }
 
-/**
- * Environment reference.
- *
- * TODO(RM-A6): `environmentRef` is a pointer, not data. If the referenced
- * document changes, old manifests silently point at a different environment.
- */
+/** Environment reference. A pointer only, so no host-specific data enters (RM-21). */
 export interface ManifestPlatform {
-  readonly os?: string;
-  readonly node?: string;
-  readonly shell?: string;
   readonly environmentRef?: string;
 }
 
 /**
- * A field deliberately withheld.
+ * Manifest-local token usage.
  *
- * Exists because omitting a secret-bearing field is otherwise
- * indistinguishable from having nothing to omit. It records THAT something was
- * withheld, never the value (RM-5).
+ * Deliberately NOT the runtime-boundary `Usage`: the two contracts are
+ * decoupled so either can evolve without breaking the other (CH-08).
+ */
+export interface ManifestUsage {
+  readonly availability: 'reported' | 'partial' | 'unavailable';
+  readonly inputTokens?: number;
+  readonly outputTokens?: number;
+  readonly totalTokens?: number;
+}
+
+/**
+ * A field deliberately withheld (RM-14).
  *
- * TODO(RM-A3): entirely voluntary, so absence remains untrustworthy.
+ * Records THAT something was withheld, never the value. `reason: 'secret'` is
+ * the only sanctioned way to reference a withheld credential.
+ *
+ * TODO(RM-A2): entirely voluntary, so absence remains untrustworthy.
  */
 export interface ManifestOmission {
   readonly field: string;
@@ -117,29 +144,20 @@ export interface ManifestOmission {
 }
 
 /**
- * Which benchmark case a run belongs to.
+ * Reproducibility record for one experiment run (RM-22).
  *
- * Distinguishes an exploratory run (`not-applicable`) from one whose case
- * reference was lost (`unknown`) (RM-12).
- */
-export interface ManifestCaseId {
-  readonly value?: string;
-  readonly availability: 'present' | 'not-applicable' | 'unknown';
-}
-
-/**
- * Reproducibility record for one experiment run.
+ * Generated under `runs/` and NOT committed by default; retained together with
+ * its results only when the run is promoted to a reference benchmark.
  *
- * `finishedAt` is optional so a crashed or still-running experiment can still
- * emit a valid manifest (RM-18).
- *
- * TODO(RM-A5 / Q1): whether manifests are committed, and where, is undecided.
+ * `finishedAt` is optional so a crashed experiment can still emit a valid
+ * manifest (RM-18).
  */
 export interface RunManifest {
   readonly contractVersion: 'run-manifest/0.1';
+  readonly schemaVersion: SchemaVersion;
   readonly status: ReviewStatus;
   readonly runId: string;
-  readonly caseId?: ManifestCaseId;
+  readonly caseId: ManifestCaseId;
   /** ISO-8601 timestamp with offset. */
   readonly startedAt: string;
   readonly finishedAt?: string;
@@ -150,8 +168,8 @@ export interface RunManifest {
   readonly versions: ManifestVersions;
   readonly sourceBundle?: ManifestSourceBundle;
   readonly platform?: ManifestPlatform;
-  /** Absent usage must not be read as zero; `availability` carries that distinction. */
-  readonly usage?: Usage;
+  /** Absent usage is never read as zero; `availability` carries that distinction. */
+  readonly usage?: ManifestUsage;
   readonly durationMs?: number;
   readonly omissions?: readonly ManifestOmission[];
   /** Free-form and non-secret. Must not contain conclusions, scores or interpretations. */

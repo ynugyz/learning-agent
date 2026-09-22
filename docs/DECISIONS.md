@@ -159,34 +159,6 @@ retained unchanged as discussion drafts. **None of them has passed human schema
 review**, and no implementation code may treat any of them as a stable
 contract. Fields are expected to change; see D-0007.
 
-### D-0010 — Machine-layer physical layout in a Vault is NOT decided
-- Date: 2026-09-22
-- Status: NEEDS_REVIEW
-- Decision: `test-vault/.learning-agent/` is a **development/test sandbox
-  location only**. It does not express, imply or pre-select the eventual
-  physical layout of SemanticCard data in a real Obsidian Vault. Whether that
-  layout is Vault-root centralized, module-local sidecar files, a database, or
-  something else remains **undecided and review-gated**.
-- Rationale: The sandbox needs *some* directory to exist at M0 so the layer
-  boundary is concrete, and a vault-local `.learning-agent/` directory is the
-  cheapest reversible choice. It is not evidence for a product decision:
-  the test vault has no real modules, no scale constraints, no sync conflicts
-  and no Obsidian plugin. Deriving a storage architecture from it would be
-  exactly the premature commitment `AGENTS.md` §18 warns against, and changing
-  a knowledge-storage layout later is the kind of irreversible migration §15
-  places behind human review.
-- Alternatives considered: (a) leave the sandbox vault without a machine layer
-  at all — rejected, the layer boundary would stay abstract; (b) pick a
-  candidate layout now (e.g. sidecar-per-note) — rejected as unfounded;
-  (c) store the sandbox layer outside the vault tree — rejected because the
-  human-note/machine-layer join (`AGENTS.md` §7) is what the sandbox exists to
-  exercise.
-- Consequences: Anything written under `test-vault/.learning-agent/` is
-  sandbox-shaped and must be assumed throwaway. Storage-layout questions must
-  be answered by a human decision recorded here before any production Vault
-  integration work starts. No code may hard-code the `.learning-agent/`
-  directory name as a product-level assumption.
-
 ### D-0008 — Repository stores LF; Windows scripts are checked out CRLF
 - Date: 2026-09-22
 - Status: accepted
@@ -222,13 +194,107 @@ contract. Fields are expected to change; see D-0007.
   AGENTS.md §3.4 prohibits without a gate.
 - Consequences: The repository has no commits at the gate; `git status` shows
   a staged initial commit. Nothing is pushed anywhere.
+### D-0010 — Machine-layer physical layout in a Vault is NOT decided
+- Date: 2026-09-22
+- Status: NEEDS_REVIEW
+- Decision: `test-vault/.learning-agent/` is a **development/test sandbox
+  location only**. It does not express, imply or pre-select the eventual
+  physical layout of SemanticCard data in a real Obsidian Vault. Whether that
+  layout is Vault-root centralized, module-local sidecar files, a database, or
+  something else remains **undecided and review-gated**.
+- Rationale: The sandbox needs *some* directory to exist at M0 so the layer
+  boundary is concrete, and a vault-local `.learning-agent/` directory is the
+  cheapest reversible choice. It is not evidence for a product decision:
+  the test vault has no real modules, no scale constraints, no sync conflicts
+  and no Obsidian plugin. Deriving a storage architecture from it would be
+  exactly the premature commitment `AGENTS.md` §18 warns against, and changing
+  a knowledge-storage layout later is the kind of irreversible migration §15
+  places behind human review.
+- Alternatives considered: (a) leave the sandbox vault without a machine layer
+  at all — rejected, the layer boundary would stay abstract; (b) pick a
+  candidate layout now (e.g. sidecar-per-note) — rejected as unfounded;
+  (c) store the sandbox layer outside the vault tree — rejected because the
+  human-note/machine-layer join (`AGENTS.md` §7) is what the sandbox exists to
+  exercise.
+- Consequences: Anything written under `test-vault/.learning-agent/` is
+  sandbox-shaped and must be assumed throwaway. Storage-layout questions must
+  be answered by a human decision recorded here before any production Vault
+  integration work starts. No code may hard-code the `.learning-agent/`
+  directory name as a product-level assumption.
+
+
+### D-0011 — The M1A core contract set exists as four explicit contracts
+- Date: 2026-09-22
+- Status: accepted (design record; the contracts themselves are DRAFT and
+  **NEEDS_REVIEW** — see §15 of `AGENTS.md` on review gates)
+- Decision: The Learning Agent's cross-cutting artifact shapes are defined as
+  exactly four contracts, each with a prose spec, a draft JSON Schema and a
+  TypeScript declaration file:
+
+  | Contract | Answers | Spec |
+  | --- | --- | --- |
+  | **SemanticCard v0.1** | How is one concept indexed machine-readably without duplicating the human note? | `specs/semantic-card-v0.1.md` |
+  | **SourceMap v0.1** | What is actually present in this source package, and what is missing? | `specs/source-map-v0.1.md` |
+  | **AgentRuntime Boundary v0.1** | What may the pipeline ask of a runtime, and what comes back? | `specs/agent-runtime-v0.1.md` |
+  | **RunManifest v0.1** | Is comparing this run with another valid? | `specs/run-manifest-v0.1.md` |
+
+  The set is deliberately closed at four. A fifth contract requires its own
+  decision entry.
+- Rationale: `AGENTS.md` §14 requires architecture-affecting decisions to be in
+  the log rather than only in chat history, and §12/§13 expect placeholder
+  artifacts to be replaced by real ones. Four contracts is the minimum needed
+  to make the Layer A–G pipeline and the runtime boundary describable:
+  evidence structure (SourceMap), machine semantics (SemanticCard), execution
+  (AgentRuntime) and reproducibility (RunManifest). Anything more would be
+  design for a milestone that has not started (`AGENTS.md` §18).
+- Alternatives considered: (a) deriving contracts one at a time as each module
+  needs them — rejected because they reference each other
+  (SemanticCard → SourceMap, RunManifest → AgentRuntime) and piecemeal design
+  produced the circularity found in M1A; (b) defining `LessonModel`,
+  alignment and `ChangePlan` at the same time — rejected as M1B work and as
+  premature, since none of them has a consumer yet.
+- Consequences: The M0 seed schemas were rederived rather than extended and are
+  archived at `schemas/archive/m0-draft/`; `lesson-model` has **no successor**
+  yet. Contracts live in `src/contracts` (D-0012) and are consumed by specs,
+  schemas and code alike. The contracts are **DRAFT — NOT
+  IMPLEMENTATION-STABLE**; no implementation may treat them as frozen, and an
+  incompatible change remains review-gated.
+
+### D-0012 — Contract types live in `src/contracts/`, not `src/runtime/` or `src/core/`
+- Date: 2026-09-22
+- Status: accepted
+- Decision: The four contract type declarations live in a new neutral directory
+  `src/contracts/`. `src/core`, `src/pipeline`, `src/modules` and
+  `src/runtime/**` may all import from it. No contract type may live in
+  `src/runtime/`, and `src/core` must not become the home for types that
+  `src/runtime` needs.
+- Rationale: The M0 sketch placed the runtime interface in `src/runtime/`, which
+  would have forced `src/core` to import `src/runtime/` for shared types — the
+  exact dependency direction `AGENTS.md` §3.3 and `docs/ARCHITECTURE.md` §4
+  forbid. `src/core` is also the wrong home: it is product logic, and making
+  `src/runtime` depend on product logic couples the replaceable boundary to the
+  thing it exists to isolate. A neutral declarations-only directory keeps
+  `core`/`pipeline`/`modules` → `contracts` and `runtime` → `contracts`, with
+  no edge between `core` and `runtime` in either direction.
+- Alternatives considered: (a) `src/runtime/agent-runtime.ts` (the M0 sketch) —
+  rejected for the core→runtime edge; (b) `src/core/contracts.ts` — rejected for
+  the runtime→core edge; (c) per-layer contract files with duplicated types —
+  rejected because a shared contract with two definitions is not a contract.
+- Consequences: `src/contracts/` holds declarations only and must contain no
+  behaviour. A `tools/check.ps1` assertion guards the dependency boundary by
+  rejecting `runtime/dsh` / `@deepseek-ai` module references anywhere outside
+  the adapter. `docs/ARCHITECTURE.md` §4 and `src/runtime/README.md` were
+  corrected to match. `ReviewStatus` and `SchemaVersion` — shared by all four
+  contracts — live in `semantic-card.ts`, which is a **known wart** (`CH-15`):
+  a shared scalar should have a neutral home, and this is recorded as an open
+  issue rather than fixed by adding a fifth file in this revision.
 
 ---
 
 ## Template for new decisions
 
 ```
-### D-0011 — <title>
+### D-0013 — <title>
 - Date:
 - Status: proposed | accepted | NEEDS_REVIEW | superseded by D-NNNN
 - Decision:

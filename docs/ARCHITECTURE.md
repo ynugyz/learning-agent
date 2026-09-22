@@ -111,7 +111,7 @@ the join key and must be stable across edits.
 ```
 Learning Pipeline (src/pipeline)
         |
-        v  AgentRuntime interface (src/runtime)
+        v  AgentRuntime contract  (src/contracts/agent-runtime.ts)
         |
         v  DSH adapter (src/runtime/dsh)
         |
@@ -120,17 +120,28 @@ Learning Pipeline (src/pipeline)
 
 Rules:
 
-1. `src/core` and `src/pipeline` import only the `AgentRuntime` interface.
-2. DSH-specific types, CLIs, session formats and file paths appear **only** in
-   `src/runtime/dsh/`.
-3. The adapter translates DSH activity into runtime-neutral events; it does not
+1. `src/core`, `src/pipeline` and `src/modules` import the **contract** from
+   `src/contracts`, never the adapter.
+2. DSH-specific types, CLIs, session formats, versions and file paths appear
+   **only** in `src/runtime/dsh/`. A relative-path assertion is enforced by
+   `tools/check.ps1`.
+3. The adapter translates DSH activity into runtime-neutral results; it does not
    leak DSH representations upward.
 4. Nothing in this repository modifies DSH source.
+5. **The runtime does not validate output.** It returns raw model output; the
+   core validates it against the schema the caller named. A runtime that
+   silently repairs or rejects output destroys the failure signal
+   (`specs/agent-runtime-v0.1.md` `RT-7`).
 
-The interface itself is **not yet defined** — see
-[src/runtime/README.md](../src/runtime/README.md). Introducing it is the first
-task of the next milestone, and any core-schema impact is a review-gated
-decision.
+The contract is **defined but not implemented**: see
+[`src/contracts/agent-runtime.ts`](../src/contracts/agent-runtime.ts) and
+[`specs/agent-runtime-v0.1.md`](../specs/agent-runtime-v0.1.md). It lives in
+`src/contracts/` rather than `src/runtime/` because `core` and `runtime` both
+depend on it and neither may depend on the other (`docs/DECISIONS.md` D-0012).
+
+The `AgentRuntime` boundary is **status: DRAFT — NOT IMPLEMENTATION-STABLE** and
+has not passed human review. Implementing an adapter is a later milestone, and
+any core-schema impact is a review-gated decision.
 
 ## 5. Context-loading principle
 

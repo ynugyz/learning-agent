@@ -1,16 +1,17 @@
-# SemanticCard v0.1 — design specification
+# SemanticCard v0.1 — design specification (REV1)
 
 > **Status: DRAFT — NOT IMPLEMENTATION-STABLE.**
-> Derived from design principles during M1A, **not** extended from the M0 draft
-> schema (archived at `schemas/archive/m0-draft/semantic-card.schema.json`).
-> This contract has **not passed human review**. No implementation may treat it
-> as stable. Milestone M0 itself is still awaiting final human approval.
+> Revised under human adjudication during M1A REV1. Derived from design
+> principles, **not** extended from the M0 draft schema
+> (`schemas/archive/m0-draft/semantic-card.schema.json`).
+> This contract has **not passed human review** as a finished design. Milestone
+> M0 itself is still awaiting final human approval.
 
-- Requirement IDs: `SC-1` … `SC-24`
+- Requirement IDs: `SC-1` … `SC-26` (see the requirement index in §9)
 - Related: `specs/source-map-v0.1.md`, `docs/ARCHITECTURE.md` §2 Layer C, §3, §5
 - Machine contract: `schemas/semantic-card.v0.1.schema.json`
 - Type draft: `src/contracts/semantic-card.ts`
-- Decision context: `docs/DECISIONS.md` D-0005, D-0007, D-0010
+- Adjudication record: `docs/reviews/M1A_HUMAN_ADJUDICATION_REV1.md`
 
 ---
 
@@ -19,259 +20,260 @@
 ### SC-1 — The card is an index, not a summary
 
 A SemanticCard exists so a machine can navigate a knowledge base **without**
-reading the human notes (`AGENTS.md` §8, progressive context loading). The
-failure mode this contract must prevent is the card becoming a second,
-lower-quality copy of the human note. Two rules follow:
+reading the human notes (`AGENTS.md` §8). The failure mode this contract must
+prevent is the card becoming a second, lower-quality copy of the human note.
+Two rules follow:
 
 1. The card carries a **bounded semantic core** (`semanticCore.summary`), not a
-   condensation of the note. Its job is to make the card matchable and
-   routable, not to be pleasant to read.
-2. **Claims are referenced, not restated.** `claims[]` points at a location
-   inside the human note and records that claim's epistemic state. It does not
-   carry the claim's text as the authoritative copy.
-
-If a future implementer finds themselves writing note prose into the card, the
-contract has been misread.
+   condensation of the note. Its purpose is stated and its length is capped
+   (`SC-9`).
+2. **Claims are referenced, not restated.** A claim entry points at a location
+   inside the human note and records that claim's epistemic state. It carries
+   **no free-text field** (`SC-4`).
 
 ### SC-2 — The machine layer must never become a source of truth
 
-Per `AGENTS.md` §7, storing an inference must not promote it to a fact. Two
-mechanisms enforce this:
+Per `AGENTS.md` §7, storing an inference must not promote it to a fact.
+Mechanisms:
 
-- Every machine assertion carries its own epistemic state (`SC-12`), and
-- Every machine assertion that corresponds to a note claim is linked to that
-  claim's stable anchor (`SC-11`).
+- every claim and relation carries its own epistemic state (`SC-12`, `SC-16`);
+- every claim is anchored into the note or evidence (`SC-11`);
+- a machine inference may never be recorded as `verified` (`SC-13`);
+- the card itself carries **no** truth-valued state at all (`SC-8`).
 
-The card is therefore **reconstructable** from the human note plus evidence.
-Nothing may exist in the card that cannot be traced either to a note anchor or
-to an evidence reference. This is why the contract has no free-floating
-`notes` or `commentary` string field.
+The card is **reconstructable** from the human note plus evidence: nothing may
+exist in it that cannot be traced to a note anchor or an evidence reference.
 
-### SC-3 — `knowledge_id` is stable; meaning is not
+### SC-3 — `knowledgeId` is a stable opaque identifier
 
-`knowledgeId` (`SC-6`) is a durability commitment, not a label. It survives
-note rewrites, section reordering, renaming and re-summarising. Reusing an ID
-for a different concept, or minting a new ID for the same concept, breaks every
-external reference. This is modelled explicitly as an error type
-(`SEM-ID-INSTABILITY`, `SEM-ID-COLLISION` in `docs/ERROR_TAXONOMY.md`) rather
-than left as a convention.
+`knowledgeId` (`SC-6`) is a durability commitment, not a label. It is an
+**opaque** identifier that must not encode, derive from, or change with a note
+title, file path, heading text or location. It survives note rewrites,
+section reordering, renaming and re-summarising.
 
-### SC-4 — Relations are inferences and get their own evidence
+The concrete format (UUID, ULID, or other) is **deliberately not frozen** at
+v0.1. The contract constrains only the properties: opaque, stable, unique, and
+never path-derived. A human-readable label, if wanted, goes in a separate
+optional field and explicitly has no identity function.
+
+### SC-4 — No field may carry arbitrary note prose
+
+The card has exactly two free-text fields, both bounded and purpose-stated
+(`SC-9`, `SC-10`), and neither is allowed to hold knowledge content:
+
+| Field | Purpose | Bound |
+| --- | --- | --- |
+| `semanticCore.summary` | machine navigation/matching | ≤ 280 chars |
+| `learningAssets[].summary` | asset retrieval label | ≤ 160 chars |
+
+Everything else is an identifier, an enumeration, a timestamp, or a reference.
+There is **no** `claims[].note`, no `notes`, no `commentary`. A claim's text and
+an asset's content live in the human note; the card points at them.
+
+### SC-5 — Card-level state is maintenance state, not truth state
+
+A card does not have a truth value. Whether the *knowledge* is true is a
+property of individual claims; whether the *card* is trustworthy as an index is
+a maintenance property. These were conflated at v0.1 and are now separate
+(`SC-8`). Card state answers "can this index be relied on right now?", never
+"is this knowledge true?".
+
+### SC-6 — Relations are inferences and get their own evidence
 
 An edge in the knowledge network is a *claim about a claim* — frequently
 inferred, often wrong, and exactly the kind of statement that silently becomes
-"true" once stored. Therefore relations are not bare `(type, target)` pairs:
-each carries `provenance` (`SC-14`) and `epistemicState` (`SC-15`), and may be
-individually flagged for review.
+"true" once stored. Relations therefore carry their own `epistemicState`,
+`basis` and optional `provenance`, and may be individually flagged for review
+(`SC-16`, `SC-17`).
 
-### SC-5 — Learning assets are indexed by pedagogical function
+### SC-7 — Synchronisation is explicit, in both directions
 
-Definitions, examples, worked examples, problem-solving tips, common mistakes,
-boundary conditions, mnemonics and counterexamples are the parts of a lesson
-most likely to be lost by summarisation (see `AGENTS.md` §10 and
-`ERROR_TAXONOMY.md` `LSN-ANALOGY-AS-FACT`, `LSN-OPINION-AS-FACT`,
-`LSN-HEURISTIC-AS-THEOREM`). The asset index keeps them findable **by
-function**, so a later stage can ask "where are this concept's pitfalls?"
-without scanning the whole note.
-
-### SC-6 — Synchronisation is explicit, in both directions
-
-The card and the note can drift apart independently. Detecting drift requires a
-fingerprint on **both** sides (`SC-18`): `humanNoteFingerprint` detects note
-edits, `cardFingerprint` detects machine-layer edits. A single hash cannot
-distinguish "note changed" from "card changed".
+Card and note drift apart independently. Detecting drift requires a fingerprint
+on **both** sides (`SC-19`): a note-side hash detects note edits, a card-side
+hash detects machine-layer edits. A single hash cannot distinguish the two.
+Algorithm is SHA-256 by default.
 
 ---
 
 ## 2. Scope
 
+**Enforcement boundary (`CH-11`).** JSON Schema validates the **structure of one
+artifact at a time**. It cannot check that an `evidenceRef.sourceUnitId` exists
+in some SourceMap, that a relation target resolves to a real card, or that a note
+anchor exists. Cross-artifact reference integrity is therefore **not** enforced
+here; it belongs to a future **Cross-artifact Validator**. Where this document
+says a reference "must resolve", that is a validator requirement, not a schema
+requirement.
+
 **In scope:** the machine-readable index entry for one knowledge concept, its
-anchors into the human note, its network edges, its asset index, and its
-integrity bookkeeping.
+anchors into the human note, its network edges, its asset index, its current
+open unresolved items, and its integrity bookkeeping.
 
 **Out of scope (deliberately):**
 
-- lesson understanding (`LessonModel`) — M1B or later;
-- deciding alignment operations (`NEW`/`EXPAND`/… ) — Layer D;
+- lesson understanding (`LessonModel`) — later milestone;
+- alignment operations (`NEW`/`EXPAND`/…) — Layer D;
 - change proposals (`ChangePlan`) — Layer E;
 - writing candidates — Layer F;
 - auditing — Layer G;
+- **closed** unresolved/conflict history (`SC-24`) — belongs to change/run
+  history, not to the card;
 - the physical storage layout of cards in a real Vault — **explicitly
-  unresolved** (`docs/DECISIONS.md` D-0010). This contract describes a card's
-  content, never where it lives.
+  unresolved** (`docs/DECISIONS.md` D-0010).
 
 ---
 
 ## 3. Field table
 
-`Req` column: **M** = required, **O** = optional. "Cond." marks a field that is
-conditional; the condition is stated in §4.
+`Req`: **M** = required, **O** = optional, **Cond.** = conditional (§4).
 
 | Field | Req | Type | Purpose |
 | --- | --- | --- | --- |
-| `contractVersion` | M | string (const) | Contract identifier, `"semantic-card/0.1"`. Cheap incompatibility detection. |
-| `status` | M | enum | Review state of this instance. `draft` means "not reviewed by a human". |
-| `knowledgeId` | M | string | Stable join key to the human note (`SC-3`). |
-| `cardFingerprint` | O | string | Hash of this card's own content (`SC-6`). |
-| `semanticCore` | M | object | The bounded machine-readable core: `summary` + `scopeNote`. |
-| `semanticCore.summary` | M | string | Compact description used for matching and routing. **Budgeted** (see `SC-7`). |
-| `semanticCore.scopeNote` | O | string | What this card deliberately does **not** cover. Prevents false matches between adjacent concepts. |
-| `humanNoteRef` | M | object | Where the card's source of truth lives (`SC-8`). |
-| `humanNoteRef.path` | M | string | Repo- or vault-relative path. Must never point at a production Vault in experiments. |
-| `humanNoteRef.anchor` | O | string | Primary stable anchor inside the note. |
-| `humanNoteRef.title` | O | string | Note title as observed; a cache, not authority. |
-| `humanNoteFingerprint` | O | object | Hash of the referenced note content (`SC-6`). |
-| `humanNoteFingerprint.alg` | M (cond.) | enum | Hash algorithm. |
-| `humanNoteFingerprint.value` | M (cond.) | string | Hash value. |
-| `sectionIndex` | M | array | Anchor-level index of the note's sections (`SC-9`). |
-| `sectionIndex[].anchor` | M | string | Stable anchor. Required for every entry. |
-| `sectionIndex[].heading` | O | string | Observed heading text. |
-| `sectionIndex[].gist` | O | string | One-line pointer, **not** a content copy. |
-| `sectionIndex[].covers` | O | array of string | Free-form topic labels covered by the section. |
-| `claims` | O | array | Claim-level index with per-claim epistemic state (`SC-11`). |
-| `claims[].anchor` | O | string | Anchor to the claim inside the note. **Preferred** over `note`. |
-| `claims[].note` | O | string | Short label only. Not authoritative prose. |
-| `claims[].epistemicState` | M (cond.) | enum | State of **this claim** (`SC-12`). |
-| `claims[].basis` | O | enum | Why the state was assigned (machine vs human vs derivation). |
+| `contractVersion` | M | string (const) | `"semantic-card/0.1"`. |
+| `schemaVersion` | M | string (const) | `"0.1"` — instance-format version, distinct from the contract name. |
+| `status` | M | enum | Review state of **this instance**: `draft` / `NEEDS_REVIEW` / `reviewed`. |
+| `knowledgeId` | M | string (opaque) | Stable identity (`SC-3`). Never path- or title-derived. |
+| `label` | O | string | Human-readable label. **No identity function**; may change freely. |
+| `cardState` | M | enum | **Maintenance** state of the card (`SC-5`, `SC-8`): `stable` / `needs_review` / `conflicted` / `stale`. |
+| `semanticCore` | M | object | Bounded machine-readable core. |
+| `semanticCore.summary` | M | string (≤280) | Navigation/matching description (`SC-9`). |
+| `semanticCore.scopeNote` | O | string (≤280) | What this card does **not** cover, to prevent false matches. |
+| `humanNoteRef` | M | object | Where the source of truth lives (`SC-10`). |
+| `humanNoteRef.path` | M | string | Repo- or vault-relative path. Never a production Vault in experiments. |
+| `humanNoteRef.anchor` | O | object | Preferred anchor (`SC-11`). |
+| `humanNoteRef.anchor.kind` | M (cond.) | enum | `block-id` (preferred) / `heading-path` (fallback). |
+| `humanNoteRef.anchor.value` | M (cond.) | string | Non-empty anchor value. |
+| `humanNoteFingerprint` | O | object | Note-side content fingerprint (`SC-19`). |
+| `humanNoteFingerprint.alg` | O | enum | `sha256` (**default**). |
+| `humanNoteFingerprint.value` | M (cond.) | string | Non-empty hash. |
+| `cardFingerprint` | O | object | Card-side fingerprint, same shape. |
+| `sectionIndex` | M | array | Anchor-level index of note sections (`SC-12`). |
+| `sectionIndex[].anchor` | M (cond.) | object | Required per entry; same anchor shape. |
+| `sectionIndex[].heading` | O | string (≤160) | Observed heading text. |
+| `sectionIndex[].gist` | O | string (≤280) | One-line pointer. Not a content copy. |
+| `sectionIndex[].covers` | O | array of string (each ≤64) | Retrieval labels. |
+| `claims` | O | array | Claim-level index (`SC-13`). **No free-text field.** |
+| `claims[].anchor` | M (cond.) | object | Required: points at the claim in the note. |
+| `claims[].epistemicState` | M (cond.) | enum | State of **this claim**. |
+| `claims[].basis` | O | enum | Who decided the state (`SC-14`). |
 | `claims[].evidenceRefs` | O | array of object | Evidence supporting the claim. |
-| `relations` | O | array | Typed edges to other knowledge (`SC-4`). |
+| `relations` | O | array | Typed edges (`SC-6`). |
 | `relations[].type` | M (cond.) | enum | Closed relation vocabulary. |
-| `relations[].target` | O | object | Typed reference to a target (`SC-13`). |
-| `relations[].target.knowledgeId` | O | string | Target card. |
-| `relations[].target.sourceUnitId` | O | string | Target source unit, for edges to material not yet knowledge. |
-| `relations[].target.externalRef` | O | string | Escape hatch for anything else; must be an explicit URI-like string. |
-| `relations[].provenance` | O | array of object | Evidence for **this edge** (`SC-4`, `SC-14`). |
+| `relations[].target` | O | object | Typed reference to a target (`SC-15`). |
+| `relations[].provenance` | O | array of object | Evidence for **this edge**. |
 | `relations[].epistemicState` | M (cond.) | enum | State of **this edge**. |
-| `relations[].reviewFlag` | O | enum | Marks an edge needing human judgement. |
-| `epistemicState` | M | enum | Overall card state, coarse roll-up (`SC-12`). |
-| `learningAssets` | O | array | Pedagogical index (`SC-5`). |
+| `relations[].basis` | O | enum | Who decided the edge's state. |
+| `relations[].reviewFlag` | O | enum | `NEEDS_REVIEW` / `CONFLICT` / `LOW_CONFIDENCE`. |
+| `learningAssets` | O | array | Pedagogical index (`SC-18`). |
 | `learningAssets[].kind` | M (cond.) | enum | Pedagogical function. |
-| `learningAssets[].ref` | M (cond.) | object | Where the asset is. |
-| `learningAssets[].summary` | O | string | Short label. Not the asset's content. |
-| `unresolved` | O | array | Open questions, conflicts, gaps (`SC-10`). |
-| `unresolved[].kind` | M (cond.) | enum | `conflict` / `ambiguity` / `missing-evidence` / `open-question`. |
-| `unresolved[].description` | M (cond.) | string | What is unresolved. |
-| `unresolved[].blocking` | O | boolean | Whether this blocks further knowledge changes. |
-| `unresolved[].candidateResolutions` | O | array of string | Options not yet chosen. |
-| `integrity` | M | object | Synchronisation bookkeeping (`SC-6`, `SC-16`). |
+| `learningAssets[].ref` | M (cond.) | object | Where the asset is. Must identify something. |
+| `learningAssets[].summary` | O | string (≤160) | Retrieval label only. |
+| `unresolved` | O | array | **Current open** conflicts/gaps only (`SC-24`). |
+| `integrity` | M | object | Synchronisation bookkeeping (`SC-19`). |
 | `integrity.state` | M (cond.) | enum | `ok` / `stale` / `broken` / `unknown` / `NEEDS_REVIEW`. |
-| `integrity.checkedAt` | O | string | Timestamp of last check. |
-| `integrity.checkedAgainst` | O | object | The fingerprints this state was computed against. |
-
-### Evidence reference (shared shape)
-
-| Field | Req | Type | Purpose |
-| --- | --- | --- | --- |
-| `sourceUnitId` | O | string | Preferred: a stable Source Unit Ledger id (`SC-17`). |
-| `locator` | O | string | Free-form locator inside that source. |
-| `note` | O | string | Short human explanation. Never authoritative. |
-
-At least one of `sourceUnitId` / `locator` must be present; an evidence
-reference that identifies nothing is rejected.
+| `integrity.checkedAgainst` | M (cond.) | object | **Proof** of `ok` (`SC-19`, `SC-21`). |
+| `integrity.checkedAt` | M (cond.) | string | Timestamp, required whenever an assertion is made. |
+| `integrity.unavailableReason` | M (cond.) | string | Why a state could not be established. |
 
 ---
 
 ## 4. Required vs optional — with conditions
 
-- **Always required:** `contractVersion`, `status`, `knowledgeId`,
-  `semanticCore.summary`, `humanNoteRef.path`, `sectionIndex`, `epistemicState`,
-  `integrity.state`. These are what make a card identifiable, locatable,
-  routable and checkable.
-- **`humanNoteFingerprint`:** optional as a whole. When present, `alg` and
-  `value` are both required. Fingerprinting is deliberately **not** mandated at
-  v0.1 because `SC-20` leaves the algorithm choice open.
-- **`claims[].epistemicState`:** required for every claim entry. A claim
-  recorded without a state is exactly the "silently promoted to fact" failure
-  `SC-2` forbids.
-- **At least one of `claims[].anchor` / `claims[].note`:** required per claim
-  entry.
-- **`relations[].type` and `relations[].epistemicState`:** required per
-  relation. `relations[].target` is optional so a relation can be recorded as an
-  unresolved intent, but a relation with neither `provenance` nor
-  `reviewFlag: NEEDS_REVIEW` is **invalid** by design rule (`SC-14`).
-- **`learningAssets[].kind` and `.ref`:** required per asset.
-- **`unresolved[].kind` and `.description`:** required per entry.
-- **`sectionIndex`:** required, but **may be empty**. An empty index is an
-  honest statement that the note has no identifiable sections; inventing
-  sections to satisfy the schema is worse.
-- **`cardFingerprint`:** optional at v0.1. It exists in the contract so that
-  synchronisation can become symmetric without a breaking change.
-
-### SC-7 — Summary budget (design rule, not yet enforceable)
-
-`semanticCore.summary` should stay within a small budget (target: **≤ 280
-characters**, to be reviewed). This is stated as a design rule rather than a
-JSON Schema `maxLength` because the right number should come from experiment,
-not from a guess frozen into a validator. See `Open questions`.
+- **Always required:** `contractVersion`, `schemaVersion`, `status`,
+  `knowledgeId`, `cardState`, `semanticCore.summary`, `humanNoteRef.path`,
+  `sectionIndex`, `integrity`.
+- **Every identifier/anchor that is present must be non-empty** (`SC-20`).
+  `minLength: 1` applies to every `*Id`, `anchor.value`, fingerprint `value`,
+  `locator`-like value and reference field. This is what makes "must identify
+  something" a machine-enforced statement rather than a claim.
+- **`claims[]`:** each entry requires `anchor` **and** `epistemicState`. There
+  is no alternative to `anchor`, so a claim can never be recorded without a
+  location (`SC-4`).
+- **`SC-13` — machine inference may not be `verified`:** when
+  `claims[].epistemicState` is `verified`, `basis` must be `human-assigned`, or
+  the claim must carry at least one `evidenceRefs` entry. Schema-enforced via
+  `if/then`.
+- **`SC-17` — a relation without provenance must be flagged:** when
+  `relations[].provenance` is absent, `reviewFlag` is required.
+  Schema-enforced via `if/then`.
+- **`SC-21` — `integrity.state: ok` requires proof:** `checkedAt` is required
+  for every `integrity` object, and `checkedAgainst` is required when the state
+  is `ok`. `unknown` requires `unavailableReason`. A state may not be asserted
+  without the data that justifies it.
+- **`sectionIndex`** may be **empty**, honestly stating that no sections are
+  identifiable. Inventing sections to satisfy the schema is worse.
+- **`cardFingerprint`** is optional at v0.1 so synchronisation can become
+  symmetric without a breaking change.
 
 ---
 
 ## 5. Enumerations
 
-| Enum | Values | Notes |
-| --- | --- | --- |
-| `status` | `draft`, `NEEDS_REVIEW`, `reviewed` | Mirrors repo-wide review vocabulary. |
-| `epistemicState` (card) | `asserted`, `inferred`, `uncertain`, `disputed`, `verified`, `deprecated`, `unspecified` | Coarse roll-up; per-claim state is authoritative. |
-| `epistemicState` (claim, relation) | same vocabulary | No separate vocabulary — one meaning, one set of values (`SC-12`). |
-| `claims[].basis` | `source-asserted`, `machine-inferred`, `human-assigned`, `derived` | Records **who** decided, so machine inferences are distinguishable from human judgement. |
-| `relations[].type` | `prerequisite`, `part-of`, `expands`, `refines`, `corrects`, `example-of`, `counterexample-of`, `conflicts-with`, `contrasts-with`, `applies-to`, `derived-from`, `related` | Extend only with human review. |
-| `relations[].reviewFlag` | `NEEDS_REVIEW`, `CONFLICT`, `LOW_CONFIDENCE` | |
-| `learningAssets[].kind` | `definition`, `example`, `worked-example`, `problem-solving-tip`, `common-mistake`, `boundary-condition`, `counterexample`, `mnemonic`, `derivation`, `exercise`, `open-question` | `problem-solving-tip` and `common-mistake` deliberately separate (`SC-5`). |
-| `unresolved[].kind` | `conflict`, `ambiguity`, `missing-evidence`, `open-question` | |
-| `integrity.state` | `ok`, `stale`, `broken`, `unknown`, `NEEDS_REVIEW` | |
-| `humanNoteFingerprint.alg` | `sha256` (**only value at v0.1**) | One algorithm until `SC-20` is resolved. |
-
----
-
-## 6. Design principles as executable statements
-
-These are the invariants a future validator should enforce. They are the reason
-several fields exist, and the challenger review targets them directly.
-
-| ID | Invariant |
+| Enum | Values |
 | --- | --- |
-| SC-2 | Every machine assertion is traceable to a note anchor or an evidence reference. No free-floating prose field exists. |
-| SC-11 | A claim's epistemic state is recorded **per claim**, not only per card. |
-| SC-14 | A relation without provenance must carry `reviewFlag: NEEDS_REVIEW`. |
-| SC-17 | Evidence references prefer `sourceUnitId` from the SourceMap ledger over free-form locators. |
-| SC-19 | Nothing in the card may be used to *derive* note content; the card is not sufficient to reconstruct the note. |
-| SC-21 | The contract must not assume any particular storage layout (`D-0010`). |
-| SC-22 | The card must be usable for progressive loading: a reader should be able to decide whether to open the note from the card alone. |
-| SC-23 | The contract must support incremental update: it must be possible to update one claim or one relation without rewriting the whole card. |
+| `status` | `draft`, `NEEDS_REVIEW`, `reviewed` |
+| `cardState` | `stable`, `needs_review`, `conflicted`, `stale` |
+| `claim/relation epistemicState` | `asserted`, `inferred`, `uncertain`, `disputed`, `verified`, `deprecated`, `unspecified` |
+| `basis` | `source-explicit`, `machine-inferred`, `human-assigned`, `derived` |
+| `anchor.kind` | `block-id` (**preferred**), `heading-path` (**fallback**) |
+| `fingerprint.alg` | `sha256` (**default**) |
+| `relations[].type` | `prerequisite`, `part-of`, `expands`, `refines`, `corrects`, `example-of`, `counterexample-of`, `conflicts-with`, `contrasts-with`, `applies-to`, `derived-from`, `related` |
+| `relations[].reviewFlag` | `NEEDS_REVIEW`, `CONFLICT`, `LOW_CONFIDENCE` |
+| `learningAssets[].kind` | `definition`, `example`, `worked-example`, `problem-solving-tip`, `common-mistake`, `boundary-condition`, `counterexample`, `mnemonic`, `derivation`, `exercise`, `open-question` |
+| `unresolved[].kind` | `conflict`, `ambiguity`, `missing-evidence`, `open-question` |
+| `integrity.state` | `ok`, `stale`, `broken`, `unknown`, `NEEDS_REVIEW` |
+
+**Deliberately separate vocabularies:** the card's claim/relation
+`epistemicState` is *not* the SourceMap's `epistemicStatus`. The SourceMap
+describes **how a source presents** material; the card describes the **epistemic
+state of a claim**. They look similar and are not interchangeable
+(`specs/source-map-v0.1.md` §5 explains the counterpart).
 
 ---
 
-## 7. Example instance
+## 6. Example instance
 
-Deliberately small. Note the absence of any copied note prose.
+Deliberately small. Note the absence of any note prose, and that every id and
+anchor is non-empty.
 
 ```json
 {
   "contractVersion": "semantic-card/0.1",
+  "schemaVersion": "0.1",
   "status": "draft",
-  "knowledgeId": "kc.bayes.prior",
+  "knowledgeId": "kc-01J8ZQ4T7K9M2P5R8V3W6Y0B",
+  "label": "Prior distribution",
+  "cardState": "needs_review",
   "semanticCore": {
     "summary": "Prior distribution encoding belief about a parameter before observing data; a modelling choice, not a property of the data.",
-    "scopeNote": "Does not cover choosing a prior objectively; see kc.bayes.prior-selection."
+    "scopeNote": "Does not cover how to choose a prior objectively."
   },
   "humanNoteRef": {
-    "path": "test-vault/notes/bayes/prior.md",
-    "anchor": "#definition",
-    "title": "Prior distribution"
+    "path": "notes/bayes/prior.md",
+    "anchor": { "kind": "block-id", "value": "blk-3f9a1c" }
   },
   "sectionIndex": [
-    { "anchor": "#definition", "heading": "Definition", "gist": "Formal statement.", "covers": ["prior", "parameter"] },
-    { "anchor": "#pitfalls", "heading": "Common mistakes", "gist": "Confusing prior with posterior." }
+    {
+      "anchor": { "kind": "heading-path", "value": "Definition" },
+      "heading": "Definition",
+      "gist": "Formal statement.",
+      "covers": ["prior", "parameter"]
+    },
+    {
+      "anchor": { "kind": "heading-path", "value": "Common mistakes" },
+      "heading": "Common mistakes",
+      "gist": "Prior vs posterior confusion."
+    }
   ],
   "claims": [
     {
-      "anchor": "#definition/claim-1",
+      "anchor": { "kind": "block-id", "value": "blk-3f9a1d" },
       "epistemicState": "asserted",
-      "basis": "source-asserted",
-      "evidenceRefs": [{ "sourceUnitId": "su.lecture03.0042", "note": "Lecture statement." }]
+      "basis": "source-explicit",
+      "evidenceRefs": [{ "sourceUnitId": "su-lecture03-0011" }]
     },
     {
-      "anchor": "#pitfalls/claim-2",
+      "anchor": { "kind": "block-id", "value": "blk-3f9a1e" },
       "epistemicState": "uncertain",
       "basis": "machine-inferred"
     }
@@ -279,21 +281,26 @@ Deliberately small. Note the absence of any copied note prose.
   "relations": [
     {
       "type": "prerequisite",
-      "target": { "knowledgeId": "kc.prob.conditional" },
-      "provenance": [{ "sourceUnitId": "su.lecture03.0011" }],
-      "epistemicState": "inferred"
+      "target": { "knowledgeId": "kc-01J8ZQ4T7K9M2P5R8V3W6Y0C" },
+      "provenance": [{ "sourceUnitId": "su-lecture03-0011" }],
+      "epistemicState": "inferred",
+      "basis": "machine-inferred"
     },
     {
       "type": "conflicts-with",
-      "target": { "knowledgeId": "kc.bayes.frequentist-view" },
+      "target": { "knowledgeId": "kc-01J8ZQ4T7K9M2P5R8V3W6Y0D" },
       "epistemicState": "disputed",
+      "basis": "machine-inferred",
       "reviewFlag": "NEEDS_REVIEW"
     }
   ],
-  "epistemicState": "asserted",
   "learningAssets": [
-    { "kind": "definition", "ref": { "anchor": "#definition" } },
-    { "kind": "common-mistake", "ref": { "anchor": "#pitfalls" }, "summary": "Prior vs posterior confusion." }
+    { "kind": "definition", "ref": { "anchor": { "kind": "block-id", "value": "blk-3f9a1c" } } },
+    {
+      "kind": "common-mistake",
+      "ref": { "anchor": { "kind": "heading-path", "value": "Common mistakes" } },
+      "summary": "Prior vs posterior confusion."
+    }
   ],
   "unresolved": [
     {
@@ -304,80 +311,108 @@ Deliberately small. Note the absence of any copied note prose.
     }
   ],
   "integrity": {
-    "state": "ok",
-    "checkedAt": "2026-09-22T00:00:00+08:00"
+    "state": "unknown",
+    "checkedAt": "2026-09-22T00:00:00+08:00",
+    "unavailableReason": "No fingerprint computed for this draft instance."
   }
 }
 ```
 
 ---
 
-## 8. Counterexamples / failure cases
+## 7. Counterexamples / failure cases
 
 | # | Failure | Why the contract rejects or resists it |
 | --- | --- | --- |
-| F1 | Card contains a paragraph copied from the note. | No field accepts note prose. `summary` is budgeted; `claims[]` carries anchors, not text. An implementer doing this has to add a field, which is a visible contract change. |
-| F2 | One `epistemicState` for the whole card, some claims inferential. | Per-claim state is required; the card-level state is explicitly only a coarse roll-up. |
-| F3 | Relation stored as `{type, target}` with inferred edge treated as fact. | `SC-14`: provenance or `NEEDS_REVIEW` is mandatory. A bare inferred edge is a contract violation. |
-| F4 | `knowledgeId` regenerated when the note was renamed. | `SC-3` declares stability as a commitment and maps the failure to `SEM-ID-INSTABILITY`. |
-| F5 | Teacher's analogy recorded as a definition. | `learningAssets[].kind` separates `example`/`worked-example` from `definition`, and `relations[].type` separates `example-of` from `part-of`. The analogy cannot be silently filed as the concept itself. |
-| F6 | Card says `integrity.state: ok` after the note was rewritten. | Requires a fingerprint on both sides (`SC-6`); with only a note-side hash, "card edited" is undetectable. |
-| F7 | A conflict is silently resolved to keep the card clean. | `unresolved[]` exists specifically to hold conflicts, with `blocking` to stop downstream changes. Dropping the conflict is an omission, not a simplification. |
-| F8 | Card used as the only input to rewrite the note. | `SC-19`: the card is not sufficient to reconstruct the note. Any pipeline step that tries is missing Layer L3/L4 loading. |
-| F9 | Card embeds the note's full section text via `sectionIndex[].gist`. | `gist` is a pointer. Budgeting it is an open question; the failure is identified even though it is not yet machine-enforced. |
-| F10 | Storage layout implied (e.g. a field naming the sidecar file). | `SC-21` and the explicit out-of-scope list keep the card location-agnostic (`D-0010`). |
+| F1 | Card contains a paragraph copied from the note. | No field accepts note prose: the only two free-text fields are capped at 280/160 chars and their purpose is navigation/retrieval (`SC-4`, `SC-9`). |
+| F2 | A claim recorded as `{note: "…prose…", epistemicState: "verified"}`. | `claims[].note` no longer exists; `anchor` and `epistemicState` are both required (`SC-4`, `SC-13`). |
+| F3 | Machine marks its own inference `verified`. | `SC-13`: `verified` requires `basis: human-assigned` or an evidence reference. Schema-enforced. |
+| F4 | Card-level `epistemicState: verified` used to bless the whole card. | No card-level truth field exists; card state is maintenance-only (`SC-5`, `SC-8`). |
+| F5 | `{"sourceUnitId": ""}` used to satisfy an evidence guard. | Every identifier has `minLength: 1` (`SC-20`). |
+| F6 | Card says `integrity.state: ok` with no fingerprints and no timestamp. | `checkedAt` always required; `checkedAgainst` required when state is `ok` (`SC-21`). |
+| F7 | `knowledgeId` regenerated after the note file was renamed. | `SC-3`: identity is opaque and never path- or title-derived; `label` carries human text and has no identity function. |
+| F8 | Line numbers used as the long-term anchor. | `anchor.kind` admits only `block-id` (preferred) and `heading-path` (fallback) (`SC-11`). |
+| F9 | A relation stored as `{type, target}` with an inferred edge treated as fact. | `SC-17`: provenance or `reviewFlag` is mandatory. |
+| F10 | A conflict is silently resolved to keep the card clean. | `unresolved[]` holds current conflicts; dropping one is an omission. |
+| F11 | Closed/历史 conflicts accumulated in the card forever. | `SC-24`: the card holds only **open** items; history belongs to change/run history. |
+| F12 | Card used as the only input to rewrite the note. | `SC-22`: the card is not sufficient to reconstruct the note. |
+| F13 | Storage layout implied by a field naming a sidecar file. | `SC-25` and the out-of-scope list keep the card location-agnostic (`D-0010`). |
 
 ---
 
-## 9. Known ambiguities
+## 8. Known ambiguities and open questions
 
-- **A1 — `summary` budget.** `SC-7` proposes ≤ 280 characters with no evidence.
-  Too short makes routing useless; too long reintroduces duplication. Needs
-  experiment.
-- **A2 — "Compact" is not measurable.** `SC-1` is a principle. The only
-  machine-checkable proxy considered was a `maxLength` on `summary` and `gist`,
-  which risks freezing a guess into a validator.
-- **A3 — Evidence reference granularity.** `locator` is deliberately free-form
-  at v0.1, which means two implementers can produce incomparable locators.
-  Tightening it requires knowing the SourceMap locator design first.
-- **A4 — Relation vocabulary completeness.** Twelve values is a guess.
-  `contrasts-with` vs `conflicts-with` is a real semantic distinction that may
-  collapse or split once real lessons are processed.
-- **A5 — Claim-level identity.** `claims[].anchor` assumes a note has stable
-  intra-note anchors. Obsidian heading anchors are stable-ish; block references
-  are stable; plain paragraphs are **not**. If a note has no anchors, claim-level
-  tracking degrades to line-based locators, which break on edit.
-- **A6 — `cardFingerprint` semantics.** What exactly is hashed (raw text?
-  canonical JSON?) is unspecified.
-- **A7 — Who may write `basis: human-assigned`.** Presumably a human. Whether a
-  supervised machine edit counts is undefined.
-- **A8 — `status` vs `integrity.state`.** Both can express "needs review". The
-  boundary between a card never reviewed and a reviewed card gone stale is
-  stated in prose, not enforced.
+### Known ambiguities (accepted at v0.1)
 
----
+- **A1 — the 280/160-character budgets have no evidence.** They are adopted
+  because "compact" was previously unmeasurable and a bound is better than
+  none. The right numbers await experiment. **Not blocking.**
+- **A2 — `heading-path` fallback stability.** Obsidian heading text changes
+  when a human renames a section; a `heading-path` anchor therefore survives
+  edits that `block-id` would survive and fails on some that `block-id` would
+  survive. Accepted, because the alternative is refusing to index notes that
+  have no block ids.
+- **A3 — evidence locator granularity.** `evidenceRef` at v0.1 accepts
+  `sourceUnitId` or `locator`; the `locator` string format is not yet
+  constrained, which is the one remaining place where "identifies something"
+  is non-empty-checked but not structurally checked. Tracked as **OPEN**.
+- **A4 — relation vocabulary completeness.** Twelve values is a judgement.
+- **A5 — `cardFingerprint` semantics.** What exactly is hashed (raw text vs
+  canonical JSON) remains unspecified. Tracked as **OPEN**.
 
-## 10. Open questions requiring human review
+### Open questions requiring human review
 
-| ID | Question | Why it needs a human |
-| --- | --- | --- |
-| Q1 | Is `semanticCore.summary` allowed to contain any verbatim note text, ever? | Semantic judgement about what counts as duplication. |
-| Q2 | Should `claims[]` be the only place epistemic state lives, or may a card carry an overall `verified` that outranks claims? | Determines whether the roll-up can ever override per-claim truth. |
-| Q3 | Is `knowledgeId` human-assigned, machine-generated, or hybrid? | Affects stability guarantees and the migration story. |
-| Q4 | Which note anchor mechanism is authoritative (heading anchor, block ref, explicit id)? | Determines whether `SC-11` is achievable at all. |
-| Q5 | Is ≤ 280 characters the right `summary` budget? | Needs evidence from real notes. |
-| Q6 | Does `cardFingerprint` belong in the card at all, or in separate state? | Self-referential hashing is awkward; may indicate a layering mistake. |
-| Q7 | Must `unresolved[]` entries ever be *closed*, and is closure recorded? | Currently nothing records that a conflict was resolved — only that it exists. |
-| Q8 | Should `learningAssets[].ref` be allowed to point directly at evidence instead of a note anchor? | Determines whether assets survive a note rewrite. |
+| ID | Question |
+| --- | --- |
+| Q1 | Are the 280/160-character budgets acceptable as provisional bounds? |
+| Q2 | Is `knowledgeId` human-assigned, machine-generated, or hybrid? |
+| Q3 | Should `learningAssets[].ref` be allowed to point directly at evidence instead of a note anchor? |
+| Q4 | Is the 12-value relation vocabulary sufficient, or does `contrasts-with` collapse into `conflicts-with`? |
+| Q5 | Which concrete opaque ID format (UUID / ULID / other) should be frozen, and when? |
 
 ---
 
-## 11. What this spec deliberately does not decide
+## 9. Requirement index
 
-- storage layout of cards (`D-0010`, `NEEDS_REVIEW`);
-- the LessonModel contract and any ID scheme it owns (`SC-17` depends on it);
-- alignment operations and ChangePlans;
-- whether a card maps 1:1 to a human note (currently: **one concept per card**,
-  implied by `knowledgeId`, but not proven to be the right cardinality — see
-  the challenger review);
-- fingerprint algorithms beyond `sha256`.
+Every requirement ID used anywhere in this spec is defined here. IDs are stable
+and must not be renumbered (`CH-21`).
+
+| ID | Requirement |
+| --- | --- |
+| SC-1 | The card is a navigation index, not a summary or a copy of the note. |
+| SC-2 | The machine layer must never become an independent source of truth; every assertion is traceable to a note anchor or evidence. |
+| SC-3 | `knowledgeId` is a stable opaque identifier: never derived from, and never changed by, title, path, heading text or location. |
+| SC-4 | No field may carry arbitrary note prose. Claims and assets are referenced, not restated. |
+| SC-5 | Card-level state is maintenance state, never truth state. |
+| SC-6 | Relations are inferences: each carries its own epistemic state, basis and optional provenance. |
+| SC-7 | Synchronisation requires a fingerprint on both the note side and the card side. |
+| SC-8 | The card exposes exactly one card-level state field, and it is `cardState` (maintenance), not an epistemic one. |
+| SC-9 | Free text is limited to two purpose-stated, length-capped fields: `semanticCore.summary` (≤280) and `learningAssets[].summary` (≤160). |
+| SC-10 | `humanNoteRef` locates the source of truth and never points at a production Vault during experiments. |
+| SC-11 | Anchors use `block-id` where available and `heading-path` as fallback; line numbers are never a long-term anchor. |
+| SC-12 | `sectionIndex` provides anchor-level navigation with a bounded gist per section. |
+| SC-13 | A claim entry requires an anchor and an epistemic state; a machine inference may never be recorded as `verified`. |
+| SC-14 | `basis` records who assigned an epistemic state, so machine inference is distinguishable from human judgement. |
+| SC-15 | A relation target may be a `knowledgeId`, a source unit id, or an explicit external reference. |
+| SC-16 | Card content must not be usable to reconstruct note text. |
+| SC-17 | A relation without provenance must carry a `reviewFlag`. |
+| SC-18 | `learningAssets` indexes material by pedagogical function. |
+| SC-19 | Fingerprints default to SHA-256; `integrity.state: ok` requires `checkedAgainst` proof and a timestamp. |
+| SC-20 | Every identifier, anchor value and fingerprint value that is present must be non-empty. |
+| SC-21 | No availability or integrity state may be asserted without the data that justifies it. |
+| SC-22 | The card alone must never be treated as sufficient to rewrite or reconstruct a note. |
+| SC-23 | A single instance describes exactly one knowledge concept. |
+| SC-24 | The card holds only **current open** unresolved/conflict items; closed history belongs to change/run history. |
+| SC-25 | The contract must not assume or imply any storage layout (`D-0010`). |
+| SC-26 | The contract must support incremental update: one claim or relation can change without rewriting the card. |
+
+### Reconciliation with the previous revision
+
+| Previous | Now |
+| --- | --- |
+| `epistemicState` at card level | replaced by `cardState` (`SC-5`, `SC-8`) |
+| `claims[].note` | **removed** (`SC-4`) |
+| `humanNoteRef.anchor` as a bare string | replaced by a typed anchor (`SC-11`) |
+| a range of IDs beyond the defined set, cited but never defined | removed; the set is now `SC-1`…`SC-26`, all defined in the index above |
+| unbounded `summary` / `gist` | capped (`SC-9`) |
+| `fingerprint.alg` mandatory one-value enum | optional, SHA-256 default (`SC-19`) |

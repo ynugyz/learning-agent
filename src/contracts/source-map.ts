@@ -1,21 +1,28 @@
 /**
- * SourceMap v0.1 — TypeScript draft
+ * SourceMap v0.1 (REV1) — TypeScript draft
  *
  * DRAFT — NOT IMPLEMENTATION-STABLE.
- * Mirrors `schemas/source-map.v0.1.schema.json` and `specs/source-map-v0.1.md`.
- * Rederived during M1A from design principles, not extended from the archived
- * M0 draft. Has NOT passed human review.
+ * Mirrors `schemas/source-map.v0.1.schema.json` and
+ * `specs/source-map-v0.1.md`. Revised under human adjudication during M1A REV1;
+ * see `docs/reviews/M1A_HUMAN_ADJUDICATION_REV1.md`.
  *
- * A SourceMap is a structure-and-coverage paper for a source package: what is
- * actually present, where, how trustworthy, and what is missing. It does NOT
- * summarise the lesson and does NOT decide final knowledge destinations.
+ * A SourceMap is a structure-and-coverage paper for ONE ingestion source
+ * package. It describes rather than interprets, never summarises the lesson,
+ * never records a final knowledge destination, and is never written back.
+ *
+ * REV1 changes that matter to a reader of this file:
+ *  - `disposition` / `knowledgeRefs` are GONE (SM-20);
+ *  - `retentionClass` became `preservation` (fidelity priority, SM-6);
+ *  - `processingHints` became package-local `observations` (SM-5);
+ *  - `epistemicStatus` has no `verified` value (SM-16);
+ *  - `coverage` can no longer claim completeness (SM-17).
  *
  * @packageDocumentation
  */
 
-import type { ReviewStatus } from './semantic-card';
+import type { ReviewStatus, SchemaVersion } from './semantic-card';
 
-/** Evidence category present in a source package. Extend only with review. */
+/** Evidence category present in a source package. */
 export type SourceKind =
   | 'transcript'
   | 'slide'
@@ -38,29 +45,29 @@ export type SourceQualityIssue =
   | 'language-mixed'
   | 'unknown';
 
-/** Observed quality of a source. */
+/** Observed quality of a source (SM-13). */
 export interface SourceQuality {
   readonly rating: 'clean' | 'noisy' | 'partial' | 'unreadable' | 'unknown';
   readonly issues?: readonly SourceQualityIssue[];
   readonly note?: string;
 }
 
-/** One evidence item in the package. */
+/** One evidence item in the package (SM-9). */
 export interface SourceEntry {
   readonly sourceId: string;
   readonly kind: SourceKind;
-  /** Must not point at a production Vault during experiments (AGENTS.md 3.1). */
+  /** Must not point at a production Vault during experiments (SM-7). */
   readonly location: string;
   readonly quality?: SourceQuality;
 }
 
 /**
- * What kind of content a source unit is.
+ * What kind of content a source unit is (SM-10).
  *
  * `analogy`, `opinion`, `problem-solving-tip`, `common-mistake` and
- * `exam-pointer` are first-class on purpose (SM-4): they are the material a
- * summariser drops, and folding them into a generic "text" type would make
- * losing them undetectable.
+ * `exam-pointer` are first-class on purpose: they are the material a summariser
+ * drops, so folding them into a generic "text" type would make losing them
+ * undetectable.
  */
 export type ContentType =
   | 'definition'
@@ -84,32 +91,37 @@ export type ContentType =
   | 'unknown';
 
 /**
- * Why a unit matters for later processing.
+ * Fidelity priority (SM-6, SM-11).
  *
- * Required even for `droppable` content: a recorded decision to drop something
- * is auditable, whereas a unit that was never listed is an invisible omission.
+ * Answers only "how much would be lost if this were dropped or compressed?".
+ * It is NOT a knowledge-importance ranking, it is an inference rather than a
+ * source property, and it may be `unknown`.
  */
-export type RetentionClass =
-  | 'core'
-  | 'supporting'
-  | 'pedagogical-aid'
-  | 'assessment-relevant'
-  | 'context-only'
-  | 'droppable';
+export interface Preservation {
+  readonly priority: 'must-preserve' | 'high' | 'normal' | 'low' | 'expendable' | 'unknown';
+  readonly rationale?: string;
+  /** Pinned `true` so priority can never be recorded as a source property. */
+  readonly isInference: true;
+}
 
-/** How the SOURCE presents a unit. Never a statement of machine belief (SM-19). */
+/**
+ * How the SOURCE presents a unit (SM-16).
+ *
+ * Deliberately a different vocabulary from SemanticCard's claim
+ * `epistemicState`, and deliberately without a `verified` value: a machine may
+ * never assert that a source verified something.
+ */
 export type SourceEpistemicStatus =
-  | 'asserted'
+  | 'source-explicit'
   | 'inferred'
   | 'uncertain'
-  | 'disputed'
-  | 'verified'
+  | 'conflict'
   | 'opinion'
   | 'analogy'
   | 'heuristic'
   | 'unspecified';
 
-/** Where inside a source a unit lives. */
+/** Where inside a source a unit lives (SM-24). */
 export interface Locator {
   readonly kind:
     | 'timestamp-range'
@@ -121,101 +133,84 @@ export interface Locator {
     | 'opaque';
   readonly start?: string;
   readonly end?: string;
-  /** At least one of `value` / `start` is required; an opaque locator with no value is untraceable. */
+  /** At least one of `value` / `start`, non-empty; otherwise the unit is untraceable. */
   readonly value?: string;
 }
 
-/** Mapping confidence for a unit. */
+/** Mapping confidence for a unit (SM-12). */
 export interface UnitConfidence {
   readonly level: 'low' | 'medium' | 'high';
   readonly basis?: 'machine-inferred' | 'human-assigned' | 'derived';
 }
 
 /**
- * Advisory processing hint.
+ * A package-local observation (SM-5).
  *
- * A hint is cheap, early and carries NO authority: a later module is entitled
- * to contradict it. `advisory` is pinned `true` so a hint can never read as a
- * decision.
+ * Every value must be decidable from the source package alone. The vocabulary
+ * deliberately excludes anything requiring the existing knowledge network, such
+ * as "may duplicate existing knowledge". Advisory only, never a decision.
  */
-export interface ProcessingHint {
-  readonly hint:
+export interface UnitObservation {
+  readonly observation:
     | 'has-formula'
     | 'has-notational-risk'
     | 'asr-suspect'
-    | 'may-duplicate-existing-knowledge'
-    | 'likely-correction-to-existing'
+    | 'terminology-unstable'
+    | 'compression-loses-meaning'
     | 'needs-cross-source-check'
-    | 'probably-not-knowledge'
     | 'needs-human-review';
   readonly rationale?: string;
   readonly advisory: true;
 }
 
 /**
- * Handoff slot filled in by LATER stages.
+ * One entry in the Source Unit Ledger (SM-3, SM-4).
  *
- * This is the seam that satisfies "every significant unit must be traceable to
- * its outcome" without making the SourceMap decide the final knowledge
- * destination (SM-6, SM-16).
+ * `unitId` is stable and package-derived: never from a LessonModel id, a
+ * `knowledgeId`, or an alignment decision. Note there is NO disposition field —
+ * where a unit's knowledge ended up is recorded by downstream artifacts.
  */
-export interface UnitDisposition {
-  readonly state: 'unprocessed' | 'processed' | 'deferred' | 'dropped';
-  readonly handledBy?: string;
-  readonly knowledgeRefs?: readonly string[];
-  /** Expected when `state` is `dropped`. Design rule, not schema-enforced (ambiguity A5). */
-  readonly reason?: string;
-}
-
-/** One entry in the Source Unit Ledger. */
 export interface SourceUnit {
-  /**
-   * Stable, package-local id minted from the source package ALONE.
-   *
-   * Must not be derived from, or contain, a LessonModel id, a `knowledgeId`, or
-   * an alignment decision (SM-3). The reference direction is one-way:
-   * SemanticCard -> SourceMap, never the reverse (SM-22).
-   */
   readonly unitId: string;
   /** Must resolve to an entry in `sources[]`. */
   readonly sourceId: string;
   readonly locator: Locator;
   readonly contentType: ContentType;
-  readonly retentionClass: RetentionClass;
+  readonly preservation: Preservation;
   readonly epistemicStatus: SourceEpistemicStatus;
-  /** Bounded, pointer-grade description. Never a transcript substitute (SM-26). */
+  /** Bounded, pointer-grade description, ≤ 280 chars. Never a transcript (SM-26). */
   readonly summary?: string;
   readonly keyTerms?: readonly string[];
   readonly confidence?: UnitConfidence;
-  readonly processingHints?: readonly ProcessingHint[];
-  readonly disposition: UnitDisposition;
+  readonly observations?: readonly UnitObservation[];
 }
 
-/** A known gap in the source package. A gap is a recorded fact, not an assumption. */
+/** A known gap in the source package (SM-14). */
 export interface MissingItem {
   readonly description: string;
   readonly expectedFrom?: string;
   readonly impact?: 'low' | 'medium' | 'high' | 'unknown';
 }
 
-/** Declared coverage of the package. */
+/**
+ * Declared coverage (SM-17).
+ *
+ * There is deliberately no absolute "complete" value. The strongest available
+ * claim is that no gap was found, which is an assessment rather than a proof.
+ */
 export interface Coverage {
-  readonly basis: 'complete' | 'partial' | 'unknown';
+  readonly assessment: 'not_assessed' | 'assessed_no_known_gap' | 'known_gaps';
   readonly note?: string;
 }
 
-/** Disagreement observed between sources. Needs at least two units to be meaningful. */
+/** Disagreement observed between sources (SM-18). */
 export interface SourceConflict {
   readonly conflictId: string;
   readonly kind: 'contradiction' | 'disagreement' | 'terminology-mismatch' | 'scope-mismatch';
-  /** At least two unit ids. A one-sided "conflict" is a category error. */
+  /** At least two non-empty unit ids. A one-sided "conflict" is a category error. */
   readonly unitRefs: readonly string[];
   readonly description: string;
   readonly severity?: 'low' | 'medium' | 'high' | 'unknown';
-  /**
-   * TODO(SM-A6): recording a human resolution here may be Layer D (alignment)
-   * work leaking into Layer B. Flagged for review.
-   */
   readonly resolution?: {
     readonly status: 'unresolved' | 'human-resolved' | 'accepted-as-open';
     readonly note?: string;
@@ -223,16 +218,14 @@ export interface SourceConflict {
 }
 
 /**
- * Structure-and-coverage paper for ONE source package.
+ * Structure-and-coverage paper for ONE ingestion source package (SM-19).
  *
- * SM-1: answers "what is actually present, where, how trustworthy, what is
- * missing" — never "what does this lesson teach".
- *
- * TODO(SM-A2 / Q1): unit segmentation granularity (sentence, bullet, passage)
- * is undecided, so two implementations will produce incomparable ledgers.
+ * Out of scope by design: lesson meaning, and every unit's final knowledge
+ * destination (SM-20).
  */
 export interface SourceMap {
   readonly contractVersion: 'source-map/0.1';
+  readonly schemaVersion: SchemaVersion;
   readonly status: ReviewStatus;
   readonly sourcePackageId: string;
   readonly sources: readonly SourceEntry[];

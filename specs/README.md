@@ -15,15 +15,20 @@ matter of taste.
 
 | Spec | Contract | Requirement IDs |
 | --- | --- | --- |
-| [`semantic-card-v0.1.md`](semantic-card-v0.1.md) | SemanticCard v0.1 — machine semantic index | `SC-1` … `SC-23` |
+| [`semantic-card-v0.1.md`](semantic-card-v0.1.md) | SemanticCard v0.1 — machine semantic index | `SC-1` … `SC-26` |
 | [`source-map-v0.1.md`](source-map-v0.1.md) | SourceMap v0.1 — structure & coverage ledger | `SM-1` … `SM-26` |
-| [`agent-runtime-v0.1.md`](agent-runtime-v0.1.md) | AgentRuntime Boundary v0.1 — capability boundary | `RT-1` … `RT-21` |
-| [`run-manifest-v0.1.md`](run-manifest-v0.1.md) | RunManifest v0.1 — reproducibility record | `RM-1` … `RM-18` |
+| [`agent-runtime-v0.1.md`](agent-runtime-v0.1.md) | AgentRuntime Boundary v0.1 — capability boundary | `RT-1` … `RT-24` |
+| [`run-manifest-v0.1.md`](run-manifest-v0.1.md) | RunManifest v0.1 — reproducibility record | `RM-1` … `RM-22` |
 
 Every spec carries the same sections: design rationale, scope, field table,
 required vs optional with conditions, enumerations, invariants, example,
 counterexamples / failure cases, known ambiguities, open questions requiring
 human review, and explicitly-undecided items.
+
+Each spec also ends with a **requirement index** that defines every ID it uses,
+plus a **reconciliation with the previous revision** table. Requirement IDs are
+stable and must not be renumbered: the challenger review, the adjudication
+record and future experiments cite them.
 
 ## Not yet specified (deliberately)
 
@@ -47,5 +52,8 @@ human review, and explicitly-undecided items.
 ## Review artefacts
 
 - [`../docs/reviews/M1A_CONTRACT_CHALLENGE.md`](../docs/reviews/M1A_CONTRACT_CHALLENGE.md)
-  — independent adversarial critique of the four contracts. It describes
-  problems; it does not fix them.
+  — independent adversarial critique of the four contracts (first revision).
+  It describes problems; it does not fix them.
+- [`../docs/reviews/M1A_HUMAN_ADJUDICATION_REV1.md`](../docs/reviews/M1A_HUMAN_ADJUDICATION_REV1.md)
+  — the human ruling on those findings and what REV1 changed in response.
+  Findings not covered by a ruling remain **OPEN** on purpose.

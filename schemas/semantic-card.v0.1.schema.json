@@ -1,69 +1,99 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://learning-agent.local/schemas/semantic-card.v0.1.schema.json",
-  "title": "SemanticCard v0.1",
-  "$comment": "DRAFT — NOT IMPLEMENTATION-STABLE. Rederived during M1A from design principles, not extended from the archived M0 draft. Has NOT passed human review. See specs/semantic-card-v0.1.md.",
-  "description": "Machine-readable semantic index entry for one knowledge concept. An index, not a summary: it must not duplicate human note prose, and it must never become an independent source of truth.",
+  "title": "SemanticCard v0.1 (REV1)",
+  "$comment": "DRAFT — NOT IMPLEMENTATION-STABLE. Revised under human adjudication during M1A REV1. Has NOT passed human review. See specs/semantic-card-v0.1.md and docs/reviews/M1A_HUMAN_ADJUDICATION_REV1.md.",
+  "description": "Machine-readable semantic INDEX entry for one knowledge concept. An index, not a summary: it must not duplicate human note prose, and it must never become an independent source of truth. Card-level state is a MAINTENANCE state; only claims and relations carry an epistemic state, and a machine inference may never be recorded as verified. ENFORCEMENT BOUNDARY: JSON Schema validates the STRUCTURE OF THIS ONE ARTIFACT only. It cannot check that an evidenceRef.sourceUnitId exists in a SourceMap, that a relation target resolves to a real card, or that a note anchor exists. Cross-artifact reference integrity belongs to a future Cross-artifact Validator (see docs/reviews/M1A_HUMAN_ADJUDICATION_REV1.md CH-11).",
   "type": "object",
   "$defs": {
-    "epistemicState": {
+    "schemaVersion": {
       "type": "string",
-      "description": "Epistemic state of an assertion. One shared vocabulary for card, claim and relation.",
-      "enum": ["asserted", "inferred", "uncertain", "disputed", "verified", "deprecated", "unspecified"]
-    },
-    "evidenceRef": {
-      "type": "object",
-      "description": "Reference to evidence. Must identify something: at least one of sourceUnitId or locator.",
-      "properties": {
-        "sourceUnitId": {
-          "type": "string",
-          "description": "Preferred: a stable Source Unit Ledger id from a SourceMap."
-        },
-        "locator": { "type": "string" },
-        "note": {
-          "type": "string",
-          "description": "Short human explanation. Never authoritative."
-        }
-      },
-      "anyOf": [{ "required": ["sourceUnitId"] }, { "required": ["locator"] }],
-      "additionalProperties": false
-    },
-    "fingerprint": {
-      "type": "object",
-      "description": "Content fingerprint. Algorithm choice is deliberately narrow at v0.1.",
-      "properties": {
-        "alg": { "type": "string", "enum": ["sha256"] },
-        "value": { "type": "string", "minLength": 1 }
-      },
-      "required": ["alg", "value"],
-      "additionalProperties": false
-    }
-  },
-  "properties": {
-    "contractVersion": { "type": "string", "const": "semantic-card/0.1" },
-    "status": {
-      "type": "string",
-      "enum": ["draft", "NEEDS_REVIEW", "reviewed"],
-      "description": "Review state of this instance. draft means no human has reviewed it."
+      "const": "0.1",
+      "description": "Instance-format version, distinct from the contract name in contractVersion."
     },
     "knowledgeId": {
       "type": "string",
       "minLength": 1,
-      "description": "Stable join key between the human note and this card. Must survive note rewrites and renaming."
+      "description": "Stable OPAQUE identity (SC-3). Must not encode or derive from a note title, file path, heading text or location. Concrete format (UUID/ULID/other) is deliberately not frozen at v0.1."
     },
-    "cardFingerprint": { "$ref": "#/$defs/fingerprint" },
+    "anchor": {
+      "type": "object",
+      "description": "A note anchor. block-id is preferred; heading-path is the fallback. Line numbers are never a long-term anchor (SC-11).",
+      "properties": {
+        "kind": { "type": "string", "enum": ["block-id", "heading-path"] },
+        "value": { "type": "string", "minLength": 1 }
+      },
+      "required": ["kind", "value"],
+      "additionalProperties": false
+    },
+    "fingerprint": {
+      "type": "object",
+      "description": "Content fingerprint. SHA-256 is the default algorithm (SC-19).",
+      "properties": {
+        "alg": { "type": "string", "enum": ["sha256"], "default": "sha256" },
+        "value": { "type": "string", "minLength": 1 }
+      },
+      "required": ["value"],
+      "additionalProperties": false
+    },
+    "evidenceRef": {
+      "type": "object",
+      "description": "Reference to evidence. Must identify something: at least one of sourceUnitId or locator, and every present value must be non-empty (SC-20).",
+      "properties": {
+        "sourceUnitId": { "type": "string", "minLength": 1 },
+        "locator": { "type": "string", "minLength": 1 },
+        "note": { "type": "string", "maxLength": 160, "description": "Short explanation for a human reader. Never authoritative content." }
+      },
+      "anyOf": [
+        { "properties": { "sourceUnitId": { "minLength": 1 } }, "required": ["sourceUnitId"] },
+        { "properties": { "locator": { "minLength": 1 } }, "required": ["locator"] }
+      ],
+      "additionalProperties": false
+    },
+    "epistemicState": {
+      "type": "string",
+      "description": "Epistemic state of a claim or relation. Never a card-level property (SC-5).",
+      "enum": ["asserted", "inferred", "uncertain", "disputed", "verified", "deprecated", "unspecified"]
+    },
+    "epistemicBasis": {
+      "type": "string",
+      "description": "Who assigned the epistemic state, so machine inference is distinguishable from human judgement (SC-14).",
+      "enum": ["source-explicit", "machine-inferred", "human-assigned", "derived"]
+    }
+  },
+  "properties": {
+    "contractVersion": { "type": "string", "const": "semantic-card/0.1" },
+    "schemaVersion": { "$ref": "#/$defs/schemaVersion" },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "NEEDS_REVIEW", "reviewed"],
+      "description": "Review state of this instance."
+    },
+    "knowledgeId": { "$ref": "#/$defs/knowledgeId" },
+    "label": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Human-readable label. Has NO identity function and may change freely (SC-3)."
+    },
+    "cardState": {
+      "type": "string",
+      "enum": ["stable", "needs_review", "conflicted", "stale"],
+      "description": "MAINTENANCE state of this index, not a truth value (SC-5, SC-8)."
+    },
     "semanticCore": {
       "type": "object",
-      "description": "Bounded machine-readable core. Exists for matching and routing, not for reading.",
+      "description": "Bounded machine-readable core. Exists for matching and routing, not for reading (SC-9).",
       "properties": {
         "summary": {
           "type": "string",
           "minLength": 1,
-          "description": "Compact description. Design rule SC-7 targets a small budget; no maxLength is imposed at v0.1 because the right number needs experiment."
+          "maxLength": 280,
+          "description": "Navigation and matching description. Purpose-stated and length-capped so it cannot become a note summary (SC-9)."
         },
         "scopeNote": {
           "type": "string",
-          "description": "What this card deliberately does not cover, to prevent false matches with adjacent concepts."
+          "maxLength": 280,
+          "description": "What this card deliberately does NOT cover, to prevent false matches."
         }
       },
       "required": ["summary"],
@@ -71,32 +101,26 @@
     },
     "humanNoteRef": {
       "type": "object",
-      "description": "Where the source of truth lives. Never a production Vault path in experiments.",
+      "description": "Where the source of truth lives. Never a production Vault path in experiments (SC-10).",
       "properties": {
         "path": { "type": "string", "minLength": 1 },
-        "anchor": { "type": "string" },
-        "title": {
-          "type": "string",
-          "description": "Observed note title. A cache, not authority."
-        }
+        "anchor": { "$ref": "#/$defs/anchor" }
       },
       "required": ["path"],
       "additionalProperties": false
     },
     "humanNoteFingerprint": { "$ref": "#/$defs/fingerprint" },
+    "cardFingerprint": { "$ref": "#/$defs/fingerprint" },
     "sectionIndex": {
       "type": "array",
-      "description": "Anchor-level index of the note. May be empty, which honestly states that no sections are identifiable.",
+      "description": "Anchor-level index of the note. May be empty, which honestly states that no sections are identifiable (SC-12).",
       "items": {
         "type": "object",
         "properties": {
-          "anchor": { "type": "string", "minLength": 1 },
-          "heading": { "type": "string" },
-          "gist": {
-            "type": "string",
-            "description": "One-line pointer to the section. Not a content copy."
-          },
-          "covers": { "type": "array", "items": { "type": "string" } }
+          "anchor": { "$ref": "#/$defs/anchor" },
+          "heading": { "type": "string", "maxLength": 160 },
+          "gist": { "type": "string", "maxLength": 280, "description": "One-line pointer. Not a content copy." },
+          "covers": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 64 } }
         },
         "required": ["anchor"],
         "additionalProperties": false
@@ -104,28 +128,37 @@
     },
     "claims": {
       "type": "array",
-      "description": "Claim-level index. Records each claim's epistemic state without restating the claim's text as authority.",
+      "description": "Claim-level index. Carries NO free-text field: a claim's content lives in the note, and the card points at it (SC-4, SC-13).",
       "items": {
         "type": "object",
         "properties": {
-          "anchor": { "type": "string", "description": "Preferred: anchor to the claim inside the note." },
-          "note": { "type": "string", "description": "Short label only. Not authoritative prose." },
+          "anchor": { "$ref": "#/$defs/anchor" },
           "epistemicState": { "$ref": "#/$defs/epistemicState" },
-          "basis": {
-            "type": "string",
-            "description": "Who decided this state, so machine inference is distinguishable from human judgement.",
-            "enum": ["source-asserted", "machine-inferred", "human-assigned", "derived"]
-          },
+          "basis": { "$ref": "#/$defs/epistemicBasis" },
           "evidenceRefs": { "type": "array", "items": { "$ref": "#/$defs/evidenceRef" } }
         },
-        "required": ["epistemicState"],
-        "anyOf": [{ "required": ["anchor"] }, { "required": ["note"] }],
+        "required": ["anchor", "epistemicState"],
+        "allOf": [
+          {
+            "$comment": "SC-13: a machine inference may never be recorded as verified. `verified` requires a human-assigned basis or at least one evidence reference.",
+            "if": {
+              "properties": { "epistemicState": { "const": "verified" } },
+              "required": ["epistemicState"]
+            },
+            "then": {
+              "anyOf": [
+                { "properties": { "basis": { "const": "human-assigned" } }, "required": ["basis"] },
+                { "properties": { "evidenceRefs": { "minItems": 1 } }, "required": ["evidenceRefs"] }
+              ]
+            }
+          }
+        ],
         "additionalProperties": false
       }
     },
     "relations": {
       "type": "array",
-      "description": "Typed edges. Each carries its own provenance and epistemic state, because an edge is an inference.",
+      "description": "Typed edges. Each is an inference and carries its own epistemic state and basis (SC-6).",
       "items": {
         "type": "object",
         "properties": {
@@ -139,10 +172,11 @@
           },
           "target": {
             "type": "object",
+            "description": "At least one target reference, and every present reference must be non-empty (SC-15, SC-20).",
             "properties": {
-              "knowledgeId": { "type": "string" },
-              "sourceUnitId": { "type": "string" },
-              "externalRef": { "type": "string" }
+              "knowledgeId": { "$ref": "#/$defs/knowledgeId" },
+              "sourceUnitId": { "type": "string", "minLength": 1 },
+              "externalRef": { "type": "string", "minLength": 1 }
             },
             "anyOf": [
               { "required": ["knowledgeId"] },
@@ -153,19 +187,36 @@
           },
           "provenance": { "type": "array", "items": { "$ref": "#/$defs/evidenceRef" } },
           "epistemicState": { "$ref": "#/$defs/epistemicState" },
+          "basis": { "$ref": "#/$defs/epistemicBasis" },
           "reviewFlag": { "type": "string", "enum": ["NEEDS_REVIEW", "CONFLICT", "LOW_CONFIDENCE"] }
         },
         "required": ["type", "epistemicState"],
+        "allOf": [
+          {
+            "$comment": "SC-17: a relation without provenance must be flagged for review.",
+            "if": { "not": { "required": ["provenance"] } },
+            "then": { "required": ["reviewFlag"] }
+          },
+          {
+            "$comment": "SC-13 applies to edges too: an inferred edge may not be verified by the machine alone.",
+            "if": {
+              "properties": { "epistemicState": { "const": "verified" } },
+              "required": ["epistemicState"]
+            },
+            "then": {
+              "anyOf": [
+                { "properties": { "basis": { "const": "human-assigned" } }, "required": ["basis"] },
+                { "properties": { "provenance": { "minItems": 1 } }, "required": ["provenance"] }
+              ]
+            }
+          }
+        ],
         "additionalProperties": false
       }
     },
-    "epistemicState": {
-      "description": "Coarse roll-up of the card. Per-claim state is authoritative; this must not override it.",
-      "$ref": "#/$defs/epistemicState"
-    },
     "learningAssets": {
       "type": "array",
-      "description": "Index of learning material by pedagogical function, so assets survive summarisation.",
+      "description": "Index of learning material by pedagogical function, so assets survive summarisation (SC-18).",
       "items": {
         "type": "object",
         "properties": {
@@ -179,14 +230,24 @@
           },
           "ref": {
             "type": "object",
+            "description": "Must identify somewhere: at least one non-empty reference (SC-20).",
             "properties": {
-              "anchor": { "type": "string" },
-              "sourceUnitId": { "type": "string" },
-              "path": { "type": "string" }
+              "anchor": { "$ref": "#/$defs/anchor" },
+              "sourceUnitId": { "type": "string", "minLength": 1 },
+              "path": { "type": "string", "minLength": 1 }
             },
+            "anyOf": [
+              { "required": ["anchor"] },
+              { "required": ["sourceUnitId"] },
+              { "required": ["path"] }
+            ],
             "additionalProperties": false
           },
-          "summary": { "type": "string", "description": "Short label. Not the asset's content." }
+          "summary": {
+            "type": "string",
+            "maxLength": 160,
+            "description": "Retrieval label only. Not the asset's content (SC-9)."
+          }
         },
         "required": ["kind", "ref"],
         "additionalProperties": false
@@ -194,14 +255,14 @@
     },
     "unresolved": {
       "type": "array",
-      "description": "Open conflicts, ambiguities and gaps. Exists so a conflict is not silently resolved to keep the card clean.",
+      "description": "CURRENT OPEN unresolved items only. Closed history belongs to change/run history, not to the card (SC-24).",
       "items": {
         "type": "object",
         "properties": {
           "kind": { "type": "string", "enum": ["conflict", "ambiguity", "missing-evidence", "open-question"] },
-          "description": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1, "maxLength": 600 },
           "blocking": { "type": "boolean" },
-          "candidateResolutions": { "type": "array", "items": { "type": "string" } }
+          "candidateResolutions": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 200 } }
         },
         "required": ["kind", "description"],
         "additionalProperties": false
@@ -209,26 +270,46 @@
     },
     "integrity": {
       "type": "object",
-      "description": "Synchronisation bookkeeping between card, note and evidence.",
+      "description": "Synchronisation bookkeeping. A state may not be asserted without the data that justifies it (SC-19, SC-21).",
       "properties": {
         "state": { "type": "string", "enum": ["ok", "stale", "broken", "unknown", "NEEDS_REVIEW"] },
-        "checkedAt": { "type": "string" },
+        "checkedAt": { "type": "string", "minLength": 1, "description": "Required whenever any state is asserted." },
         "checkedAgainst": {
           "type": "object",
+          "description": "Proof that the state was computed. Required when state is `ok`.",
           "properties": {
-            "humanNoteFingerprint": { "type": "string" },
-            "cardFingerprint": { "type": "string" }
+            "humanNoteFingerprint": { "$ref": "#/$defs/fingerprint" },
+            "cardFingerprint": { "$ref": "#/$defs/fingerprint" }
           },
+          "minProperties": 1,
           "additionalProperties": false
+        },
+        "unavailableReason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300,
+          "description": "Why a state could not be established. Required when state is `unknown`."
         }
       },
-      "required": ["state"],
+      "required": ["state", "checkedAt"],
+      "allOf": [
+        {
+          "$comment": "SC-21: `ok` requires proof.",
+          "if": { "properties": { "state": { "const": "ok" } }, "required": ["state"] },
+          "then": { "required": ["checkedAgainst"] }
+        },
+        {
+          "$comment": "SC-21: `unknown` requires an explicit reason.",
+          "if": { "properties": { "state": { "const": "unknown" } }, "required": ["state"] },
+          "then": { "required": ["unavailableReason"] }
+        }
+      ],
       "additionalProperties": false
     }
   },
   "required": [
-    "contractVersion", "status", "knowledgeId", "semanticCore",
-    "humanNoteRef", "sectionIndex", "epistemicState", "integrity"
+    "contractVersion", "schemaVersion", "status", "knowledgeId", "cardState",
+    "semanticCore", "humanNoteRef", "sectionIndex", "integrity"
   ],
   "additionalProperties": false
 }

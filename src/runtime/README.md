@@ -1,77 +1,75 @@
-# `src/runtime/` — AgentRuntime boundary
+# `src/runtime/` — runtime implementations
 
-The single seam between the Learning Agent and whatever agent runtime executes
-it. This is the boundary that makes DSH replaceable (`AGENTS.md` §3.3).
+Where concrete `AgentRuntime` implementations live. The **contract** they
+implement does **not** live here: it is in
+[`src/contracts/agent-runtime.ts`](../contracts/agent-runtime.ts), because
+`src/core` needs the same types and `core` → `runtime` must not become a
+dependency direction (`docs/DECISIONS.md` D-0012).
 
 ```
 Learning Pipeline (src/pipeline)
         |
-        v   AgentRuntime interface   <-- this directory
+        v  AgentRuntime contract  <-- src/contracts/agent-runtime.ts
         |
-        v   DSH adapter (src/runtime/dsh)
+        v  DSH adapter            <-- src/runtime/dsh
         |
-        v   DSH runtime (external, user-installed)
+        v  DSH runtime (external, user-installed)
 ```
 
-## Status: placeholder, deliberately unimplemented
+## Status: no implementation
 
-**No interface is defined yet.** The language is undecided
-(`docs/DECISIONS.md` D-0005), and the interface should follow the pipeline's
-real needs rather than anticipate them. This file records the boundary and its
-rules so the first implementation cannot drift across it.
+The contract is **DRAFT — NOT IMPLEMENTATION-STABLE** and has not passed human
+review. `src/runtime/dsh/` is a placeholder. Nothing here executes.
 
-Planned artifact: a runtime-neutral interface module, e.g.
-`src/runtime/agent-runtime.ts` or `src/runtime/agent_runtime.py`, depending on
-D-0005.
+See [`specs/agent-runtime-v0.1.md`](../../specs/agent-runtime-v0.1.md) for the
+contract design, the capability vocabulary and the requirement index.
 
-## What the interface must express
+## What the contract expresses
 
 | Capability | Why the pipeline needs it |
 | --- | --- |
-| Load a prompt/versioned task and run it against supplied context | Every model-calling step. |
-| Return structured output validated against a schema | The pipeline consumes artifacts, not prose. |
-| Report the runtime's own version | Required in every run manifest (`AGENTS.md` §9). |
-| Report the model and model configuration actually used | Same. |
-| Surface errors distinctly from empty results | `SYS-TOOL-FAILURE` vs a genuinely empty answer (`docs/ERROR_TAXONOMY.md`). |
-| Record a run identifier | Traceability from a manifest back to raw run data. |
-| Read scoped evidence from an injected root | Prevents the runtime from wandering into a production Vault. |
+| Run one logical task against supplied context, by prompt id **and version** | Every model-calling step; unversioned prompts break reproducibility. |
+| Return output **raw and unvalidated** | The pipeline consumes artifacts, and validation belongs to the core (`RT-7`). |
+| Report the runtime's own kind and version | Required in every run manifest (`AGENTS.md` §9). |
+| Report the model actually resolved, or a reason it is unknown | Silent substitution invalidates comparisons (`RT-13`, `RT-18`). |
+| Report token usage, or that it is unavailable | Absent usage must not read as zero (`RT-18`). Cost is **not** part of core usage (`RT-19`). |
+| Surface errors classified by kind, distinct from empty results | `SYS-TOOL-FAILURE` vs a genuinely empty answer (`docs/ERROR_TAXONOMY.md`). |
+| Declare capabilities before they are relied on | The pipeline must not branch on the runtime's name (`RT-6`). |
+| Perform transport-safe retry | Adapter-owned; semantic retry belongs to the orchestrator (`RT-4`). |
 
 ## Hard rules
 
-1. **The pipeline imports the interface only.** It must not import
-   `runtime/dsh`, nor any DSH type, CLI, session format or file path.
-2. **No DSH representation escapes upward.** The adapter translates DSH
-   activity into runtime-neutral events and results. If a DSH concept is
-   genuinely needed by the pipeline, that is a signal the interface is
-   missing a neutral concept — add the neutral concept, do not leak the DSH
-   one.
-3. **No core-schema coupling.** The interface must not force core artifacts
-   (`schemas/*.json`) to change shape. Changing a core schema is review-gated
-   (`AGENTS.md` §15).
-4. **No network or filesystem discovery.** Roots and paths are injected by the
-   caller; the runtime never picks a vault or a key location on its own.
-5. **DSH is not modified.** The adapter consumes DSH as installed. Never patch
+1. **Core imports the contract only.** `core`, `pipeline` and `modules` must not
+   import `runtime/dsh`, any DSH type, CLI, session format or file path. A
+   composition root that wires an adapter in is the only permitted exception,
+   and it does not exist yet.
+2. **No DSH representation escapes upward.** If the pipeline needs a DSH
+   concept, add a **neutral** concept to the contract — do not leak the DSH one.
+3. **No host-specific data in the contract.** An install path or machine detail
+   is an environment fact for `docs/ENVIRONMENT.md`, never a contract field
+   (`RT-11`).
+4. **No credentials in the contract.** Credential acquisition is the adapter's
+   private concern; it is not representable in `TaskRequest` or any result
+   (`RT-22`).
+5. **No output validation in the adapter.** Do not repair, coerce or reject
+   model output against a schema; return it as received.
+6. **No network or filesystem discovery.** Context is passed in; the adapter
+   never picks a vault, a file or a key location on its own.
+7. **DSH is not modified.** The adapter consumes DSH as installed. Never patch
    it, and never require a patched DSH (`AGENTS.md` §5).
-6. **Metadata, not secrets.** The interface exposes versions and model names.
-   Credentials come from the environment and must never be returned, logged or
-   written into an artifact.
 
-## Unresolved questions
+## Open questions
 
-- `TODO` — is a run synchronous or a streaming/detached job? Affects whether
-  the manifest can be written before results exist.
-- `TODO` — how are multi-step agent runs expressed: one call per pipeline step,
-  or one long-lived session? Leaning toward one call per step, so a failure is
-  attributable to a step.
-- `TODO` — how are token/cost budgets exposed, and are they part of the
-  reproducibility record?
-- `UNKNOWN` — which DSH capabilities actually exist for structured,
-  schema-validated output. Must be established empirically before the interface
-  is frozen.
-- `UNKNOWN` — whether the interface should include a deterministic "no runtime"
-  implementation for tests. Likely yes; not yet designed.
+- `TODO` — which DSH invocation mode the adapter should use, and whether DSH can
+  enforce structured output at all. Must be established empirically.
+- `TODO` — how a DSH run identifier maps onto our run manifest.
+- `TODO` — whether a deterministic in-memory runtime should be mandated for
+  tests (`specs/agent-runtime-v0.1.md` Q1).
+- `UNKNOWN` — DSH behaviour differences across `0.1.x` alpha versions; until
+  measured, cross-version comparisons are invalid.
 
 ## Next step
 
-Define this interface, and validate it against one real DSH call, before any
-pipeline symbol exists.
+Implement an adapter against the frozen contract only after the contract passes
+human review, and validate it with one real DSH call before any pipeline symbol
+exists.

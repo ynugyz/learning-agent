@@ -1,14 +1,34 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://learning-agent.local/schemas/source-map.v0.1.schema.json",
-  "title": "SourceMap v0.1",
-  "$comment": "DRAFT — NOT IMPLEMENTATION-STABLE. Rederived during M1A from design principles, not extended from the archived M0 draft. Has NOT passed human review. See specs/source-map-v0.1.md.",
-  "description": "Structure-and-coverage paper for one source package: what is actually present, where, how trustworthy, and what is missing. It does NOT summarise the lesson and does NOT decide final knowledge destinations.",
+  "title": "SourceMap v0.1 (REV1)",
+  "$comment": "DRAFT — NOT IMPLEMENTATION-STABLE. Revised under human adjudication during M1A REV1. Has NOT passed human review. See specs/source-map-v0.1.md and docs/reviews/M1A_HUMAN_ADJUDICATION_REV1.md.",
+  "description": "Structure-and-coverage paper for one ingestion source package: what is actually present, where, how trustworthy, and what is missing. It does NOT summarise the lesson, does NOT decide final knowledge destinations, and is never written back once generated. ENFORCEMENT BOUNDARY: JSON Schema validates the STRUCTURE OF THIS ONE ARTIFACT only. It cannot check that units[].sourceId exists in sources[] or that conflicts[].unitRefs point at real units. Cross-artifact reference integrity belongs to a future Cross-artifact Validator (see docs/reviews/M1A_HUMAN_ADJUDICATION_REV1.md CH-11).",
   "type": "object",
   "$defs": {
+    "schemaVersion": { "type": "string", "const": "0.1" },
+    "locator": {
+      "type": "object",
+      "description": "Where inside a source. At least one of value/start must be present and non-empty: an opaque locator that identifies nothing makes the unit untraceable (SM-24).",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["timestamp-range", "page-range", "slide", "section", "line-range", "span", "opaque"]
+        },
+        "start": { "type": "string", "minLength": 1 },
+        "end": { "type": "string", "minLength": 1 },
+        "value": { "type": "string", "minLength": 1 }
+      },
+      "required": ["kind"],
+      "anyOf": [
+        { "properties": { "value": { "minLength": 1 } }, "required": ["value"] },
+        { "properties": { "start": { "minLength": 1 } }, "required": ["start"] }
+      ],
+      "additionalProperties": false
+    },
     "contentType": {
       "type": "string",
-      "description": "What kind of content a source unit is. Analogy, opinion, problem-solving-tip, common-mistake and exam-pointer are first-class so they cannot be silently lost.",
+      "description": "What kind of content a source unit is. Analogy, opinion, problem-solving-tip, common-mistake and exam-pointer are first-class so they cannot be silently lost (SM-10).",
       "enum": [
         "definition", "claim", "explanation", "derivation", "worked-example",
         "example", "analogy", "opinion", "problem-solving-tip", "common-mistake",
@@ -16,37 +36,57 @@
         "formula", "procedure", "data-point", "narration", "unknown"
       ]
     },
-    "retentionClass": {
-      "type": "string",
-      "description": "Why a unit matters for later processing. Required even for droppable content, so an omission is auditable rather than invisible.",
-      "enum": ["core", "supporting", "pedagogical-aid", "assessment-relevant", "context-only", "droppable"]
-    },
-    "epistemicStatus": {
-      "type": "string",
-      "description": "How the SOURCE presents the unit. Not a statement of machine belief.",
-      "enum": ["asserted", "inferred", "uncertain", "disputed", "verified", "opinion", "analogy", "heuristic", "unspecified"]
-    },
-    "locator": {
+    "preservation": {
       "type": "object",
-      "description": "Where inside a source. Opaque locators must still carry a non-empty value, otherwise the unit is untraceable.",
+      "description": "Fidelity priority: how much would be lost if this unit were dropped or compressed. This is NOT a claim that the material is important knowledge, and it is an inference, not a property of the source (SM-6).",
       "properties": {
-        "kind": {
+        "priority": {
           "type": "string",
-          "enum": ["timestamp-range", "page-range", "slide", "section", "line-range", "span", "opaque"]
+          "enum": ["must-preserve", "high", "normal", "low", "expendable", "unknown"]
         },
-        "start": { "type": "string" },
-        "end": { "type": "string" },
-        "value": { "type": "string" }
+        "rationale": { "type": "string", "maxLength": 300 },
+        "isInference": {
+          "type": "boolean",
+          "const": true,
+          "description": "Pinned true so priority can never be recorded as though it were a source property (SM-6)."
+        }
       },
-      "required": ["kind"],
-      "anyOf": [{ "required": ["value"] }, { "required": ["start"] }],
+      "required": ["priority", "isInference"],
+      "additionalProperties": false
+    },
+    "sourceEpistemicStatus": {
+      "type": "string",
+      "description": "How the SOURCE presents a unit. Note there is deliberately NO `verified` value: a machine may never assert source verification (SM-16). This is a different vocabulary from SemanticCard claim epistemicState.",
+      "enum": ["source-explicit", "inferred", "uncertain", "conflict", "opinion", "analogy", "heuristic", "unspecified"]
+    },
+    "observation": {
+      "type": "object",
+      "description": "A package-local observation. Every value must be decidable from the source package alone: none of them may require consulting the existing knowledge network (SM-5). Advisory, never a decision.",
+      "properties": {
+        "observation": {
+          "type": "string",
+          "enum": [
+            "has-formula", "has-notational-risk", "asr-suspect",
+            "terminology-unstable", "compression-loses-meaning",
+            "needs-cross-source-check", "needs-human-review"
+          ]
+        },
+        "rationale": { "type": "string", "maxLength": 300 },
+        "advisory": { "type": "boolean", "const": true }
+      },
+      "required": ["observation", "advisory"],
       "additionalProperties": false
     }
   },
   "properties": {
     "contractVersion": { "type": "string", "const": "source-map/0.1" },
+    "schemaVersion": { "$ref": "#/$defs/schemaVersion" },
     "status": { "type": "string", "enum": ["draft", "NEEDS_REVIEW", "reviewed"] },
-    "sourcePackageId": { "type": "string", "minLength": 1 },
+    "sourcePackageId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "One SourceMap corresponds to one ingestion source package, which is not required to equal 'one lesson' (SM-19)."
+    },
     "sources": {
       "type": "array",
       "items": {
@@ -73,7 +113,7 @@
                   "enum": ["asr-noise", "missing-audio", "missing-pages", "illegible", "out-of-order", "duplicate", "language-mixed", "unknown"]
                 }
               },
-              "note": { "type": "string" }
+              "note": { "type": "string", "maxLength": 300 }
             },
             "required": ["rating"],
             "additionalProperties": false
@@ -85,12 +125,12 @@
     },
     "missingOrUnavailable": {
       "type": "array",
-      "description": "Known gaps in the package. A gap is a recorded fact, not an invisible assumption.",
+      "description": "Known gaps in the package. A gap is a recorded fact, not an invisible assumption (SM-14).",
       "items": {
         "type": "object",
         "properties": {
-          "description": { "type": "string", "minLength": 1 },
-          "expectedFrom": { "type": "string" },
+          "description": { "type": "string", "minLength": 1, "maxLength": 600 },
+          "expectedFrom": { "type": "string", "minLength": 1 },
           "impact": { "type": "string", "enum": ["low", "medium", "high", "unknown"] }
         },
         "required": ["description"],
@@ -99,16 +139,17 @@
     },
     "coverage": {
       "type": "object",
+      "description": "Declared coverage. There is deliberately no absolute 'complete' value: the strongest claim available is that no gap was found (SM-17).",
       "properties": {
-        "basis": { "type": "string", "enum": ["complete", "partial", "unknown"] },
-        "note": { "type": "string" }
+        "assessment": { "type": "string", "enum": ["not_assessed", "assessed_no_known_gap", "known_gaps"] },
+        "note": { "type": "string", "maxLength": 300 }
       },
-      "required": ["basis"],
+      "required": ["assessment"],
       "additionalProperties": false
     },
     "units": {
       "type": "array",
-      "description": "The Source Unit Ledger. Ids are minted from the package alone and never from downstream artifacts.",
+      "description": "The Source Unit Ledger. Ids are minted from the package alone and never from downstream artifacts (SM-4).",
       "items": {
         "type": "object",
         "properties": {
@@ -116,13 +157,14 @@
           "sourceId": { "type": "string", "minLength": 1 },
           "locator": { "$ref": "#/$defs/locator" },
           "contentType": { "$ref": "#/$defs/contentType" },
-          "retentionClass": { "$ref": "#/$defs/retentionClass" },
-          "epistemicStatus": { "$ref": "#/$defs/epistemicStatus" },
+          "preservation": { "$ref": "#/$defs/preservation" },
+          "epistemicStatus": { "$ref": "#/$defs/sourceEpistemicStatus" },
           "summary": {
             "type": "string",
-            "description": "Bounded, pointer-grade description. Never a transcript substitute."
+            "maxLength": 280,
+            "description": "Bounded, pointer-grade description. Never a transcript substitute (SM-26)."
           },
-          "keyTerms": { "type": "array", "items": { "type": "string" } },
+          "keyTerms": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 64 } },
           "confidence": {
             "type": "object",
             "properties": {
@@ -132,64 +174,32 @@
             "required": ["level"],
             "additionalProperties": false
           },
-          "processingHints": {
-            "type": "array",
-            "description": "Advisory only. A hint carries no authority and may be overturned by a later module.",
-            "items": {
-              "type": "object",
-              "properties": {
-                "hint": {
-                  "type": "string",
-                  "enum": [
-                    "has-formula", "has-notational-risk", "asr-suspect",
-                    "may-duplicate-existing-knowledge", "likely-correction-to-existing",
-                    "needs-cross-source-check", "probably-not-knowledge", "needs-human-review"
-                  ]
-                },
-                "rationale": { "type": "string" },
-                "advisory": {
-                  "type": "boolean",
-                  "const": true,
-                  "description": "Pinned true so a hint can never read as a decision."
-                }
-              },
-              "required": ["hint", "advisory"],
-              "additionalProperties": false
-            }
-          },
-          "disposition": {
-            "type": "object",
-            "description": "Handoff slot filled in by later stages. This map does not decide final knowledge destinations.",
-            "properties": {
-              "state": { "type": "string", "enum": ["unprocessed", "processed", "deferred", "dropped"] },
-              "handledBy": { "type": "string" },
-              "knowledgeRefs": { "type": "array", "items": { "type": "string" } },
-              "reason": { "type": "string" }
-            },
-            "required": ["state"],
-            "additionalProperties": false
-          }
+          "observations": { "type": "array", "items": { "$ref": "#/$defs/observation" } }
         },
-        "required": ["unitId", "sourceId", "locator", "contentType", "retentionClass", "epistemicStatus", "disposition"],
+        "required": ["unitId", "sourceId", "locator", "contentType", "preservation", "epistemicStatus"],
         "additionalProperties": false
       }
     },
     "conflicts": {
       "type": "array",
-      "description": "Disagreements observed between sources. A conflict needs at least two units to be meaningful.",
+      "description": "Disagreements observed between sources. A conflict needs at least two non-empty units to be meaningful (SM-18).",
       "items": {
         "type": "object",
         "properties": {
           "conflictId": { "type": "string", "minLength": 1 },
           "kind": { "type": "string", "enum": ["contradiction", "disagreement", "terminology-mismatch", "scope-mismatch"] },
-          "unitRefs": { "type": "array", "minItems": 2, "items": { "type": "string" } },
-          "description": { "type": "string", "minLength": 1 },
+          "unitRefs": {
+            "type": "array",
+            "minItems": 2,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "description": { "type": "string", "minLength": 1, "maxLength": 600 },
           "severity": { "type": "string", "enum": ["low", "medium", "high", "unknown"] },
           "resolution": {
             "type": "object",
             "properties": {
               "status": { "type": "string", "enum": ["unresolved", "human-resolved", "accepted-as-open"] },
-              "note": { "type": "string" }
+              "note": { "type": "string", "maxLength": 300 }
             },
             "required": ["status"],
             "additionalProperties": false
@@ -201,9 +211,10 @@
     },
     "notes": {
       "type": "string",
-      "description": "Mapping-session notes. Never a place for lesson content."
+      "maxLength": 600,
+      "description": "Mapping-session notes. Never lesson content (SM-1)."
     }
   },
-  "required": ["contractVersion", "status", "sourcePackageId", "sources", "units"],
+  "required": ["contractVersion", "schemaVersion", "status", "sourcePackageId", "sources", "units"],
   "additionalProperties": false
 }

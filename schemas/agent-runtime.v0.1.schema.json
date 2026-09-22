@@ -1,30 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://learning-agent.local/schemas/agent-runtime.v0.1.schema.json",
-  "title": "AgentRuntime Boundary v0.1",
-  "$comment": "DRAFT — NOT IMPLEMENTATION-STABLE. Interfaces only; no adapter implementation exists. Has NOT passed human review. See specs/agent-runtime-v0.1.md.",
-  "description": "Runtime-neutral boundary between the Learning Agent pipeline and whichever agent runtime executes it. Contains no DSH-specific type, name or session format. Note that the runtime does NOT validate output against outputSchemaRef: validation belongs to the core.",
+  "title": "AgentRuntime Boundary v0.1 (REV1)",
+  "$comment": "DRAFT — NOT IMPLEMENTATION-STABLE. Revised under human adjudication during M1A REV1. Interfaces only; no adapter implementation exists. Has NOT passed human review. See specs/agent-runtime-v0.1.md and docs/reviews/M1A_HUMAN_ADJUDICATION_REV1.md.",
+  "description": "Runtime-neutral boundary between the Learning Agent pipeline and whichever agent runtime executes it. Contains no DSH-specific type, name, version, session or host path, and no credentials. One TaskRequest is one LOGICAL task, not one model API call. The runtime does NOT validate output against outputSchemaRef: validation belongs to the core. Core runtime usage carries no provider cost.",
   "type": "object",
   "$defs": {
-    "runtimeMetadata": {
-      "type": "object",
-      "description": "Declared identity and capabilities. Obtainable without performing work.",
-      "properties": {
-        "runtimeKind": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Neutral runtime family label. The only place a concrete runtime name legitimately appears."
-        },
-        "runtimeVersion": { "type": "string", "minLength": 1 },
-        "capabilities": { "$ref": "#/$defs/runtimeCapabilities" },
-        "implementationNote": {
-          "type": "string",
-          "description": "Free-form. Must not contain secrets or personal paths."
-        }
-      },
-      "required": ["runtimeKind", "runtimeVersion", "capabilities"],
-      "additionalProperties": false
-    },
+    "schemaVersion": { "type": "string", "const": "0.1" },
     "runtimeCapabilities": {
       "type": "object",
       "description": "Declared capabilities, checked before reliance. Consumers must not branch on runtimeKind.",
@@ -33,130 +15,178 @@
         "modelSelection": { "type": "boolean" },
         "reasoningControl": { "type": "boolean" },
         "usageReporting": { "type": "boolean" },
-        "streaming": { "type": "boolean", "const": false, "description": "Reserved and pinned false at v0.1 so nothing can depend on it." },
-        "cancellation": { "type": "boolean", "const": false, "description": "Reserved and pinned false at v0.1." }
+        "transportRetry": {
+          "type": "boolean",
+          "description": "Whether the adapter performs transport-safe retry on the caller's behalf (RT-4)."
+        },
+        "streaming": { "type": "boolean", "const": false, "description": "Reserved and pinned false (RT-14)." },
+        "cancellation": { "type": "boolean", "const": false, "description": "Reserved and pinned false (RT-15)." }
       },
-      "required": ["structuredTask", "modelSelection", "reasoningControl", "usageReporting", "streaming", "cancellation"],
+      "required": ["structuredTask", "modelSelection", "reasoningControl", "usageReporting", "transportRetry", "streaming", "cancellation"],
+      "additionalProperties": false
+    },
+    "runtimeMetadata": {
+      "type": "object",
+      "description": "Declared identity and capabilities, obtainable without performing work. Note there is NO implementationNote: host install paths are environment facts, not contract data (RT-11).",
+      "properties": {
+        "runtimeKind": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Neutral runtime family label. The only place a concrete runtime name legitimately appears."
+        },
+        "runtimeVersion": { "type": "string", "minLength": 1 },
+        "capabilities": { "$ref": "#/$defs/runtimeCapabilities" }
+      },
+      "required": ["runtimeKind", "runtimeVersion", "capabilities"],
+      "additionalProperties": false
+    },
+    "promptRef": {
+      "type": "object",
+      "description": "Always required, with a version: an unversioned prompt cannot be recorded in a run manifest (RT-12).",
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 }
+      },
+      "required": ["id", "version"],
+      "additionalProperties": false
+    },
+    "taskInput": {
+      "type": "object",
+      "description": "Context is passed in, never discovered by the runtime (RT-10).",
+      "properties": {
+        "role": { "type": "string", "enum": ["system", "context", "instruction", "example"] },
+        "content": { "type": "string" },
+        "ref": {
+          "type": "object",
+          "properties": {
+            "sourceId": { "type": "string", "minLength": 1 },
+            "sourceUnitId": { "type": "string", "minLength": 1 },
+            "locator": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["role", "content"],
       "additionalProperties": false
     },
     "taskRequest": {
       "type": "object",
-      "description": "One model-calling unit of work. The core decides what runs; the runtime executes.",
+      "description": "One LOGICAL runtime task (RT-3): the runtime may satisfy it with any number of model calls, or none. The core decides what runs; the runtime executes. Credentials may not appear anywhere in this object (RT-22).",
       "properties": {
         "taskId": { "type": "string", "minLength": 1 },
-        "promptRef": {
-          "type": "object",
-          "description": "Always required. An unversioned prompt cannot be recorded in a run manifest.",
-          "properties": {
-            "id": { "type": "string", "minLength": 1 },
-            "version": { "type": "string", "minLength": 1 },
-            "path": { "type": "string" }
-          },
-          "required": ["id", "version"],
-          "additionalProperties": false
-        },
+        "promptRef": { "$ref": "#/$defs/promptRef" },
         "promptText": {
           "type": "string",
           "description": "Inline prompt text for tests and one-off probes. Does not replace promptRef."
         },
-        "input": {
-          "type": "array",
-          "description": "Context is passed in, never discovered by the runtime.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "role": { "type": "string", "enum": ["system", "context", "instruction", "example"] },
-              "content": { "type": "string" },
-              "ref": {
-                "type": "object",
-                "properties": {
-                  "sourceId": { "type": "string" },
-                  "sourceUnitId": { "type": "string" },
-                  "locator": { "type": "string" }
-                },
-                "additionalProperties": false
-              }
-            },
-            "required": ["role", "content"],
-            "additionalProperties": false
-          }
-        },
+        "input": { "type": "array", "items": { "$ref": "#/$defs/taskInput" } },
         "outputSchemaRef": {
           "type": "object",
-          "description": "What the CALLER will validate against. The runtime does not validate.",
+          "description": "OPTIONAL at the boundary (RT-20): the boundary must not force every caller to name a schema. A structured module may require it in its own signature. The runtime still does not validate against it (RT-7).",
           "properties": {
             "id": { "type": "string", "minLength": 1 },
-            "path": { "type": "string" }
+            "path": { "type": "string", "minLength": 1 }
           },
           "required": ["id"],
           "additionalProperties": false
         },
         "model": {
           "type": "object",
-          "properties": { "requested": { "type": "string" } },
+          "properties": { "requested": { "type": "string", "minLength": 1 } },
           "additionalProperties": false
         },
         "reasoning": {
           "type": "object",
           "properties": {
             "effort": { "type": "string", "enum": ["minimal", "low", "medium", "high", "unspecified"] },
-            "notes": { "type": "string" }
+            "notes": { "type": "string", "maxLength": 300 }
           },
           "additionalProperties": false
         },
         "limits": {
           "type": "object",
+          "description": "Caller-imposed bounds. Advisory: a runtime may not be able to enforce them (RT-24).",
           "properties": { "maxOutputTokens": { "type": "number", "minimum": 1 } },
           "additionalProperties": false
         },
         "metadata": {
           "type": "object",
-          "description": "Free-form caller tags. Never secrets."
+          "description": "Free-form caller tags. NEVER secrets (RT-9, RT-22)."
         }
       },
-      "required": ["taskId", "promptRef", "input", "outputSchemaRef"],
+      "required": ["taskId", "promptRef", "input"],
       "additionalProperties": false
     },
     "usage": {
       "type": "object",
-      "description": "Token usage. availability exists so that absence is never mistaken for zero.",
+      "description": "Core runtime usage for one logical task, aggregated over however many transport calls it took. Carries NO provider cost: pricing is not a runtime concern (RT-19). availability exists so that absence is never mistaken for zero (RT-18).",
       "properties": {
         "inputTokens": { "type": "number", "minimum": 0 },
         "outputTokens": { "type": "number", "minimum": 0 },
         "totalTokens": { "type": "number", "minimum": 0 },
-        "availability": { "type": "string", "enum": ["reported", "partial", "unavailable"] },
-        "cost": {
-          "type": "object",
-          "properties": {
-            "amount": { "type": "number", "minimum": 0 },
-            "currency": { "type": "string" }
-          },
-          "required": ["amount", "currency"],
-          "additionalProperties": false
-        }
+        "availability": { "type": "string", "enum": ["reported", "partial", "unavailable"] }
       },
       "required": ["availability"],
       "additionalProperties": false
     },
     "modelIdentity": {
       "type": "object",
-      "description": "Requested versus resolved model. resolution makes silent substitution visible.",
+      "description": "Requested versus resolved model. resolution makes silent substitution visible. A resolution status may not be asserted without the data that proves it (RT-13, RT-18).",
       "properties": {
-        "requested": { "type": "string" },
-        "resolved": { "type": "string" },
-        "provider": { "type": "string" },
+        "requested": { "type": "string", "minLength": 1 },
+        "resolved": {
+          "type": "object",
+          "description": "Tagged availability: a value when available, a reason when not.",
+          "properties": {
+            "availability": { "type": "string", "enum": ["available", "unavailable"] },
+            "value": { "type": "string", "minLength": 1 },
+            "reason": { "type": "string", "minLength": 1, "maxLength": 300 }
+          },
+          "required": ["availability"],
+          "allOf": [
+            {
+              "$comment": "RT-18: available requires the value.",
+              "if": { "properties": { "availability": { "const": "available" } }, "required": ["availability"] },
+              "then": { "required": ["value"] }
+            },
+            {
+              "$comment": "RT-18: unavailable requires the reason.",
+              "if": { "properties": { "availability": { "const": "unavailable" } }, "required": ["availability"] },
+              "then": { "required": ["reason"] }
+            }
+          ],
+          "additionalProperties": false
+        },
+        "provider": { "type": "string", "minLength": 1 },
         "resolution": { "type": "string", "enum": ["matched", "substituted", "unknown"] }
       },
       "required": ["resolution"],
+      "allOf": [
+        {
+          "$comment": "RT-13: a definitive resolution requires a resolved value to have been available.",
+          "if": {
+            "properties": { "resolution": { "enum": ["matched", "substituted"] } },
+            "required": ["resolution"]
+          },
+          "then": {
+            "properties": {
+              "resolved": {
+                "properties": { "availability": { "const": "available" } },
+                "required": ["availability", "value"]
+              }
+            },
+            "required": ["resolved"]
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "runtimeResult": {
       "type": "object",
-      "description": "Raw model output plus metadata. output is deliberately unvalidated.",
+      "description": "Raw model output plus metadata. output is deliberately unvalidated by the runtime (RT-7). Runtime identity is not repeated here: it travels in RuntimeMetadata and the run manifest.",
       "properties": {
         "taskId": { "type": "string", "minLength": 1 },
-        "runtimeKind": { "type": "string", "minLength": 1 },
-        "runtimeVersion": { "type": "string", "minLength": 1 },
         "output": {
           "type": "object",
           "properties": {
@@ -174,9 +204,9 @@
         "reasoning": {
           "type": "object",
           "properties": {
-            "requested": { "type": "string" },
-            "applied": { "type": "string" },
-            "notes": { "type": "string" }
+            "requested": { "type": "string", "minLength": 1 },
+            "applied": { "type": "string", "minLength": 1 },
+            "notes": { "type": "string", "maxLength": 300 }
           },
           "additionalProperties": false
         },
@@ -184,12 +214,12 @@
         "durationMs": { "type": "number", "minimum": 0 },
         "warnings": { "type": "array", "items": { "type": "string" } }
       },
-      "required": ["taskId", "runtimeKind", "runtimeVersion"],
+      "required": ["taskId"],
       "additionalProperties": false
     },
     "runError": {
       "type": "object",
-      "description": "Classified failure. Must never carry a credential or a DSH type.",
+      "description": "Classified failure. Never carries a credential or a DSH type (RT-9, RT-10).",
       "properties": {
         "kind": {
           "type": "string",
@@ -212,7 +242,7 @@
     },
     "invocationResult": {
       "type": "object",
-      "description": "Discriminated union so the failure branch cannot be ignored.",
+      "description": "Discriminated union so the failure branch cannot be ignored (RT-8).",
       "properties": {
         "ok": { "type": "boolean" },
         "result": { "$ref": "#/$defs/runtimeResult" },
@@ -228,11 +258,12 @@
   },
   "properties": {
     "contractVersion": { "type": "string", "const": "agent-runtime/0.1" },
+    "schemaVersion": { "$ref": "#/$defs/schemaVersion" },
     "status": { "type": "string", "enum": ["draft", "NEEDS_REVIEW", "reviewed"] },
     "runtimeMetadata": { "$ref": "#/$defs/runtimeMetadata" },
     "taskRequest": { "$ref": "#/$defs/taskRequest" },
     "invocationResult": { "$ref": "#/$defs/invocationResult" }
   },
-  "required": ["contractVersion", "status"],
+  "required": ["contractVersion", "schemaVersion", "status"],
   "additionalProperties": false
 }

@@ -1,13 +1,11 @@
 /**
- * Core contracts — barrel export.
+ * Core contracts — barrel export (M1A REV1)
  *
  * DRAFT — NOT IMPLEMENTATION-STABLE.
  *
- * These four contracts were rederived during M1A from design principles and
- * have NOT passed human review. Milestone M0 itself is still awaiting final
- * human approval.
- *
- * Four documents, intentionally small and closed:
+ * Four contracts, rederived from design principles and revised under human
+ * adjudication. None has passed human review as a finished design, and
+ * milestone M0 itself is still awaiting final human approval.
  *
  * | Contract | Question it answers |
  * | --- | --- |
@@ -24,9 +22,12 @@
 
 export type {
   ReviewStatus,
+  SchemaVersion,
+  CardState,
   EpistemicState,
   EpistemicBasis,
   FingerprintAlg,
+  Anchor,
   Fingerprint,
   EvidenceRef,
   SemanticCore,
@@ -50,12 +51,11 @@ export type {
   SourceQuality,
   SourceEntry,
   ContentType,
-  RetentionClass,
+  Preservation,
   SourceEpistemicStatus,
   Locator,
   UnitConfidence,
-  ProcessingHint,
-  UnitDisposition,
+  UnitObservation,
   SourceUnit,
   MissingItem,
   Coverage,
@@ -74,6 +74,7 @@ export type {
   TaskLimits,
   TaskRequest,
   RuntimeOutput,
+  ResolvedModel,
   ModelIdentity,
   Usage,
   ReasoningApplied,
@@ -87,6 +88,7 @@ export type {
 
 export type {
   ManifestSourceRef,
+  ManifestCaseId,
   ManifestGitState,
   ManifestRuntime,
   ManifestModel,
@@ -94,7 +96,7 @@ export type {
   ManifestVersions,
   ManifestSourceBundle,
   ManifestPlatform,
+  ManifestUsage,
   ManifestOmission,
-  ManifestCaseId,
   RunManifest,
 } from './run-manifest';

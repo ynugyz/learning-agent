@@ -1,16 +1,19 @@
 /**
- * SemanticCard v0.1 — TypeScript draft
+ * SemanticCard v0.1 (REV1) — TypeScript draft
  *
  * DRAFT — NOT IMPLEMENTATION-STABLE.
  * Mirrors `schemas/semantic-card.v0.1.schema.json` and
- * `specs/semantic-card-v0.1.md`. Rederived during M1A from design principles,
- * not extended from the archived M0 draft. Has NOT passed human review.
+ * `specs/semantic-card-v0.1.md`. Revised under human adjudication during
+ * M1A REV1; see `docs/reviews/M1A_HUMAN_ADJUDICATION_REV1.md`.
  *
- * Milestone M0 itself is still awaiting final human approval.
+ * A SemanticCard is a machine-readable semantic INDEX: not a summary, not a copy
+ * of the human note, never an independent source of truth.
  *
- * A SemanticCard is a machine-readable semantic INDEX, not a summary and not a
- * copy of the human note. It must never become an independent source of truth:
- * every machine assertion is traceable to a note anchor or to evidence.
+ * REV1 changes that matter to a reader of this file:
+ *  - the card has NO truth-valued state; `cardState` is a MAINTENANCE state;
+ *  - `claims[].note` is GONE — no field may carry note prose;
+ *  - every present identifier/anchor/fingerprint value is non-empty;
+ *  - a machine inference may never be `verified`.
  *
  * @packageDocumentation
  */
@@ -18,11 +21,22 @@
 /** Review state of an artifact instance. `draft` means no human has reviewed it. */
 export type ReviewStatus = 'draft' | 'NEEDS_REVIEW' | 'reviewed';
 
+/** Instance-format version, distinct from the contract name. */
+export type SchemaVersion = '0.1';
+
 /**
- * Epistemic state of an assertion.
+ * MAINTENANCE state of an index. Not a truth value (SC-5, SC-8).
  *
- * One shared vocabulary for card, claim and relation, so the same word never
- * means two things. A machine inference must never silently become `verified`.
+ * Whether the knowledge is true is a property of individual claims; whether the
+ * card can be relied on as an index is a property of the card.
+ */
+export type CardState = 'stable' | 'needs_review' | 'conflicted' | 'stale';
+
+/**
+ * Epistemic state of a CLAIM or RELATION.
+ *
+ * Prefix-scoped deliberately: it is never a card-level property. One word, one
+ * meaning, no card-wide blessing.
  */
 export type EpistemicState =
   | 'asserted'
@@ -33,83 +47,83 @@ export type EpistemicState =
   | 'deprecated'
   | 'unspecified';
 
-/** Who decided an epistemic state, so machine inference is distinguishable from human judgement. */
+/** Who assigned an epistemic state (SC-14). */
 export type EpistemicBasis =
-  | 'source-asserted'
+  | 'source-explicit'
   | 'machine-inferred'
   | 'human-assigned'
   | 'derived';
 
-/** Hash algorithm, deliberately narrowed to one value at v0.1. */
+/** Hash algorithm. SHA-256 is the default (SC-19). */
 export type FingerprintAlg = 'sha256';
 
 /**
- * Content fingerprint.
+ * A note anchor (SC-11).
  *
- * TODO(SC-A6): what exactly is hashed (raw bytes vs canonical JSON) is
- * unspecified. Do not rely on cross-implementation comparability yet.
+ * `block-id` is preferred because it survives section renaming; `heading-path`
+ * is the fallback for notes without block ids. Line numbers are never admitted,
+ * because they are not stable across edits.
  */
+export interface Anchor {
+  readonly kind: 'block-id' | 'heading-path';
+  readonly value: string;
+}
+
+/** Content fingerprint. SHA-256 assumed when `alg` is omitted (SC-19). */
 export interface Fingerprint {
-  readonly alg: FingerprintAlg;
+  readonly alg?: FingerprintAlg;
   readonly value: string;
 }
 
 /**
- * Reference to evidence supporting an assertion.
- *
- * Must identify something: at least one of `sourceUnitId` or `locator`.
- * Prefer `sourceUnitId` (a SourceMap ledger id) over a free-form locator.
+ * Reference to evidence. Must identify something: at least one of
+ * `sourceUnitId` / `locator`, non-empty (SC-20).
  */
 export interface EvidenceRef {
+  /** Preferred: a stable Source Unit id from a SourceMap ledger. */
   readonly sourceUnitId?: string;
   readonly locator?: string;
-  /** Short human explanation. Never authoritative. */
+  /** Human-readable explanation, capped. Never authoritative content. */
   readonly note?: string;
 }
 
-/** Bounded machine-readable core. Exists for matching and routing, not for reading. */
+/** Bounded machine-readable core (SC-9). */
 export interface SemanticCore {
   /**
-   * Compact description used to match and route.
+   * Navigation and matching description, ≤ 280 chars.
    *
-   * Design rule SC-7 targets a small budget (proposed <= 280 chars). No limit is
-   * encoded here because the right number must come from experiment, not a guess
-   * frozen into a validator. See spec open question Q5.
+   * The cap exists so this field cannot silently become a note summary. The
+   * exact budget is provisional (spec ambiguity A1).
    */
   readonly summary: string;
-  /** What this card deliberately does NOT cover, to prevent false matches. */
+  /** What this card deliberately does NOT cover, ≤ 280 chars. */
   readonly scopeNote?: string;
 }
 
-/** Where the card's source of truth lives. Never a production Vault path in experiments. */
+/** Where the card's source of truth lives (SC-10). */
 export interface HumanNoteRef {
   readonly path: string;
-  /** Primary stable anchor inside the note. */
-  readonly anchor?: string;
-  /** Observed note title. A cache, not authority. */
-  readonly title?: string;
+  readonly anchor?: Anchor;
 }
 
-/** Anchor-level index entry of the human note. */
+/** Anchor-level index entry (SC-12). */
 export interface SectionIndexEntry {
-  readonly anchor: string;
+  readonly anchor: Anchor;
   readonly heading?: string;
-  /** One-line pointer to the section. Not a content copy. */
+  /** One-line pointer, ≤ 280 chars. Not a content copy. */
   readonly gist?: string;
   readonly covers?: readonly string[];
 }
 
 /**
- * Claim-level index entry.
+ * Claim-level index entry (SC-4, SC-13).
  *
- * Deliberately references the claim by anchor instead of restating its text:
- * restating it would create a second copy that can drift (SC-1, SC-2).
+ * There is deliberately NO free-text field: a claim's content lives in the note
+ * and the card points at it. `anchor` is required — a claim can never be
+ * recorded without a location.
  */
 export interface ClaimRef {
-  /** Preferred: anchor to the claim inside the note. */
-  readonly anchor?: string;
-  /** Short label only. Not authoritative prose. */
-  readonly note?: string;
+  readonly anchor: Anchor;
   readonly epistemicState: EpistemicState;
   readonly basis?: EpistemicBasis;
   readonly evidenceRefs?: readonly EvidenceRef[];
@@ -130,12 +144,7 @@ export type RelationType =
   | 'derived-from'
   | 'related';
 
-/**
- * Typed reference to a relation target.
- *
- * `sourceUnitId` allows an edge to material that is not yet knowledge, so the
- * map does not force premature knowledge creation.
- */
+/** Typed reference to a relation target (SC-15). */
 export interface RelationTarget {
   readonly knowledgeId?: string;
   readonly sourceUnitId?: string;
@@ -143,25 +152,22 @@ export interface RelationTarget {
 }
 
 /**
- * A typed knowledge relation.
+ * A typed knowledge relation (SC-6, SC-17).
  *
- * An edge is an inference and gets its own provenance and epistemic state.
- * Invariant SC-14: a relation without `provenance` must carry `reviewFlag`.
+ * An edge is an inference about a claim; it carries its own state and basis.
+ * When `provenance` is absent, `reviewFlag` is required: a bare inferred edge is
+ * a contract violation.
  */
 export interface KnowledgeRelation {
   readonly type: RelationType;
   readonly target?: RelationTarget;
   readonly provenance?: readonly EvidenceRef[];
   readonly epistemicState: EpistemicState;
+  readonly basis?: EpistemicBasis;
   readonly reviewFlag?: 'NEEDS_REVIEW' | 'CONFLICT' | 'LOW_CONFIDENCE';
 }
 
-/**
- * Pedagogical function of a learning asset.
- *
- * `problem-solving-tip` and `common-mistake` are deliberately separate: they are
- * exactly the material that summarisation loses.
- */
+/** Pedagogical function of a learning asset (SC-18). */
 export type LearningAssetKind =
   | 'definition'
   | 'example'
@@ -175,83 +181,86 @@ export type LearningAssetKind =
   | 'exercise'
   | 'open-question';
 
-/** Where a learning asset can be found. */
+/** Where a learning asset can be found. At least one reference is required (SC-20). */
 export interface LearningAssetRef {
-  readonly anchor?: string;
+  readonly anchor?: Anchor;
   readonly sourceUnitId?: string;
   readonly path?: string;
 }
 
-/** Index entry for a learning asset, by pedagogical function. */
+/** Index entry for a learning asset (SC-18). */
 export interface LearningAsset {
   readonly kind: LearningAssetKind;
   readonly ref: LearningAssetRef;
-  /** Short label. Not the asset's content. */
+  /** Retrieval label only, ≤ 160 chars. Not the asset's content. */
   readonly summary?: string;
 }
 
-/** Open conflict, ambiguity or gap. Exists so a conflict is not silently resolved. */
+/**
+ * CURRENT OPEN unresolved item (SC-24).
+ *
+ * Closed history is deliberately NOT stored here: it belongs to change/run
+ * history, so the card does not accumulate an ever-growing resolved-conflict log.
+ */
 export interface UnresolvedItem {
   readonly kind: 'conflict' | 'ambiguity' | 'missing-evidence' | 'open-question';
   readonly description: string;
-  /** Whether this blocks further knowledge changes until resolved. */
   readonly blocking?: boolean;
-  /** Options not yet chosen. */
   readonly candidateResolutions?: readonly string[];
 }
 
 /**
- * Synchronisation bookkeeping.
+ * Synchronisation bookkeeping (SC-19, SC-21).
  *
- * Drift needs a fingerprint on BOTH sides: `humanNoteFingerprint` detects note
- * edits, `cardFingerprint` detects machine-layer edits. One hash cannot tell
- * "note changed" from "card changed" (SC-6).
+ * `checkedAt` is always present. `checkedAgainst` is required when the state is
+ * `ok`, and `unavailableReason` is required when it is `unknown`: a state may
+ * not be asserted without the data that justifies it.
  */
 export interface SemanticCardIntegrity {
   readonly state: 'ok' | 'stale' | 'broken' | 'unknown' | 'NEEDS_REVIEW';
-  readonly checkedAt?: string;
+  readonly checkedAt: string;
   readonly checkedAgainst?: {
-    readonly humanNoteFingerprint?: string;
-    readonly cardFingerprint?: string;
+    readonly humanNoteFingerprint?: Fingerprint;
+    readonly cardFingerprint?: Fingerprint;
   };
+  readonly unavailableReason?: string;
 }
 
 /**
- * Machine-readable semantic index entry for ONE knowledge concept.
+ * Machine-readable semantic index entry for ONE knowledge concept (SC-23).
  *
  * Not a note summary. Not a source of truth. Not the storage layout — where
  * cards live in a real Vault is undecided (DECISIONS.md D-0010, NEEDS_REVIEW).
  */
 export interface SemanticCard {
   readonly contractVersion: 'semantic-card/0.1';
+  readonly schemaVersion: SchemaVersion;
   readonly status: ReviewStatus;
 
   /**
-   * Stable join key between the human note and this card.
+   * Stable OPAQUE identity (SC-3).
    *
-   * Stability is a durability commitment, not a label: it must survive note
-   * rewrites, section reordering, renaming and re-summarising. Reusing an id
-   * for a different concept, or minting a new one for the same concept, breaks
-   * every external reference (SC-3).
+   * Must not encode or derive from a note title, path, heading text or
+   * location, and must not change when those change. The concrete format
+   * (UUID / ULID / other) is deliberately not frozen at v0.1.
    */
   readonly knowledgeId: string;
 
-  /** Optional at v0.1. Present so synchronisation can become symmetric without a breaking change. */
-  readonly cardFingerprint?: Fingerprint;
+  /** Human-readable label with NO identity function. May change freely. */
+  readonly label?: string;
+
+  /** Maintenance state. Never a truth value (SC-5). */
+  readonly cardState: CardState;
 
   readonly semanticCore: SemanticCore;
   readonly humanNoteRef: HumanNoteRef;
   readonly humanNoteFingerprint?: Fingerprint;
+  readonly cardFingerprint?: Fingerprint;
 
   /** May be empty, which honestly states that no sections are identifiable. */
   readonly sectionIndex: readonly SectionIndexEntry[];
-
   readonly claims?: readonly ClaimRef[];
   readonly relations?: readonly KnowledgeRelation[];
-
-  /** Coarse roll-up only. Per-claim state is authoritative and must not be overridden by this. */
-  readonly epistemicState: EpistemicState;
-
   readonly learningAssets?: readonly LearningAsset[];
   readonly unresolved?: readonly UnresolvedItem[];
   readonly integrity: SemanticCardIntegrity;
