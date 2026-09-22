@@ -92,22 +92,34 @@ history is **not** a record.
 - Consequences: When the first real module lands, this decision must be
   revisited and a lockfile committed in the same change.
 
-### D-0005 — Implementation language and core runtime are NOT yet decided
+### D-0005 — TypeScript is the primary implementation language (human ruling)
 - Date: 2026-09-22
-- Status: NEEDS_REVIEW
-- Decision: Defer the choice of implementation language/runtime for
-  `src/core`, `src/pipeline` and `src/modules` (Node.js + TypeScript vs
-  Python, or a split).
-- Rationale: This is an architecture-level choice that constrains every later
-  schema, module and test, so it belongs to human judgment, not to an
-  autonomous bootstrap step. The available local toolchain supports both
-  (Node v22.23.2, Python 3.14.7, uv 0.12.10).
-- Alternatives considered: choosing Node/TypeScript now because DSH and the
-  future Obsidian plugin are both TypeScript. Attractive, but it is exactly the
-  kind of decision that should be made once, deliberately.
-- Consequences: Blocks the first real module. Needs a human answer before or at
-  the start of the next milestone. Recorded under `Needs human review` in the
-  M0 report.
+- Status: accepted (human ruling recorded during M1A; supersedes the M0 deferral)
+- Decision: TypeScript is the Learning Agent's primary implementation language.
+  - `src/core` → TypeScript
+  - `src/pipeline` → TypeScript
+  - `src/modules` → TypeScript
+  - `src/runtime` → TypeScript
+  - the future Obsidian plugin → TypeScript
+  - `src/contracts` (added in M1A to hold the four core contracts) → TypeScript
+  - **Python is not a core runtime language.** It may be used later for offline
+    experiment analysis, statistics or research scripts, but only when a
+    concrete need exists. No Python package layout is created now.
+- Rationale: (a) DSH is a Node/TypeScript runtime, so the adapter boundary needs
+  no cross-language bridge; (b) the future Obsidian plugin is TypeScript, so the
+  plugin becomes a client rather than a re-implementation; (c) JSON Schema and
+  TypeScript types can be kept structurally aligned, which is hard across
+  languages. The M0 host has Node v22.23.2 and pnpm 11.7.0 available.
+- Alternatives considered: (a) Python — strong analysis ecosystem, but would
+  force interop with the DSH adapter and the plugin; (b) a split
+  (TS transport + Python analysis) — rejected for now as two toolchains and two
+  validation paths before any experiment justifies it.
+- Consequences: This unblocks the first real module. **No dependency is
+  installed and no implementation is written by this decision** — M1A is
+  design-only. A `package.json` scaffold with no dependencies is added in M1A
+  so `npm run typecheck` becomes available once `typescript` is deliberately
+  installed; no lockfile exists yet. Python remains available on the host for
+  future offline scripts without becoming part of the core runtime.
 
 ### D-0006 — Test vault is a disposable sandbox with a tracked machine layer
 - Date: 2026-09-22

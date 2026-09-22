@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://learning-agent.local/schemas/run-manifest.v0.1.schema.json",
+  "title": "RunManifest v0.1",
+  "$comment": "DRAFT — NOT IMPLEMENTATION-STABLE. Has NOT passed human review. See specs/run-manifest-v0.1.md.",
+  "description": "Reproducibility record for one experiment run. Answers 'is comparing this run with another valid?' without re-running anything. Contains no secrets and no conclusions.",
+  "type": "object",
+  "$defs": {
+    "digestRef": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["source-map", "semantic-card", "evidence", "prompt", "schema", "other"]
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path or identifier. Must not be a production Vault path."
+        },
+        "digest": { "type": "string" }
+      },
+      "required": ["kind", "ref"],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "contractVersion": { "type": "string", "const": "run-manifest/0.1" },
+    "status": { "type": "string", "enum": ["draft", "NEEDS_REVIEW", "reviewed"] },
+    "runId": { "type": "string", "minLength": 1 },
+    "caseId": {
+      "type": "object",
+      "description": "Distinguishes an exploratory run from a run whose case reference was lost.",
+      "properties": {
+        "value": { "type": "string" },
+        "availability": { "type": "string", "enum": ["present", "not-applicable", "unknown"] }
+      },
+      "required": ["availability"],
+      "additionalProperties": false
+    },
+    "startedAt": { "type": "string", "minLength": 1, "description": "ISO-8601 timestamp with offset." },
+    "finishedAt": {
+      "type": "string",
+      "description": "Absent for a crashed or still-running experiment, so a partial manifest remains valid."
+    },
+    "git": {
+      "type": "object",
+      "description": "A commit hash alone is misleading when the tree was modified; dirty state is first-class.",
+      "properties": {
+        "commit": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Full commit SHA, or the literal 'unknown' when the run happened outside a repository."
+        },
+        "branch": { "type": "string" },
+        "dirty": { "type": "boolean" },
+        "dirtyPaths": { "type": "array", "items": { "type": "string" } },
+        "repoRef": { "type": "string" }
+      },
+      "required": ["commit", "dirty"],
+      "additionalProperties": false
+    },
+    "runtime": {
+      "type": "object",
+      "description": "Requested versus actually resolved runtime.",
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Version actually resolved at run time, not read from documentation."
+        },
+        "resolution": { "type": "string", "enum": ["matched", "substituted", "unknown"] }
+      },
+      "required": ["kind", "version", "resolution"],
+      "additionalProperties": false
+    },
+    "model": {
+      "type": "object",
+      "properties": {
+        "requested": { "type": "string" },
+        "resolved": {
+          "type": "object",
+          "properties": {
+            "value": { "type": "string" },
+            "availability": { "type": "string", "enum": ["reported", "unavailable", "unknown"] }
+          },
+          "required": ["availability"],
+          "additionalProperties": false
+        },
+        "provider": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "reasoning": {
+      "type": "object",
+      "properties": {
+        "requested": { "type": "string" },
+        "applied": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "versions": {
+      "type": "object",
+      "description": "The version bundle that makes the run reproducible. An empty object is an assertion of 'none used'.",
+      "properties": {
+        "prompts": { "type": "object", "additionalProperties": { "type": "string" } },
+        "schemas": { "type": "object", "additionalProperties": { "type": "string" } },
+        "contracts": { "type": "object", "additionalProperties": { "type": "string" } }
+      },
+      "required": ["prompts", "schemas"],
+      "additionalProperties": false
+    },
+    "sourceBundle": {
+      "type": "object",
+      "properties": {
+        "packageId": { "type": "string" },
+        "refs": { "type": "array", "items": { "$ref": "#/$defs/digestRef" } },
+        "digest": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "platform": {
+      "type": "object",
+      "properties": {
+        "os": { "type": "string" },
+        "node": { "type": "string" },
+        "shell": { "type": "string" },
+        "environmentRef": {
+          "type": "string",
+          "description": "Pointer to a recorded environment document, e.g. docs/ENVIRONMENT.md. A pointer, not data."
+        }
+      },
+      "additionalProperties": false
+    },
+    "usage": {
+      "type": "object",
+      "properties": {
+        "inputTokens": { "type": "number", "minimum": 0 },
+        "outputTokens": { "type": "number", "minimum": 0 },
+        "totalTokens": { "type": "number", "minimum": 0 },
+        "availability": { "type": "string", "enum": ["reported", "partial", "unavailable"] }
+      },
+      "required": ["availability"],
+      "additionalProperties": false
+    },
+    "durationMs": { "type": "number", "minimum": 0 },
+    "omissions": {
+      "type": "array",
+      "description": "Records THAT a field was withheld, without recording its value. Exists because omitting a secret-bearing field is otherwise indistinguishable from having nothing to omit.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "enum": ["secret", "unavailable", "not-applicable", "policy"] }
+        },
+        "required": ["field", "reason"],
+        "additionalProperties": false
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-form and non-secret. Must not contain conclusions, scores or interpretations."
+    }
+  },
+  "required": [
+    "contractVersion", "status", "runId", "startedAt",
+    "git", "runtime", "model", "versions"
+  ],
+  "additionalProperties": false
+}

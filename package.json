@@ -1,0 +1,18 @@
+{
+  "name": "learning-agent",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Personal Learning Agent — M1A core contract drafts. No implementation yet.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "comment": "DELIBERATELY EMPTY OF DEPENDENCIES. DECISIONS.md D-0005 selects TypeScript as the primary language; no dependency is installed by that decision. `npm run typecheck` requires a deliberate `npm install --save-dev --save-exact typescript` first, which must commit a lockfile in the same change (D-0004).",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "check": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/check.ps1"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

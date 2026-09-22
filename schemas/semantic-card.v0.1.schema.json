@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://learning-agent.local/schemas/semantic-card.v0.1.schema.json",
+  "title": "SemanticCard v0.1",
+  "$comment": "DRAFT — NOT IMPLEMENTATION-STABLE. Rederived during M1A from design principles, not extended from the archived M0 draft. Has NOT passed human review. See specs/semantic-card-v0.1.md.",
+  "description": "Machine-readable semantic index entry for one knowledge concept. An index, not a summary: it must not duplicate human note prose, and it must never become an independent source of truth.",
+  "type": "object",
+  "$defs": {
+    "epistemicState": {
+      "type": "string",
+      "description": "Epistemic state of an assertion. One shared vocabulary for card, claim and relation.",
+      "enum": ["asserted", "inferred", "uncertain", "disputed", "verified", "deprecated", "unspecified"]
+    },
+    "evidenceRef": {
+      "type": "object",
+      "description": "Reference to evidence. Must identify something: at least one of sourceUnitId or locator.",
+      "properties": {
+        "sourceUnitId": {
+          "type": "string",
+          "description": "Preferred: a stable Source Unit Ledger id from a SourceMap."
+        },
+        "locator": { "type": "string" },
+        "note": {
+          "type": "string",
+          "description": "Short human explanation. Never authoritative."
+        }
+      },
+      "anyOf": [{ "required": ["sourceUnitId"] }, { "required": ["locator"] }],
+      "additionalProperties": false
+    },
+    "fingerprint": {
+      "type": "object",
+      "description": "Content fingerprint. Algorithm choice is deliberately narrow at v0.1.",
+      "properties": {
+        "alg": { "type": "string", "enum": ["sha256"] },
+        "value": { "type": "string", "minLength": 1 }
+      },
+      "required": ["alg", "value"],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "contractVersion": { "type": "string", "const": "semantic-card/0.1" },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "NEEDS_REVIEW", "reviewed"],
+      "description": "Review state of this instance. draft means no human has reviewed it."
+    },
+    "knowledgeId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable join key between the human note and this card. Must survive note rewrites and renaming."
+    },
+    "cardFingerprint": { "$ref": "#/$defs/fingerprint" },
+    "semanticCore": {
+      "type": "object",
+      "description": "Bounded machine-readable core. Exists for matching and routing, not for reading.",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Compact description. Design rule SC-7 targets a small budget; no maxLength is imposed at v0.1 because the right number needs experiment."
+        },
+        "scopeNote": {
+          "type": "string",
+          "description": "What this card deliberately does not cover, to prevent false matches with adjacent concepts."
+        }
+      },
+      "required": ["summary"],
+      "additionalProperties": false
+    },
+    "humanNoteRef": {
+      "type": "object",
+      "description": "Where the source of truth lives. Never a production Vault path in experiments.",
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "anchor": { "type": "string" },
+        "title": {
+          "type": "string",
+          "description": "Observed note title. A cache, not authority."
+        }
+      },
+      "required": ["path"],
+      "additionalProperties": false
+    },
+    "humanNoteFingerprint": { "$ref": "#/$defs/fingerprint" },
+    "sectionIndex": {
+      "type": "array",
+      "description": "Anchor-level index of the note. May be empty, which honestly states that no sections are identifiable.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "anchor": { "type": "string", "minLength": 1 },
+          "heading": { "type": "string" },
+          "gist": {
+            "type": "string",
+            "description": "One-line pointer to the section. Not a content copy."
+          },
+          "covers": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["anchor"],
+        "additionalProperties": false
+      }
+    },
+    "claims": {
+      "type": "array",
+      "description": "Claim-level index. Records each claim's epistemic state without restating the claim's text as authority.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "anchor": { "type": "string", "description": "Preferred: anchor to the claim inside the note." },
+          "note": { "type": "string", "description": "Short label only. Not authoritative prose." },
+          "epistemicState": { "$ref": "#/$defs/epistemicState" },
+          "basis": {
+            "type": "string",
+            "description": "Who decided this state, so machine inference is distinguishable from human judgement.",
+            "enum": ["source-asserted", "machine-inferred", "human-assigned", "derived"]
+          },
+          "evidenceRefs": { "type": "array", "items": { "$ref": "#/$defs/evidenceRef" } }
+        },
+        "required": ["epistemicState"],
+        "anyOf": [{ "required": ["anchor"] }, { "required": ["note"] }],
+        "additionalProperties": false
+      }
+    },
+    "relations": {
+      "type": "array",
+      "description": "Typed edges. Each carries its own provenance and epistemic state, because an edge is an inference.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "prerequisite", "part-of", "expands", "refines", "corrects",
+              "example-of", "counterexample-of", "conflicts-with",
+              "contrasts-with", "applies-to", "derived-from", "related"
+            ]
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "knowledgeId": { "type": "string" },
+              "sourceUnitId": { "type": "string" },
+              "externalRef": { "type": "string" }
+            },
+            "anyOf": [
+              { "required": ["knowledgeId"] },
+              { "required": ["sourceUnitId"] },
+              { "required": ["externalRef"] }
+            ],
+            "additionalProperties": false
+          },
+          "provenance": { "type": "array", "items": { "$ref": "#/$defs/evidenceRef" } },
+          "epistemicState": { "$ref": "#/$defs/epistemicState" },
+          "reviewFlag": { "type": "string", "enum": ["NEEDS_REVIEW", "CONFLICT", "LOW_CONFIDENCE"] }
+        },
+        "required": ["type", "epistemicState"],
+        "additionalProperties": false
+      }
+    },
+    "epistemicState": {
+      "description": "Coarse roll-up of the card. Per-claim state is authoritative; this must not override it.",
+      "$ref": "#/$defs/epistemicState"
+    },
+    "learningAssets": {
+      "type": "array",
+      "description": "Index of learning material by pedagogical function, so assets survive summarisation.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "definition", "example", "worked-example", "problem-solving-tip",
+              "common-mistake", "boundary-condition", "counterexample",
+              "mnemonic", "derivation", "exercise", "open-question"
+            ]
+          },
+          "ref": {
+            "type": "object",
+            "properties": {
+              "anchor": { "type": "string" },
+              "sourceUnitId": { "type": "string" },
+              "path": { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "summary": { "type": "string", "description": "Short label. Not the asset's content." }
+        },
+        "required": ["kind", "ref"],
+        "additionalProperties": false
+      }
+    },
+    "unresolved": {
+      "type": "array",
+      "description": "Open conflicts, ambiguities and gaps. Exists so a conflict is not silently resolved to keep the card clean.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": { "type": "string", "enum": ["conflict", "ambiguity", "missing-evidence", "open-question"] },
+          "description": { "type": "string", "minLength": 1 },
+          "blocking": { "type": "boolean" },
+          "candidateResolutions": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["kind", "description"],
+        "additionalProperties": false
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "description": "Synchronisation bookkeeping between card, note and evidence.",
+      "properties": {
+        "state": { "type": "string", "enum": ["ok", "stale", "broken", "unknown", "NEEDS_REVIEW"] },
+        "checkedAt": { "type": "string" },
+        "checkedAgainst": {
+          "type": "object",
+          "properties": {
+            "humanNoteFingerprint": { "type": "string" },
+            "cardFingerprint": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["state"],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "contractVersion", "status", "knowledgeId", "semanticCore",
+    "humanNoteRef", "sectionIndex", "epistemicState", "integrity"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://learning-agent.local/schemas/agent-runtime.v0.1.schema.json",
+  "title": "AgentRuntime Boundary v0.1",
+  "$comment": "DRAFT — NOT IMPLEMENTATION-STABLE. Interfaces only; no adapter implementation exists. Has NOT passed human review. See specs/agent-runtime-v0.1.md.",
+  "description": "Runtime-neutral boundary between the Learning Agent pipeline and whichever agent runtime executes it. Contains no DSH-specific type, name or session format. Note that the runtime does NOT validate output against outputSchemaRef: validation belongs to the core.",
+  "type": "object",
+  "$defs": {
+    "runtimeMetadata": {
+      "type": "object",
+      "description": "Declared identity and capabilities. Obtainable without performing work.",
+      "properties": {
+        "runtimeKind": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Neutral runtime family label. The only place a concrete runtime name legitimately appears."
+        },
+        "runtimeVersion": { "type": "string", "minLength": 1 },
+        "capabilities": { "$ref": "#/$defs/runtimeCapabilities" },
+        "implementationNote": {
+          "type": "string",
+          "description": "Free-form. Must not contain secrets or personal paths."
+        }
+      },
+      "required": ["runtimeKind", "runtimeVersion", "capabilities"],
+      "additionalProperties": false
+    },
+    "runtimeCapabilities": {
+      "type": "object",
+      "description": "Declared capabilities, checked before reliance. Consumers must not branch on runtimeKind.",
+      "properties": {
+        "structuredTask": { "type": "boolean", "const": true },
+        "modelSelection": { "type": "boolean" },
+        "reasoningControl": { "type": "boolean" },
+        "usageReporting": { "type": "boolean" },
+        "streaming": { "type": "boolean", "const": false, "description": "Reserved and pinned false at v0.1 so nothing can depend on it." },
+        "cancellation": { "type": "boolean", "const": false, "description": "Reserved and pinned false at v0.1." }
+      },
+      "required": ["structuredTask", "modelSelection", "reasoningControl", "usageReporting", "streaming", "cancellation"],
+      "additionalProperties": false
+    },
+    "taskRequest": {
+      "type": "object",
+      "description": "One model-calling unit of work. The core decides what runs; the runtime executes.",
+      "properties": {
+        "taskId": { "type": "string", "minLength": 1 },
+        "promptRef": {
+          "type": "object",
+          "description": "Always required. An unversioned prompt cannot be recorded in a run manifest.",
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "version": { "type": "string", "minLength": 1 },
+            "path": { "type": "string" }
+          },
+          "required": ["id", "version"],
+          "additionalProperties": false
+        },
+        "promptText": {
+          "type": "string",
+          "description": "Inline prompt text for tests and one-off probes. Does not replace promptRef."
+        },
+        "input": {
+          "type": "array",
+          "description": "Context is passed in, never discovered by the runtime.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string", "enum": ["system", "context", "instruction", "example"] },
+              "content": { "type": "string" },
+              "ref": {
+                "type": "object",
+                "properties": {
+                  "sourceId": { "type": "string" },
+                  "sourceUnitId": { "type": "string" },
+                  "locator": { "type": "string" }
+                },
+                "additionalProperties": false
+              }
+            },
+            "required": ["role", "content"],
+            "additionalProperties": false
+          }
+        },
+        "outputSchemaRef": {
+          "type": "object",
+          "description": "What the CALLER will validate against. The runtime does not validate.",
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "path": { "type": "string" }
+          },
+          "required": ["id"],
+          "additionalProperties": false
+        },
+        "model": {
+          "type": "object",
+          "properties": { "requested": { "type": "string" } },
+          "additionalProperties": false
+        },
+        "reasoning": {
+          "type": "object",
+          "properties": {
+            "effort": { "type": "string", "enum": ["minimal", "low", "medium", "high", "unspecified"] },
+            "notes": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "limits": {
+          "type": "object",
+          "properties": { "maxOutputTokens": { "type": "number", "minimum": 1 } },
+          "additionalProperties": false
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Free-form caller tags. Never secrets."
+        }
+      },
+      "required": ["taskId", "promptRef", "input", "outputSchemaRef"],
+      "additionalProperties": false
+    },
+    "usage": {
+      "type": "object",
+      "description": "Token usage. availability exists so that absence is never mistaken for zero.",
+      "properties": {
+        "inputTokens": { "type": "number", "minimum": 0 },
+        "outputTokens": { "type": "number", "minimum": 0 },
+        "totalTokens": { "type": "number", "minimum": 0 },
+        "availability": { "type": "string", "enum": ["reported", "partial", "unavailable"] },
+        "cost": {
+          "type": "object",
+          "properties": {
+            "amount": { "type": "number", "minimum": 0 },
+            "currency": { "type": "string" }
+          },
+          "required": ["amount", "currency"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["availability"],
+      "additionalProperties": false
+    },
+    "modelIdentity": {
+      "type": "object",
+      "description": "Requested versus resolved model. resolution makes silent substitution visible.",
+      "properties": {
+        "requested": { "type": "string" },
+        "resolved": { "type": "string" },
+        "provider": { "type": "string" },
+        "resolution": { "type": "string", "enum": ["matched", "substituted", "unknown"] }
+      },
+      "required": ["resolution"],
+      "additionalProperties": false
+    },
+    "runtimeResult": {
+      "type": "object",
+      "description": "Raw model output plus metadata. output is deliberately unvalidated.",
+      "properties": {
+        "taskId": { "type": "string", "minLength": 1 },
+        "runtimeKind": { "type": "string", "minLength": 1 },
+        "runtimeVersion": { "type": "string", "minLength": 1 },
+        "output": {
+          "type": "object",
+          "properties": {
+            "raw": { "type": "string" },
+            "format": { "type": "string", "enum": ["json", "text", "unknown"] },
+            "parseError": {
+              "type": "string",
+              "description": "Set when the text could not be parsed. Not itself a runtime failure."
+            }
+          },
+          "required": ["raw", "format"],
+          "additionalProperties": false
+        },
+        "model": { "$ref": "#/$defs/modelIdentity" },
+        "reasoning": {
+          "type": "object",
+          "properties": {
+            "requested": { "type": "string" },
+            "applied": { "type": "string" },
+            "notes": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "usage": { "$ref": "#/$defs/usage" },
+        "durationMs": { "type": "number", "minimum": 0 },
+        "warnings": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["taskId", "runtimeKind", "runtimeVersion"],
+      "additionalProperties": false
+    },
+    "runError": {
+      "type": "object",
+      "description": "Classified failure. Must never carry a credential or a DSH type.",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "runtime-unavailable", "transport-failed", "model-refused",
+            "model-returned-empty", "output-unparseable", "option-unsupported",
+            "configuration-invalid", "unknown"
+          ]
+        },
+        "message": { "type": "string", "minLength": 1 },
+        "retryable": { "type": "boolean" },
+        "stage": { "type": "string", "enum": ["request", "transport", "model", "decode", "unknown"] },
+        "details": {
+          "type": "object",
+          "description": "Neutral, non-secret context only."
+        }
+      },
+      "required": ["kind", "message", "retryable"],
+      "additionalProperties": false
+    },
+    "invocationResult": {
+      "type": "object",
+      "description": "Discriminated union so the failure branch cannot be ignored.",
+      "properties": {
+        "ok": { "type": "boolean" },
+        "result": { "$ref": "#/$defs/runtimeResult" },
+        "error": { "$ref": "#/$defs/runError" }
+      },
+      "required": ["ok"],
+      "allOf": [
+        { "if": { "properties": { "ok": { "const": true } }, "required": ["ok"] }, "then": { "required": ["result"] } },
+        { "if": { "properties": { "ok": { "const": false } }, "required": ["ok"] }, "then": { "required": ["error"] } }
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "contractVersion": { "type": "string", "const": "agent-runtime/0.1" },
+    "status": { "type": "string", "enum": ["draft", "NEEDS_REVIEW", "reviewed"] },
+    "runtimeMetadata": { "$ref": "#/$defs/runtimeMetadata" },
+    "taskRequest": { "$ref": "#/$defs/taskRequest" },
+    "invocationResult": { "$ref": "#/$defs/invocationResult" }
+  },
+  "required": ["contractVersion", "status"],
+  "additionalProperties": false
+}

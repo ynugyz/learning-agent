@@ -266,13 +266,30 @@ $requiredFiles = @(
     'docs/DECISIONS.md',
     'docs/ERROR_TAXONOMY.md',
     'docs/ENVIRONMENT.md',
+    'docs/reviews/M1A_CONTRACT_CHALLENGE.md',
     'specs/README.md',
+    'specs/semantic-card-v0.1.md',
+    'specs/source-map-v0.1.md',
+    'specs/agent-runtime-v0.1.md',
+    'specs/run-manifest-v0.1.md',
     'schemas/README.md',
-    'schemas/source-map.schema.json',
-    'schemas/lesson-model.schema.json',
-    'schemas/semantic-card.schema.json',
+    'schemas/semantic-card.v0.1.schema.json',
+    'schemas/source-map.v0.1.schema.json',
+    'schemas/agent-runtime.v0.1.schema.json',
+    'schemas/run-manifest.v0.1.schema.json',
+    'schemas/archive/m0-draft/source-map.schema.json',
+    'schemas/archive/m0-draft/lesson-model.schema.json',
+    'schemas/archive/m0-draft/semantic-card.schema.json',
     'prompts/README.md',
+    'package.json',
+    'tsconfig.json',
     'src/README.md',
+    'src/contracts/README.md',
+    'src/contracts/index.ts',
+    'src/contracts/semantic-card.ts',
+    'src/contracts/source-map.ts',
+    'src/contracts/agent-runtime.ts',
+    'src/contracts/run-manifest.ts',
     'src/core/README.md',
     'src/pipeline/README.md',
     'src/modules/README.md',
@@ -381,14 +398,61 @@ else {
     Test-Pass 'secret hygiene self-test passed'
 }
 
+# ------------------------------------------------- 3b. TypeScript contract drafts
+Write-Section 'TypeScript contract drafts'
+
+$contractDir = Join-Path $RepoRoot 'src\contracts'
+if (-not (Test-Path -LiteralPath $contractDir)) {
+    Test-Warn 'src/contracts does not exist (M1A contracts absent)'
+}
+else {
+    $contractFiles = @(Get-ChildItem -LiteralPath $contractDir -Filter '*.ts' -File -ErrorAction SilentlyContinue)
+    Test-Info "$($contractFiles.Count) contract type file(s)"
+
+    foreach ($cf in $contractFiles) {
+        $text = Get-Content -LiteralPath $cf.FullName -Raw
+        if ($text -match 'NOT IMPLEMENTATION-STABLE') { Test-Pass "$($cf.Name) carries the NOT IMPLEMENTATION-STABLE marker" }
+        else { Test-Fail "$($cf.Name) is missing the NOT IMPLEMENTATION-STABLE marker" }
+    }
+}
+
+# Dependency boundary: core, pipeline, modules and contracts must never IMPORT
+# the DSH adapter. This is the machine-checkable half of ARCHITECTURE.md §4.
+#
+# The pattern deliberately matches real module references only
+# (`from '...'` / `import('...')` / `require('...')`). A prose mention such as
+# "must not import src/runtime/dsh" inside a doc comment is documentation of the
+# rule, not a violation of it.
+$boundaryDirs = @('src\contracts', 'src\core', 'src\pipeline', 'src\modules')
+$boundaryViolations = @()
+$boundaryPattern = "(from|import|require)\s*\(?\s*['""][^'""]*(runtime/dsh|@deepseek-ai)"
+foreach ($rel in $boundaryDirs) {
+    $dir = Join-Path $RepoRoot $rel
+    if (-not (Test-Path -LiteralPath $dir)) { continue }
+    $tsFiles = @(Get-ChildItem -LiteralPath $dir -Filter '*.ts' -File -Recurse -ErrorAction SilentlyContinue |
+        Where-Object { $_.FullName -notlike '*node_modules*' })
+    if ($tsFiles.Count -eq 0) { continue }
+    $hits = @(Select-String -Path $tsFiles.FullName -Pattern $boundaryPattern -ErrorAction SilentlyContinue)
+    foreach ($h in $hits) { $boundaryViolations += $h }
+}
+if ($boundaryViolations.Count -eq 0) {
+    Test-Pass 'no core/pipeline/modules/contracts file imports the DSH adapter'
+}
+else {
+    foreach ($v in $boundaryViolations) { Test-Fail "DSH import outside the adapter: $($v.Filename):$($v.LineNumber)" }
+}
+
 # ------------------------------------------------------------ 3. JSON schemas
 Write-Section 'Schema well-formedness'
 
+# Live schemas only. Everything under schemas/archive/ is a superseded draft kept
+# for historical comparison and must never be validated as a current contract.
 $schemaDir = Join-Path $RepoRoot 'schemas'
-$schemaFiles = @(Get-ChildItem -LiteralPath $schemaDir -Filter '*.schema.json' -File -ErrorAction SilentlyContinue)
+$schemaFiles = @(Get-ChildItem -LiteralPath $schemaDir -Filter '*.schema.json' -File -Recurse -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName -notlike '*\archive\*' })
 
 if ($schemaFiles.Count -eq 0) {
-    Test-Warn 'no schema files found'
+    Test-Warn 'no live schema files found'
 }
 else {
     foreach ($sf in $schemaFiles) {
@@ -396,17 +460,25 @@ else {
             $parsed = Get-Content -LiteralPath $sf.FullName -Raw | ConvertFrom-Json
             if ($null -eq $parsed.'$schema') { Test-Warn "$($sf.Name): no `$schema key" }
             elseif ($null -eq $parsed.'$id') { Test-Warn "$($sf.Name): no `$id key" }
-            elseif ($parsed.'$comment' -notlike '*NEEDS_REVIEW*') {
-                Test-Warn "$($sf.Name): not marked NEEDS_REVIEW (expected for a draft)"
+            elseif ($parsed.'$comment' -notmatch 'DRAFT') {
+                # A schema without a DRAFT marker has been (or will be) mistaken
+                # for a stable contract. This is a review-gated change.
+                Test-Fail "$($sf.Name): not marked DRAFT, but no schema is stable yet"
             }
             else {
-                Test-Pass "$($sf.Name) parses and is marked NEEDS_REVIEW"
+                Test-Pass "$($sf.Name) parses and is marked DRAFT"
             }
         }
         catch {
             Test-Fail "$($sf.Name) is not valid JSON: $($_.Exception.Message)"
         }
     }
+}
+
+$archiveDir = Join-Path $schemaDir 'archive\m0-draft'
+if (Test-Path -LiteralPath $archiveDir) {
+    $archived = @(Get-ChildItem -LiteralPath $archiveDir -Filter '*.schema.json' -File -ErrorAction SilentlyContinue)
+    Test-Info "$($archived.Count) superseded M0 draft schema(s) archived (not validated as live)"
 }
 
 # --------------------------------------------------- 4. line-ending policy
@@ -453,16 +525,40 @@ else {
 # ----------------------------------------------------- 6. scope / dependency
 Write-Section 'Milestone scope and dependencies'
 
-foreach ($manifest in @('package.json', 'pyproject.toml', 'requirements.txt')) {
+# M1A added a package.json scaffold under DECISIONS.md D-0005 (TypeScript).
+# The decision explicitly installs nothing, so the scaffold must stay
+# dependency-free and must not ship a lockfile it cannot reproduce.
+$pkgPath = Join-Path $RepoRoot 'package.json'
+if (Test-Path -LiteralPath $pkgPath) {
+    try {
+        $pkg = Get-Content -LiteralPath $pkgPath -Raw | ConvertFrom-Json
+        $depCount = 0
+        foreach ($bucket in @('dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies')) {
+            $value = $pkg.$bucket
+            if ($null -ne $value) { $depCount += @($value.PSObject.Properties).Count }
+        }
+        if ($depCount -eq 0) { Test-Pass 'package.json exists with zero dependencies (design-only scaffold)' }
+        else { Test-Warn "package.json declares $depCount dependency slot(s); verify DECISIONS.md D-0005 and commit a lockfile" }
+    }
+    catch { Test-Warn "package.json is not valid JSON: $($_.Exception.Message)" }
+
+    foreach ($lock in @('package-lock.json', 'pnpm-lock.yaml', 'yarn.lock')) {
+        if (Test-Path -LiteralPath (Join-Path $RepoRoot $lock)) {
+            Test-Info "$lock present (required once real dependencies are installed)"
+        }
+    }
+}
+
+foreach ($manifest in @('pyproject.toml', 'requirements.txt')) {
     if (Test-Path -LiteralPath (Join-Path $RepoRoot $manifest)) {
-        Test-Info "$manifest present (M0 declared no dependencies; verify this is intentional)"
+        Test-Warn "$manifest present, but D-0005 rules Python out of the core runtime"
     }
 }
 
 foreach ($outOfScope in @('main.js', 'manifest.json')) {
     $hit = Get-ChildItem -LiteralPath $RepoRoot -Recurse -Force -File -Filter $outOfScope -ErrorAction SilentlyContinue |
         Where-Object { $_.FullName -like '*obsidian-plugin*' }
-    if ($hit) { Test-Warn "obsidian-plugin build artifact present: $($hit[0].Name) (out of scope for M0)" }
+    if ($hit) { Test-Warn "obsidian-plugin build artifact present: $($hit[0].Name) (out of scope for this milestone)" }
 }
 Test-Pass 'milestone scope check complete'
 
