@@ -1,0 +1,1126 @@
+{
+  "caseId": "REAL_CASE_001",
+  "artifact": "ChangePlan prototype",
+  "status": "READY_FOR_HUMAN_REVIEW",
+  "notFormalContract": true,
+  "sourceAlignment": "scratch/real-case-001/alignment/alignment.final-prototype.json",
+  "planningLedger": [
+    {
+      "lessonModuleRef": "lm-rc001-m03",
+      "alignmentDecision": "LINK",
+      "planDisposition": "ACTIONABLE",
+      "planStatus": "BLOCKED_LINK_ENDPOINT_UNRESOLVED",
+      "mutationIds": [],
+      "reason": "LINK endpoint unresolved; no mutation."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m04",
+      "alignmentDecision": "EXPAND",
+      "planDisposition": "ACTIONABLE",
+      "planStatus": "ACTIONABLE",
+      "mutationIds": [
+        "mut-m04"
+      ],
+      "reason": "Eligible by Alignment decision; target and anchor are resolved below."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m05",
+      "alignmentDecision": "EXPAND",
+      "planDisposition": "ACTIONABLE",
+      "planStatus": "ACTIONABLE",
+      "mutationIds": [
+        "mut-m05"
+      ],
+      "reason": "Eligible by Alignment decision; target and anchor are resolved below."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m06",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "ASR/terminology risk; “memory”与知识图谱的关系及“推理逻辑没落”需要人工核对，不能据相似词直接扩展。"
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m07",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "ASR and notational risk affect names, dates and formula-adjacent claims; competing candidate notes need adjudication."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m08",
+      "alignmentDecision": "EXPAND",
+      "planDisposition": "ACTIONABLE",
+      "planStatus": "ACTIONABLE",
+      "mutationIds": [
+        "mut-m08"
+      ],
+      "reason": "Eligible by Alignment decision; target and anchor are resolved below."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m09",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "ASR-suspect units and broad synthesis make the scope of the claimed fusion uncertain."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m10",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "teacher-opinion content is not a settled factual claim; review before any refinement."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m11",
+      "alignmentDecision": "EXPAND",
+      "planDisposition": "ACTIONABLE",
+      "planStatus": "ACTIONABLE",
+      "mutationIds": [
+        "mut-m11"
+      ],
+      "reason": "Eligible by Alignment decision; target and anchor are resolved below."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m12",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "RETRIEVAL_INCONCLUSIVE: exact and broader metadata search produced no adequate subject match; cannot promote to NEW."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m13",
+      "alignmentDecision": "KEEP",
+      "planDisposition": "NOOP_KEEP",
+      "planStatus": "NOOP_KEEP",
+      "mutationIds": [],
+      "reason": "Alignment KEEP is final for this stage; no mutation."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m14",
+      "alignmentDecision": "LINK",
+      "planDisposition": "ACTIONABLE",
+      "planStatus": "ACTIONABLE",
+      "mutationIds": [
+        "mut-m14"
+      ],
+      "reason": "Eligible by Alignment decision; target and anchor are resolved below."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m15",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "teacher opinion plus ASR-suspect and needs-human-review evidence; do not merge into a subject page."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m17",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "ASR-suspect and formula risk; the equivalence claim needs human adjudication."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m18",
+      "alignmentDecision": "EXPAND",
+      "planDisposition": "ACTIONABLE",
+      "planStatus": "ACTIONABLE",
+      "mutationIds": [
+        "mut-m18"
+      ],
+      "reason": "Eligible by Alignment decision; target and anchor are resolved below."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m19",
+      "alignmentDecision": "EXPAND",
+      "planDisposition": "ACTIONABLE",
+      "planStatus": "ACTIONABLE",
+      "mutationIds": [
+        "mut-m19"
+      ],
+      "reason": "Eligible by Alignment decision; target and anchor are resolved below."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m20",
+      "alignmentDecision": "KEEP",
+      "planDisposition": "NOOP_KEEP",
+      "planStatus": "NOOP_KEEP",
+      "mutationIds": [],
+      "reason": "Alignment KEEP is final for this stage; no mutation."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m21",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "formula and notational risk plus ASR-suspect units make the examples and table reconstruction unsafe without review."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m22",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "RETRIEVAL_INCONCLUSIVE: candidate hits are lexical false positives; do not call NEW."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m23",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "NO_MATCH_AFTER_ADEQUATE_RETRIEVAL 未被证明；窄词零命中不足以证明 Vault 中不存在该知识，且源证明公式缺失，无法可靠 identity match。"
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m24",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "ASR-suspect and formula risk affect the formal examples; review before EXPAND."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m25",
+      "alignmentDecision": "EXPAND",
+      "planDisposition": "ACTIONABLE",
+      "planStatus": "ACTIONABLE",
+      "mutationIds": [
+        "mut-m25"
+      ],
+      "reason": "Eligible by Alignment decision; target and anchor are resolved below."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m26",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "知识对象身份成立，但 proposed delta 依赖 ASR / compression-loses-meaning 风险，因此不得自动扩展旧知识。"
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m27",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "RETRIEVAL_INCONCLUSIVE plus ASR/formula risk; no NEW."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m28",
+      "alignmentDecision": "KEEP",
+      "planDisposition": "NOOP_KEEP",
+      "planStatus": "NOOP_KEEP",
+      "mutationIds": [],
+      "reason": "Alignment KEEP is final for this stage; no mutation."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m29",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "identity is clear but source reliability is insufficient for an automatic KEEP/REFINE decision."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m30",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "suspected conflict with existing note; compression-loses-meaning risk requires review."
+    },
+    {
+      "lessonModuleRef": "lm-rc001-m31",
+      "alignmentDecision": "REVIEW",
+      "planDisposition": "BLOCKED_REVIEW",
+      "planStatus": "BLOCKED_REVIEW",
+      "mutationIds": [],
+      "reason": "ASR-suspect, formula and needs-human-review evidence; conditional-independence wording is internally inconsistent."
+    }
+  ],
+  "fileMutationPlan": {
+    "mutations": [
+      {
+        "id": "mut-m04",
+        "source": [
+          "lm-rc001-m04"
+        ],
+        "target": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+        "operation": "APPEND_TO_SECTION",
+        "anchor": {
+          "headingPath": "# AI导论920：三大流派与知识表达 > ## 原有课堂速记（保留） > ### 如何实现人工智能？ > #### 差异",
+          "anchorText": "| 学习模式            | 优势  | 不足  | 作用    |"
+        },
+        "delta": "补充三大学派作为主要实现路线的总纲定位，并保持“用规则教 / 用数据学 / 用问题引导”的课堂记忆链。",
+        "requirements": [
+          "表达三大学派是课程中的主要实现路线分类",
+          "保留规则、数据、环境交互三种学习模式的区别",
+          "将课程总纲作为课堂组织方式，不写成穷尽性或唯一分类"
+        ],
+        "forbidden": [
+          "不把三流派写成互斥的全部 AI 方法",
+          "不增加未经来源支持的流派名称或历史断代",
+          "不把课堂总纲扩写为普遍定理"
+        ],
+        "evidence": [
+          "su-real-case-001-004",
+          "su-real-case-001-010",
+          "su-real-case-001-011"
+        ],
+        "risk": {
+          "lessonModel": {},
+          "sourceMapObservations": [],
+          "teacherOpinion": false
+        },
+        "sourceAlignmentModuleRefs": [
+          "lm-rc001-m04"
+        ],
+        "targetKnowledgeRef": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+        "operationType": "APPEND_TO_SECTION",
+        "targetAnchor": {
+          "headingPath": "# AI导论920：三大流派与知识表达 > ## 原有课堂速记（保留） > ### 如何实现人工智能？ > #### 差异",
+          "anchorText": "| 学习模式            | 优势  | 不足  | 作用    |"
+        },
+        "deltaSummary": "补充三大学派作为主要实现路线的总纲定位，并保持“用规则教 / 用数据学 / 用问题引导”的课堂记忆链。",
+        "contentRequirements": [
+          "表达三大学派是课程中的主要实现路线分类",
+          "保留规则、数据、环境交互三种学习模式的区别",
+          "将课程总纲作为课堂组织方式，不写成穷尽性或唯一分类"
+        ],
+        "forbiddenClaims": [
+          "不把三流派写成互斥的全部 AI 方法",
+          "不增加未经来源支持的流派名称或历史断代",
+          "不把课堂总纲扩写为普遍定理"
+        ],
+        "evidenceRefs": [
+          "su-real-case-001-004",
+          "su-real-case-001-010",
+          "su-real-case-001-011"
+        ],
+        "riskCarryover": {
+          "lessonModel": {},
+          "sourceMapObservations": [],
+          "teacherOpinion": false
+        },
+        "baseFileHash": "f1efd2b1926c628250cfac7f36a5997a7e36193c58a17d56791b880e9cbb12d9",
+        "preconditions": [
+          "Writer must read Mine/learn/AI/学校课程/人工智能导论/AI导论920.md at execution time.",
+          "sha256(Mine/learn/AI/学校课程/人工智能导论/AI导论920.md) must equal the recorded baseFileHash.",
+          "If the hash differs, stop with STALE_PLAN; do not silently rebase."
+        ],
+        "postconditions": [
+          "Candidate diff contains only the stated delta at the stated anchor.",
+          "No forbidden claim or forbidden operation is introduced.",
+          "Human review is required before any Writer action."
+        ]
+      },
+      {
+        "id": "mut-m05",
+        "source": [
+          "lm-rc001-m05"
+        ],
+        "target": "Mine/learn/AI/学校课程/人工智能导论/人工智能发展史与关键突破.md",
+        "operation": "APPEND_TO_SECTION",
+        "anchor": {
+          "headingPath": "# 人工智能发展史与关键突破 > ## 研究路线（课堂分类，边界经整理）",
+          "anchorText": "| 符号主义     | 显式知识、规则和推理"
+        },
+        "delta": "补充符号主义以数学逻辑为根基、早期规则推理占主导及规则不可穷尽这一课堂解释。",
+        "requirements": [
+          "补充数学逻辑与规则推理的关系",
+          "说明规则穷尽性是课堂提出的限制解释",
+          "将早期主导表述放在课程历史叙述边界内"
+        ],
+        "forbidden": [
+          "不补写未出现在来源中的人名、年份或事件",
+          "不把教师历史概括改成精确断代",
+          "不把课堂解释扩写为符号主义唯一贡献"
+        ],
+        "evidence": [
+          "su-real-case-001-005",
+          "su-real-case-001-006",
+          "su-real-case-001-012",
+          "su-real-case-001-013"
+        ],
+        "risk": {
+          "lessonModel": {},
+          "sourceMapObservations": [],
+          "teacherOpinion": false
+        },
+        "sourceAlignmentModuleRefs": [
+          "lm-rc001-m05"
+        ],
+        "targetKnowledgeRef": "Mine/learn/AI/学校课程/人工智能导论/人工智能发展史与关键突破.md",
+        "operationType": "APPEND_TO_SECTION",
+        "targetAnchor": {
+          "headingPath": "# 人工智能发展史与关键突破 > ## 研究路线（课堂分类，边界经整理）",
+          "anchorText": "| 符号主义     | 显式知识、规则和推理"
+        },
+        "deltaSummary": "补充符号主义以数学逻辑为根基、早期规则推理占主导及规则不可穷尽这一课堂解释。",
+        "contentRequirements": [
+          "补充数学逻辑与规则推理的关系",
+          "说明规则穷尽性是课堂提出的限制解释",
+          "将早期主导表述放在课程历史叙述边界内"
+        ],
+        "forbiddenClaims": [
+          "不补写未出现在来源中的人名、年份或事件",
+          "不把教师历史概括改成精确断代",
+          "不把课堂解释扩写为符号主义唯一贡献"
+        ],
+        "evidenceRefs": [
+          "su-real-case-001-005",
+          "su-real-case-001-006",
+          "su-real-case-001-012",
+          "su-real-case-001-013"
+        ],
+        "riskCarryover": {
+          "lessonModel": {},
+          "sourceMapObservations": [],
+          "teacherOpinion": false
+        },
+        "baseFileHash": "7da60e7850ddf3046668be20a3a125c183e068dfdbae3011dbc2b241fd760ad4",
+        "preconditions": [
+          "Writer must read Mine/learn/AI/学校课程/人工智能导论/人工智能发展史与关键突破.md at execution time.",
+          "sha256(Mine/learn/AI/学校课程/人工智能导论/人工智能发展史与关键突破.md) must equal the recorded baseFileHash.",
+          "If the hash differs, stop with STALE_PLAN; do not silently rebase."
+        ],
+        "postconditions": [
+          "Candidate diff contains only the stated delta at the stated anchor.",
+          "No forbidden claim or forbidden operation is introduced.",
+          "Human review is required before any Writer action."
+        ]
+      },
+      {
+        "id": "mut-m08",
+        "source": [
+          "lm-rc001-m08"
+        ],
+        "target": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+        "operation": "APPEND_TO_SECTION",
+        "anchor": {
+          "headingPath": "# AI导论920：三大流派与知识表达 > ## 原有课堂速记（保留） > ### 如何实现人工智能？ > #### 行为学派",
+          "anchorText": "通过问题引导（反馈牵引）"
+        },
+        "delta": "补充行为主义通过问题引导、环境反馈学习，并把婴儿学步明确标为课堂类比。",
+        "requirements": [
+          "说明智能行为通过环境交互和反馈形成",
+          "保留婴儿学步为课堂类比/例子",
+          "区分行为主义路线与一般强化学习术语"
+        ],
+        "forbidden": [
+          "不把类比写成生物学习定律",
+          "不增加来源未给出的算法细节",
+          "不使用 REVIEW module 的内容"
+        ],
+        "evidence": [
+          "su-real-case-001-009",
+          "su-real-case-001-025",
+          "su-real-case-001-026"
+        ],
+        "risk": {
+          "lessonModel": {},
+          "sourceMapObservations": [],
+          "teacherOpinion": false
+        },
+        "sourceAlignmentModuleRefs": [
+          "lm-rc001-m08"
+        ],
+        "targetKnowledgeRef": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+        "operationType": "APPEND_TO_SECTION",
+        "targetAnchor": {
+          "headingPath": "# AI导论920：三大流派与知识表达 > ## 原有课堂速记（保留） > ### 如何实现人工智能？ > #### 行为学派",
+          "anchorText": "通过问题引导（反馈牵引）"
+        },
+        "deltaSummary": "补充行为主义通过问题引导、环境反馈学习，并把婴儿学步明确标为课堂类比。",
+        "contentRequirements": [
+          "说明智能行为通过环境交互和反馈形成",
+          "保留婴儿学步为课堂类比/例子",
+          "区分行为主义路线与一般强化学习术语"
+        ],
+        "forbiddenClaims": [
+          "不把类比写成生物学习定律",
+          "不增加来源未给出的算法细节",
+          "不使用 REVIEW module 的内容"
+        ],
+        "evidenceRefs": [
+          "su-real-case-001-009",
+          "su-real-case-001-025",
+          "su-real-case-001-026"
+        ],
+        "riskCarryover": {
+          "lessonModel": {},
+          "sourceMapObservations": [],
+          "teacherOpinion": false
+        },
+        "baseFileHash": "f1efd2b1926c628250cfac7f36a5997a7e36193c58a17d56791b880e9cbb12d9",
+        "preconditions": [
+          "Writer must read Mine/learn/AI/学校课程/人工智能导论/AI导论920.md at execution time.",
+          "sha256(Mine/learn/AI/学校课程/人工智能导论/AI导论920.md) must equal the recorded baseFileHash.",
+          "If the hash differs, stop with STALE_PLAN; do not silently rebase."
+        ],
+        "postconditions": [
+          "Candidate diff contains only the stated delta at the stated anchor.",
+          "No forbidden claim or forbidden operation is introduced.",
+          "Human review is required before any Writer action."
+        ]
+      },
+      {
+        "id": "mut-m11",
+        "source": [
+          "lm-rc001-m11"
+        ],
+        "target": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+        "operation": "APPEND_TO_SECTION",
+        "anchor": {
+          "headingPath": "# AI导论920：三大流派与知识表达 > ## 原有课堂速记（保留） > ### 如何实现人工智能？ > #### 人工智能的实现",
+          "anchorText": "skill与agent的联结"
+        },
+        "delta": "补充混合增强形态中的 skill、插件、Harness、Agent 组件，以及机械臂/外骨骼等载体作为课堂展望。",
+        "requirements": [
+          "列出组件与模型协作的工程分工",
+          "区分软件组件与物理载体",
+          "把先验型/学习型智能作为课堂分类保留"
+        ],
+        "forbidden": [
+          "不把未来载体写成已经实现的事实",
+          "不新增产品承诺或工程效果结论",
+          "不把组件清单写成正式架构规范"
+        ],
+        "evidence": [
+          "su-real-case-001-046",
+          "su-real-case-001-047",
+          "su-real-case-001-048",
+          "su-real-case-001-049",
+          "su-real-case-001-050"
+        ],
+        "risk": {
+          "lessonModel": {},
+          "sourceMapObservations": [],
+          "teacherOpinion": false
+        },
+        "sourceAlignmentModuleRefs": [
+          "lm-rc001-m11"
+        ],
+        "targetKnowledgeRef": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+        "operationType": "APPEND_TO_SECTION",
+        "targetAnchor": {
+          "headingPath": "# AI导论920：三大流派与知识表达 > ## 原有课堂速记（保留） > ### 如何实现人工智能？ > #### 人工智能的实现",
+          "anchorText": "skill与agent的联结"
+        },
+        "deltaSummary": "补充混合增强形态中的 skill、插件、Harness、Agent 组件，以及机械臂/外骨骼等载体作为课堂展望。",
+        "contentRequirements": [
+          "列出组件与模型协作的工程分工",
+          "区分软件组件与物理载体",
+          "把先验型/学习型智能作为课堂分类保留"
+        ],
+        "forbiddenClaims": [
+          "不把未来载体写成已经实现的事实",
+          "不新增产品承诺或工程效果结论",
+          "不把组件清单写成正式架构规范"
+        ],
+        "evidenceRefs": [
+          "su-real-case-001-046",
+          "su-real-case-001-047",
+          "su-real-case-001-048",
+          "su-real-case-001-049",
+          "su-real-case-001-050"
+        ],
+        "riskCarryover": {
+          "lessonModel": {},
+          "sourceMapObservations": [],
+          "teacherOpinion": false
+        },
+        "baseFileHash": "f1efd2b1926c628250cfac7f36a5997a7e36193c58a17d56791b880e9cbb12d9",
+        "preconditions": [
+          "Writer must read Mine/learn/AI/学校课程/人工智能导论/AI导论920.md at execution time.",
+          "sha256(Mine/learn/AI/学校课程/人工智能导论/AI导论920.md) must equal the recorded baseFileHash.",
+          "If the hash differs, stop with STALE_PLAN; do not silently rebase."
+        ],
+        "postconditions": [
+          "Candidate diff contains only the stated delta at the stated anchor.",
+          "No forbidden claim or forbidden operation is introduced.",
+          "Human review is required before any Writer action."
+        ]
+      },
+      {
+        "id": "mut-m18",
+        "source": [
+          "lm-rc001-m18"
+        ],
+        "target": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+        "operation": "INSERT_NEW_SECTION",
+        "anchor": {
+          "headingPath": "# AI导论920：三大流派与知识表达 > ## 知识表达与推理",
+          "anchorText": "两种知识表达方法"
+        },
+        "delta": "补充规则写死难以扩展，以及知识表达问题转向集合之间寻找映射的课堂解释。",
+        "requirements": [
+          "说明逐条硬编码规则的扩展性限制",
+          "表达“映射怎么找”是课堂提出的问题转向",
+          "保留该段为知识表达导入，不补缺失公式"
+        ],
+        "forbidden": [
+          "不补写 ASR 不确定的 ASCII 或具体例句",
+          "不把现场自我更正改写成确定事实",
+          "不使用模型常识填补转写缺口"
+        ],
+        "evidence": [
+          "su-real-case-001-078",
+          "su-real-case-001-079",
+          "su-real-case-001-080",
+          "su-real-case-001-081"
+        ],
+        "risk": {
+          "lessonModel": {
+            "asr-suspect": {
+              "count": 2,
+              "sourceUnitRefs": [
+                "su-real-case-001-079",
+                "su-real-case-001-080"
+              ]
+            },
+            "compression-loses-meaning": {
+              "count": 1,
+              "sourceUnitRefs": [
+                "su-real-case-001-080"
+              ]
+            }
+          },
+          "sourceMapObservations": [
+            {
+              "sourceUnitRef": "su-real-case-001-079",
+              "observation": "asr-suspect",
+              "rationale": "“要用阿斯克码去编码”为 ASCII 的音译转写。"
+            },
+            {
+              "sourceUnitRef": "su-real-case-001-080",
+              "observation": "asr-suspect",
+              "rationale": "“比如说明天问的是这个这个这个呃这个北京呃不是那个那个呃成都的是是哪呃四川的那个省”一句含大量语气词与自我更正，字面已不可精确还原。"
+            },
+            {
+              "sourceUnitRef": "su-real-case-001-080",
+              "observation": "compression-loses-meaning",
+              "rationale": "该段的现场自我更正过程（先说北京再改成都）若被顺滑成一句干净的例子，会丢失口语特征。"
+            }
+          ],
+          "teacherOpinion": false
+        },
+        "sourceAlignmentModuleRefs": [
+          "lm-rc001-m18"
+        ],
+        "targetKnowledgeRef": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+        "operationType": "INSERT_NEW_SECTION",
+        "targetAnchor": {
+          "headingPath": "# AI导论920：三大流派与知识表达 > ## 知识表达与推理",
+          "anchorText": "两种知识表达方法"
+        },
+        "deltaSummary": "补充规则写死难以扩展，以及知识表达问题转向集合之间寻找映射的课堂解释。",
+        "contentRequirements": [
+          "说明逐条硬编码规则的扩展性限制",
+          "表达“映射怎么找”是课堂提出的问题转向",
+          "保留该段为知识表达导入，不补缺失公式"
+        ],
+        "forbiddenClaims": [
+          "不补写 ASR 不确定的 ASCII 或具体例句",
+          "不把现场自我更正改写成确定事实",
+          "不使用模型常识填补转写缺口"
+        ],
+        "evidenceRefs": [
+          "su-real-case-001-078",
+          "su-real-case-001-079",
+          "su-real-case-001-080",
+          "su-real-case-001-081"
+        ],
+        "riskCarryover": {
+          "lessonModel": {
+            "asr-suspect": {
+              "count": 2,
+              "sourceUnitRefs": [
+                "su-real-case-001-079",
+                "su-real-case-001-080"
+              ]
+            },
+            "compression-loses-meaning": {
+              "count": 1,
+              "sourceUnitRefs": [
+                "su-real-case-001-080"
+              ]
+            }
+          },
+          "sourceMapObservations": [
+            {
+              "sourceUnitRef": "su-real-case-001-079",
+              "observation": "asr-suspect",
+              "rationale": "“要用阿斯克码去编码”为 ASCII 的音译转写。"
+            },
+            {
+              "sourceUnitRef": "su-real-case-001-080",
+              "observation": "asr-suspect",
+              "rationale": "“比如说明天问的是这个这个这个呃这个北京呃不是那个那个呃成都的是是哪呃四川的那个省”一句含大量语气词与自我更正，字面已不可精确还原。"
+            },
+            {
+              "sourceUnitRef": "su-real-case-001-080",
+              "observation": "compression-loses-meaning",
+              "rationale": "该段的现场自我更正过程（先说北京再改成都）若被顺滑成一句干净的例子，会丢失口语特征。"
+            }
+          ],
+          "teacherOpinion": false
+        },
+        "baseFileHash": "f1efd2b1926c628250cfac7f36a5997a7e36193c58a17d56791b880e9cbb12d9",
+        "preconditions": [
+          "Writer must read Mine/learn/AI/学校课程/人工智能导论/AI导论920.md at execution time.",
+          "sha256(Mine/learn/AI/学校课程/人工智能导论/AI导论920.md) must equal the recorded baseFileHash.",
+          "If the hash differs, stop with STALE_PLAN; do not silently rebase."
+        ],
+        "postconditions": [
+          "Candidate diff contains only the stated delta at the stated anchor.",
+          "No forbidden claim or forbidden operation is introduced.",
+          "Human review is required before any Writer action."
+        ]
+      },
+      {
+        "id": "mut-m19",
+        "source": [
+          "lm-rc001-m19"
+        ],
+        "target": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+        "operation": "INSERT_NEW_SECTION",
+        "anchor": {
+          "headingPath": "# AI导论920：三大流派与知识表达 > ## 知识表达与推理",
+          "anchorText": "### 知识图谱推理"
+        },
+        "delta": "补充从关系网、多步关系传递到图结构抽象的入门铺垫。",
+        "requirements": [
+          "定义节点与关系/边的抽象层次",
+          "说明图结构为后续知识图谱与概率图内容提供公共基础",
+          "将六度连接保留为课堂背景例子而非精确理论结论"
+        ],
+        "forbidden": [
+          "不写入转写中数量不稳定的六度表述作为精确数字",
+          "不增加外部图论定义或公式",
+          "不与 m25 的知识图谱正式定义重复"
+        ],
+        "evidence": [
+          "su-real-case-001-082",
+          "su-real-case-001-083",
+          "su-real-case-001-084",
+          "su-real-case-001-085"
+        ],
+        "risk": {
+          "lessonModel": {
+            "terminology-unstable": {
+              "count": 1,
+              "sourceUnitRefs": [
+                "su-real-case-001-083"
+              ]
+            }
+          },
+          "sourceMapObservations": [
+            {
+              "sourceUnitRef": "su-real-case-001-083",
+              "observation": "terminology-unstable",
+              "rationale": "同一话轮中“六条的关系”“六票的关系”“都超过六票”混用，数量表述前后不一致，转写无法确定其原意。"
+            }
+          ],
+          "teacherOpinion": false
+        },
+        "sourceAlignmentModuleRefs": [
+          "lm-rc001-m19"
+        ],
+        "targetKnowledgeRef": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+        "operationType": "INSERT_NEW_SECTION",
+        "targetAnchor": {
+          "headingPath": "# AI导论920：三大流派与知识表达 > ## 知识表达与推理",
+          "anchorText": "### 知识图谱推理"
+        },
+        "deltaSummary": "补充从关系网、多步关系传递到图结构抽象的入门铺垫。",
+        "contentRequirements": [
+          "定义节点与关系/边的抽象层次",
+          "说明图结构为后续知识图谱与概率图内容提供公共基础",
+          "将六度连接保留为课堂背景例子而非精确理论结论"
+        ],
+        "forbiddenClaims": [
+          "不写入转写中数量不稳定的六度表述作为精确数字",
+          "不增加外部图论定义或公式",
+          "不与 m25 的知识图谱正式定义重复"
+        ],
+        "evidenceRefs": [
+          "su-real-case-001-082",
+          "su-real-case-001-083",
+          "su-real-case-001-084",
+          "su-real-case-001-085"
+        ],
+        "riskCarryover": {
+          "lessonModel": {
+            "terminology-unstable": {
+              "count": 1,
+              "sourceUnitRefs": [
+                "su-real-case-001-083"
+              ]
+            }
+          },
+          "sourceMapObservations": [
+            {
+              "sourceUnitRef": "su-real-case-001-083",
+              "observation": "terminology-unstable",
+              "rationale": "同一话轮中“六条的关系”“六票的关系”“都超过六票”混用，数量表述前后不一致，转写无法确定其原意。"
+            }
+          ],
+          "teacherOpinion": false
+        },
+        "baseFileHash": "f1efd2b1926c628250cfac7f36a5997a7e36193c58a17d56791b880e9cbb12d9",
+        "preconditions": [
+          "Writer must read Mine/learn/AI/学校课程/人工智能导论/AI导论920.md at execution time.",
+          "sha256(Mine/learn/AI/学校课程/人工智能导论/AI导论920.md) must equal the recorded baseFileHash.",
+          "If the hash differs, stop with STALE_PLAN; do not silently rebase."
+        ],
+        "postconditions": [
+          "Candidate diff contains only the stated delta at the stated anchor.",
+          "No forbidden claim or forbidden operation is introduced.",
+          "Human review is required before any Writer action."
+        ]
+      },
+      {
+        "id": "mut-m25",
+        "source": [
+          "lm-rc001-m25"
+        ],
+        "target": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+        "operation": "APPEND_TO_SECTION",
+        "anchor": {
+          "headingPath": "# AI导论920：三大流派与知识表达 > ## 知识表达与推理 > ### 知识图谱推理",
+          "anchorText": "图结构链接实体和关系的知识库"
+        },
+        "delta": "补充由逻辑表示转向知识图谱的课堂动机、实体—关系—实体定义和关系示例边界。",
+        "requirements": [
+          "说明知识图谱以实体和关系组织显式知识",
+          "保留三元组形式作为表示示例",
+          "区分知识图谱定义与后续路径推理"
+        ],
+        "forbidden": [
+          "不使用 ASR 不确定的人物关系示例",
+          "不补写 FOIL 或其他未核实算法细节",
+          "不把课堂动机写成普遍性能保证"
+        ],
+        "evidence": [
+          "su-real-case-001-109",
+          "su-real-case-001-110",
+          "su-real-case-001-111"
+        ],
+        "risk": {
+          "lessonModel": {
+            "asr-suspect": {
+              "count": 1,
+              "sourceUnitRefs": [
+                "su-real-case-001-111"
+              ]
+            }
+          },
+          "sourceMapObservations": [
+            {
+              "sourceUnitRef": "su-real-case-001-111",
+              "observation": "asr-suspect",
+              "rationale": "“那么你看詹姆斯，然后巴马，然后的话这个麦克就完事”一句中“巴马”疑为“奥巴马”之误，人物关系无法据转写确定。"
+            }
+          ],
+          "teacherOpinion": false
+        },
+        "sourceAlignmentModuleRefs": [
+          "lm-rc001-m25"
+        ],
+        "targetKnowledgeRef": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+        "operationType": "APPEND_TO_SECTION",
+        "targetAnchor": {
+          "headingPath": "# AI导论920：三大流派与知识表达 > ## 知识表达与推理 > ### 知识图谱推理",
+          "anchorText": "图结构链接实体和关系的知识库"
+        },
+        "deltaSummary": "补充由逻辑表示转向知识图谱的课堂动机、实体—关系—实体定义和关系示例边界。",
+        "contentRequirements": [
+          "说明知识图谱以实体和关系组织显式知识",
+          "保留三元组形式作为表示示例",
+          "区分知识图谱定义与后续路径推理"
+        ],
+        "forbiddenClaims": [
+          "不使用 ASR 不确定的人物关系示例",
+          "不补写 FOIL 或其他未核实算法细节",
+          "不把课堂动机写成普遍性能保证"
+        ],
+        "evidenceRefs": [
+          "su-real-case-001-109",
+          "su-real-case-001-110",
+          "su-real-case-001-111"
+        ],
+        "riskCarryover": {
+          "lessonModel": {
+            "asr-suspect": {
+              "count": 1,
+              "sourceUnitRefs": [
+                "su-real-case-001-111"
+              ]
+            }
+          },
+          "sourceMapObservations": [
+            {
+              "sourceUnitRef": "su-real-case-001-111",
+              "observation": "asr-suspect",
+              "rationale": "“那么你看詹姆斯，然后巴马，然后的话这个麦克就完事”一句中“巴马”疑为“奥巴马”之误，人物关系无法据转写确定。"
+            }
+          ],
+          "teacherOpinion": false
+        },
+        "baseFileHash": "f1efd2b1926c628250cfac7f36a5997a7e36193c58a17d56791b880e9cbb12d9",
+        "preconditions": [
+          "Writer must read Mine/learn/AI/学校课程/人工智能导论/AI导论920.md at execution time.",
+          "sha256(Mine/learn/AI/学校课程/人工智能导论/AI导论920.md) must equal the recorded baseFileHash.",
+          "If the hash differs, stop with STALE_PLAN; do not silently rebase."
+        ],
+        "postconditions": [
+          "Candidate diff contains only the stated delta at the stated anchor.",
+          "No forbidden claim or forbidden operation is introduced.",
+          "Human review is required before any Writer action."
+        ]
+      },
+      {
+        "id": "mut-m14",
+        "source": [
+          "lm-rc001-m14"
+        ],
+        "target": "Mine/learn/AI/学校课程/人工智能导论/AI技术路线与金融应用.md",
+        "operation": "ADD_WIKILINK",
+        "anchor": {
+          "headingPath": "# AI技术路线与金融应用 > ## 连接与复习",
+          "anchorText": "- AI 能力如何评价：[[人工智能能力与图灵测试]]。"
+        },
+        "delta": "在方法论笔记的连接区建立教师领域定位建议与人工智能导论课程 MOC 的关系链接。",
+        "requirements": [
+          "linkFrom 必须是 AI技术路线与金融应用.md 的连接与复习段",
+          "linkTo 必须是已存在的 [[人工智能导论 MOC]]",
+          "链接标签/上下文标记为 teacher_advice_related，不并入学科正文"
+        ],
+        "forbidden": [
+          "不把教师建议改写为学科事实",
+          "不创建新的领域知识页",
+          "不链接到 REVIEW module 作为已确认知识"
+        ],
+        "evidence": [
+          "su-real-case-001-054",
+          "su-real-case-001-055"
+        ],
+        "risk": {
+          "lessonModel": {
+            "asr-suspect": {
+              "count": 1,
+              "sourceUnitRefs": [
+                "su-real-case-001-055"
+              ]
+            }
+          },
+          "sourceMapObservations": [
+            {
+              "sourceUnitRef": "su-real-case-001-055",
+              "observation": "asr-suspect",
+              "rationale": "“所以说大家多去探索题”疑缺字。"
+            }
+          ],
+          "teacherOpinion": true
+        },
+        "linkFrom": "Mine/learn/AI/学校课程/人工智能导论/AI技术路线与金融应用.md",
+        "linkTo": "Mine/learn/AI/学校课程/人工智能导论/人工智能导论 MOC.md",
+        "relationIntent": "teacher_advice_related_to_course_domain",
+        "sourceAlignmentModuleRefs": [
+          "lm-rc001-m14"
+        ],
+        "targetKnowledgeRef": "Mine/learn/AI/学校课程/人工智能导论/AI技术路线与金融应用.md",
+        "operationType": "ADD_WIKILINK",
+        "targetAnchor": {
+          "headingPath": "# AI技术路线与金融应用 > ## 连接与复习",
+          "anchorText": "- AI 能力如何评价：[[人工智能能力与图灵测试]]。"
+        },
+        "deltaSummary": "在方法论笔记的连接区建立教师领域定位建议与人工智能导论课程 MOC 的关系链接。",
+        "contentRequirements": [
+          "linkFrom 必须是 AI技术路线与金融应用.md 的连接与复习段",
+          "linkTo 必须是已存在的 [[人工智能导论 MOC]]",
+          "链接标签/上下文标记为 teacher_advice_related，不并入学科正文"
+        ],
+        "forbiddenClaims": [
+          "不把教师建议改写为学科事实",
+          "不创建新的领域知识页",
+          "不链接到 REVIEW module 作为已确认知识"
+        ],
+        "evidenceRefs": [
+          "su-real-case-001-054",
+          "su-real-case-001-055"
+        ],
+        "riskCarryover": {
+          "lessonModel": {
+            "asr-suspect": {
+              "count": 1,
+              "sourceUnitRefs": [
+                "su-real-case-001-055"
+              ]
+            }
+          },
+          "sourceMapObservations": [
+            {
+              "sourceUnitRef": "su-real-case-001-055",
+              "observation": "asr-suspect",
+              "rationale": "“所以说大家多去探索题”疑缺字。"
+            }
+          ],
+          "teacherOpinion": true
+        },
+        "baseFileHash": "2724b5d723ac18ab2944c28fa36f6f324c1c4687882f29c0d547465b18ae2216",
+        "preconditions": [
+          "Writer must read Mine/learn/AI/学校课程/人工智能导论/AI技术路线与金融应用.md at execution time.",
+          "sha256(Mine/learn/AI/学校课程/人工智能导论/AI技术路线与金融应用.md) must equal the recorded baseFileHash.",
+          "If the hash differs, stop with STALE_PLAN; do not silently rebase."
+        ],
+        "postconditions": [
+          "Candidate diff contains only the stated delta at the stated anchor.",
+          "No forbidden claim or forbidden operation is introduced.",
+          "Human review is required before any Writer action."
+        ]
+      }
+    ],
+    "blockedPlans": [
+      {
+        "module": "lm-rc001-m03",
+        "alignmentDecision": "LINK",
+        "planStatus": "BLOCKED_LINK_ENDPOINT_UNRESOLVED",
+        "operationType": "BLOCKED_LINK_ENDPOINT_UNRESOLVED",
+        "linkFrom": "Mine/learn/AI/学校课程/人工智能导论/人工智能能力与图灵测试.md",
+        "linkTo": null,
+        "reason": "现有图灵测试笔记可作为 related note，但当前 artifact 没有可确认的“AI 文本鉴别”人类笔记作为第二端点；不得偷偷 CREATE 新页或把课程 MOC 猜作该知识对象。",
+        "missingArtifact": "专门承载 AI 文本来源鉴别/语言瑕疵启发的现有人类笔记或人工确认的合法 linkTo。"
+      }
+    ]
+  },
+  "fileMutationGroups": [
+    {
+      "targetKnowledgeRef": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+      "mutationIds": [
+        "mut-m04",
+        "mut-m08",
+        "mut-m11",
+        "mut-m18",
+        "mut-m19",
+        "mut-m25"
+      ],
+      "collisionStatus": "ORDER_DEPENDENT",
+      "anchorOverlap": [
+        [
+          "mut-m18",
+          "mut-m19"
+        ]
+      ],
+      "deltaDuplication": false,
+      "mutationInvalidationRisk": false,
+      "canMergeTransaction": true,
+      "analysis": "m18 and m19 share the parent knowledge-expression anchor but add distinct logic-mapping and graph-abstraction deltas. Process m18 before m19; keep m25 at the graph-inference child anchor."
+    },
+    {
+      "targetKnowledgeRef": "Mine/learn/AI/学校课程/人工智能导论/人工智能发展史与关键突破.md",
+      "mutationIds": [
+        "mut-m05"
+      ],
+      "collisionStatus": "NONE",
+      "anchorOverlap": [],
+      "deltaDuplication": false,
+      "mutationInvalidationRisk": false,
+      "canMergeTransaction": true,
+      "analysis": "Single mutation; no file collision."
+    },
+    {
+      "targetKnowledgeRef": "Mine/learn/AI/学校课程/人工智能导论/AI技术路线与金融应用.md",
+      "mutationIds": [
+        "mut-m14"
+      ],
+      "collisionStatus": "NONE",
+      "anchorOverlap": [],
+      "deltaDuplication": false,
+      "mutationInvalidationRisk": false,
+      "canMergeTransaction": true,
+      "analysis": "Single wikilink mutation at the connection section."
+    }
+  ],
+  "fileTransactions": [
+    {
+      "fileTransactionId": "tx-01",
+      "targetKnowledgeRef": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+      "mutationIds": [
+        "mut-m04",
+        "mut-m08",
+        "mut-m11",
+        "mut-m18",
+        "mut-m19",
+        "mut-m25"
+      ],
+      "baseFileHash": "f1efd2b1926c628250cfac7f36a5997a7e36193c58a17d56791b880e9cbb12d9",
+      "writerProtocol": [
+        "read base version",
+        "generate one candidate and one diff",
+        "run one human review before write",
+        "write atomically or abort"
+      ]
+    },
+    {
+      "fileTransactionId": "tx-02",
+      "targetKnowledgeRef": "Mine/learn/AI/学校课程/人工智能导论/人工智能发展史与关键突破.md",
+      "mutationIds": [
+        "mut-m05"
+      ],
+      "baseFileHash": "7da60e7850ddf3046668be20a3a125c183e068dfdbae3011dbc2b241fd760ad4",
+      "writerProtocol": [
+        "read base version",
+        "generate one candidate and one diff",
+        "run one human review before write",
+        "write atomically or abort"
+      ]
+    },
+    {
+      "fileTransactionId": "tx-03",
+      "targetKnowledgeRef": "Mine/learn/AI/学校课程/人工智能导论/AI技术路线与金融应用.md",
+      "mutationIds": [
+        "mut-m14"
+      ],
+      "baseFileHash": "2724b5d723ac18ab2944c28fa36f6f324c1c4687882f29c0d547465b18ae2216",
+      "writerProtocol": [
+        "read base version",
+        "generate one candidate and one diff",
+        "run one human review before write",
+        "write atomically or abort"
+      ]
+    }
+  ],
+  "targetBaselineManifest": "TARGET_BASELINE_MANIFEST.json",
+  "policy": {
+    "reviewIsBlocked": true,
+    "keepIsNoop": true,
+    "writerNotInvoked": true,
+    "productionVaultUntouched": true,
+    "forbiddenOperations": [
+      "DELETE",
+      "MERGE",
+      "CORRECT",
+      "RENAME",
+      "MOVE",
+      "WHOLE_FILE_REWRITE"
+    ]
+  },
+  "coverage": {
+    "teachingModules": 28,
+    "actionableAlignmentModules": 9,
+    "resolvedMutations": 8,
+    "noopKeepModules": 3,
+    "blockedReviewModules": 16,
+    "blockedTargetPlans": 1
+  }
+}

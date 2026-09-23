@@ -1,0 +1,62 @@
+{
+  "caseId": "REAL_CASE_001",
+  "createdFor": "ChangePlan prototype",
+  "files": [
+    {
+      "path": "Mine/learn/AI/学校课程/人工智能导论/AI导论920.md",
+      "exists": true,
+      "willModify": true,
+      "role": "mutation-target",
+      "sha256": "f1efd2b1926c628250cfac7f36a5997a7e36193c58a17d56791b880e9cbb12d9",
+      "bytes": 6869,
+      "readOnlyInspection": true,
+      "precondition": [
+        "Writer must read Mine/learn/AI/学校课程/人工智能导论/AI导论920.md at execution time.",
+        "sha256(Mine/learn/AI/学校课程/人工智能导论/AI导论920.md) must equal the recorded baseFileHash.",
+        "If the hash differs, stop with STALE_PLAN; do not silently rebase."
+      ]
+    },
+    {
+      "path": "Mine/learn/AI/学校课程/人工智能导论/人工智能发展史与关键突破.md",
+      "exists": true,
+      "willModify": true,
+      "role": "mutation-target",
+      "sha256": "7da60e7850ddf3046668be20a3a125c183e068dfdbae3011dbc2b241fd760ad4",
+      "bytes": 6711,
+      "readOnlyInspection": true,
+      "precondition": [
+        "Writer must read Mine/learn/AI/学校课程/人工智能导论/人工智能发展史与关键突破.md at execution time.",
+        "sha256(Mine/learn/AI/学校课程/人工智能导论/人工智能发展史与关键突破.md) must equal the recorded baseFileHash.",
+        "If the hash differs, stop with STALE_PLAN; do not silently rebase."
+      ]
+    },
+    {
+      "path": "Mine/learn/AI/学校课程/人工智能导论/AI技术路线与金融应用.md",
+      "exists": true,
+      "willModify": true,
+      "role": "mutation-target",
+      "sha256": "2724b5d723ac18ab2944c28fa36f6f324c1c4687882f29c0d547465b18ae2216",
+      "bytes": 4764,
+      "readOnlyInspection": true,
+      "precondition": [
+        "Writer must read Mine/learn/AI/学校课程/人工智能导论/AI技术路线与金融应用.md at execution time.",
+        "sha256(Mine/learn/AI/学校课程/人工智能导论/AI技术路线与金融应用.md) must equal the recorded baseFileHash.",
+        "If the hash differs, stop with STALE_PLAN; do not silently rebase."
+      ]
+    },
+    {
+      "path": "Mine/learn/AI/学校课程/人工智能导论/人工智能导论 MOC.md",
+      "exists": true,
+      "willModify": false,
+      "role": "link-endpoint",
+      "sha256": "9fa12a14668174c77597a4a960a52714030d041d8cf768e6a7411b28ce1fe64a",
+      "bytes": 2342,
+      "readOnlyInspection": true,
+      "precondition": [
+        "Writer must read Mine/learn/AI/学校课程/人工智能导论/人工智能导论 MOC.md at execution time.",
+        "sha256(Mine/learn/AI/学校课程/人工智能导论/人工智能导论 MOC.md) must equal the recorded baseFileHash.",
+        "If the hash differs, stop with STALE_PLAN; do not silently rebase."
+      ]
+    }
+  ]
+}
