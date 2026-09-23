@@ -1,7 +1,10 @@
 # Architecture
 
-**Status:** design intent for M0/M1+. No layer below is implemented yet.
-Implementation milestones are proposed in [DECISIONS.md](DECISIONS.md).
+**Status:** historical M0/M1 layer sketch. The current Human Note and knowledge
+update branch point is specified in
+[Architecture Consolidation v0.2](architecture/ARCHITECTURE_CONSOLIDATION_V0_2.md).
+The linear layers below must not be read as a serial Human Note pipeline.
+Implementation milestones and decisions are recorded in [DECISIONS.md](DECISIONS.md).
 
 ## 1. Separation of concerns
 

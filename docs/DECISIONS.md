@@ -376,12 +376,39 @@ contract. Fields are expected to change; see D-0007.
   audit utilities. The current sidecar layout, section vocabulary and prose
   policy remain reviewable and are not implementation-stable contracts.
 
+### D-0016 — Consolidate the post-LessonModel branch and DLI coverage rules
+- Date: 2026-09-23
+- Status: proposed — READY_FOR_HUMAN_REVIEW (Architecture Consolidation v0.2)
+- Decision: Document SourceMap and LessonModel as shared machine forms, then
+  branch into a Human Chapter Note generator and the separate
+  Alignment/ChangePlan/Knowledge Updater path. Treat Distinct Learning
+  Information (DLI) as an internal coverage unit within LessonModel/Human Note
+  generation, not a fifth form, stage, Agent or LLM call. Preserve distinct
+  learning information while compressing repetition; allow only bounded
+  canonical enrichment inside a source-triggered recall target. Keep a
+  semantic sidecar separate from human Markdown. Architecture v1 remains
+  unfrozen until context-independence, generalization, cost and maintainability
+  criteria are met. The detailed candidate is in
+  `docs/architecture/ARCHITECTURE_CONSOLIDATION_V0_2.md` and its companion
+  documents.
+- Rationale: REAL_CASE_001 established useful chapter/block structure and
+  separation of safe Vault mutation from course-note writing. It also exposed
+  the risk that Source Units become overcompressed during Module-to-Block
+  writing. DLI coverage addresses that risk without another artifact or Agent.
+- Alternatives considered: a serial Alignment/ChangePlan-to-Human-Note path,
+  one module per block, fixed sentence budgets, no enrichment, unrestricted
+  enrichment and a separate DLI stage. All were rejected for either lost
+  learning information, unsafe expansion or needless runtime complexity.
+- Consequences: This is documentation only. It does not modify accepted forms,
+  Composer code, the production Vault or schema status. Fresh-case evidence and
+  measured runtime/user review cost are still required before v1 freeze.
+
 ---
 
 ## Template for new decisions
 
 ```
-### D-0015 — <title>
+### D-0017 — <title>
 - Date:
 - Status: proposed | accepted | NEEDS_REVIEW | superseded by D-NNNN
 - Decision:

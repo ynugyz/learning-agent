@@ -3,6 +3,10 @@
 **Status:** prototype, READY_FOR_HUMAN_REVIEW. This document does not freeze
 an M1B schema and does not authorize production Vault writes.
 
+For the current consolidated branch point, information preservation and bounded
+enrichment rules, see
+[Architecture Consolidation v0.2](architecture/ARCHITECTURE_CONSOLIDATION_V0_2.md).
+
 ## Split responsibilities
 
 The accepted SourceMap and LessonModel remain the shared source-understanding
