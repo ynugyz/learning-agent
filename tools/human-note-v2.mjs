@@ -14,6 +14,11 @@ if (config.composerMode === 'frozen-chapter-blocks') {
   composeFrozenChapterNotes(config, repo);
   process.exit(0);
 }
+if (config.composerMode === 'bounded-pedagogical-enrichment') {
+  const { composeBoundedPedagogicalEnrichment } = await import('../src/human-note-v2/composer-v2-1.ts');
+  composeBoundedPedagogicalEnrichment(config, repo);
+  process.exit(0);
+}
 const hash = text => crypto.createHash('sha256').update(Buffer.from(text, 'utf8')).digest('hex');
 const outputDir = path.resolve(repo, `scratch/${config.caseId.toLowerCase().replaceAll('_', '-')}/human-note-v2`);
 const candidateDir = path.join(outputDir, 'candidate');

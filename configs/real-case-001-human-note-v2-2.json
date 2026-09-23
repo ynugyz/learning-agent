@@ -1,0 +1,554 @@
+{
+  "caseId": "REAL_CASE_001",
+  "lessonModelPath": "scratch/real-case-001/lesson-model/lesson-model.final-prototype.json",
+  "sourceMapPath": "scratch/real-case-001/output/source-map.json",
+  "vaultIndexPath": "scratch/real-case-001/alignment/vault-index.json",
+  "nonBlockModuleHandling": {
+    "lm-rc001-m03": "opening risk clue retained as chapter warning, not main knowledge block",
+    "lm-rc001-m28": "probability transition retained as section lead, not standalone block"
+  },
+  "blockTemplates": [
+    {
+      "blockId": "ch1-routes-overview",
+      "chapterId": "chapter-1",
+      "sectionId": "routes",
+      "title": "三大流派总纲",
+      "moduleRefs": [
+        "lm-rc001-m04"
+      ],
+      "blockRole": "SUMMARY",
+      "recallTarget": "三大流派总纲",
+      "coreStatements": [
+        "人工智能的主要实现路线可归纳为符号主义、连接主义和行为主义。"
+      ],
+      "supportingDetails": [],
+      "exampleRefs": [],
+      "warningRefs": [],
+      "expansionLevel": "EXPLAINED",
+      "displayMode": "PARAGRAPH",
+      "mustSeparateFrom": [
+        "ch1-symbolic-family",
+        "ch1-behavior",
+        "ch1-domain-classification"
+      ],
+      "mergeRationale": "总纲只承担路线框架，具体路线和工程形态分别定位。",
+      "flowOrder": 4
+    },
+    {
+      "blockId": "ch1-symbolic-family",
+      "chapterId": "chapter-1",
+      "sectionId": "routes",
+      "title": "符号主义",
+      "moduleRefs": [
+        "lm-rc001-m05",
+        "lm-rc001-m06"
+      ],
+      "blockRole": "CONCEPT",
+      "recallTarget": "符号主义",
+      "coreStatements": [
+        "符号主义把语言与知识转成符号，用固定规则和数学逻辑进行推理。"
+      ],
+      "supportingDetails": [
+        "规则需要逐项写出，复杂知识下难以穷尽。",
+        "课堂还把这一路线的知识组织形式与知识图谱、memory、检索增强联系起来；这些联系仅按课堂线索保留。"
+      ],
+      "exampleRefs": [],
+      "warningRefs": [
+        "知识图谱、memory 与检索增强的术语关系不稳定，需要按来源核对。"
+      ],
+      "expansionLevel": "DEVELOPED",
+      "displayMode": "COMPACT_MIXED",
+      "mustSeparateFrom": [
+        "ch1-routes-overview",
+        "ch1-connectionist",
+        "ch1-behavior"
+      ],
+      "mergeRationale": "m05 与 m06 共同服务符号主义 recall target；m06 联系仅作为 source-bound 补充与 warning。",
+      "flowOrder": 5
+    },
+    {
+      "blockId": "ch1-connectionist",
+      "chapterId": "chapter-1",
+      "sectionId": "routes",
+      "title": "连接主义",
+      "moduleRefs": [
+        "lm-rc001-m07"
+      ],
+      "blockRole": "CONCEPT",
+      "recallTarget": "连接主义",
+      "coreStatements": [
+        "连接主义以仿生人工大脑为思路，从数据中学习表示。"
+      ],
+      "supportingDetails": [],
+      "exampleRefs": [],
+      "warningRefs": [
+        "感知机、BP、深度学习的人名和年份只是课堂线索，暂不当作精确历史表。"
+      ],
+      "expansionLevel": "MENTION",
+      "displayMode": "PARAGRAPH",
+      "mustSeparateFrom": [
+        "ch1-symbolic-family",
+        "ch1-behavior"
+      ],
+      "mergeRationale": "连接主义是独立路线 recall target；历史线索作为本块 warning。",
+      "flowOrder": 7
+    },
+    {
+      "blockId": "ch1-behavior",
+      "chapterId": "chapter-1",
+      "sectionId": "routes",
+      "title": "行为主义",
+      "moduleRefs": [
+        "lm-rc001-m08"
+      ],
+      "blockRole": "CONCEPT",
+      "recallTarget": "行为主义",
+      "coreStatements": [
+        "行为主义通过环境交互和反馈学习行为。"
+      ],
+      "supportingDetails": [
+        "婴儿学步是课堂用来说明“行动—反馈—调整”的类比。"
+      ],
+      "exampleRefs": [
+        "婴儿学步"
+      ],
+      "warningRefs": [],
+      "expansionLevel": "EXPLAINED",
+      "displayMode": "COMPACT_MIXED",
+      "mustSeparateFrom": [
+        "ch1-symbolic-family",
+        "ch1-connectionist"
+      ],
+      "mergeRationale": "婴儿学步服务行为主义这个 recall target，不另拆成标题。",
+      "flowOrder": 8
+    },
+    {
+      "blockId": "ch1-comparison",
+      "chapterId": "chapter-1",
+      "sectionId": "routes",
+      "title": "三流派比较与组合使用",
+      "moduleRefs": [
+        "lm-rc001-m09"
+      ],
+      "blockRole": "SUMMARY",
+      "recallTarget": "三流派比较与组合使用",
+      "coreStatements": [
+        "三条路线各有贡献，课堂把今天的 AI 描述为多流派组合使用。"
+      ],
+      "supportingDetails": [],
+      "exampleRefs": [],
+      "warningRefs": [
+        "路线最终融合的具体表述属于课堂判断，需回看原始语境。"
+      ],
+      "expansionLevel": "MENTION",
+      "displayMode": "PARAGRAPH",
+      "mustSeparateFrom": [
+        "ch1-routes-overview",
+        "ch1-computing-forms",
+        "ch1-domain-classification"
+      ],
+      "mergeRationale": "比较与组合使用是路线关系；全课计算形式另有独立 recall target。",
+      "flowOrder": 9
+    },
+    {
+      "blockId": "ch1-domain-classification",
+      "chapterId": "chapter-1",
+      "sectionId": "routes",
+      "title": "领域、通用与混合增强人工智能",
+      "moduleRefs": [
+        "lm-rc001-m10"
+      ],
+      "blockRole": "CONCEPT",
+      "recallTarget": "人工智能能力层级与混合增强定位",
+      "coreStatements": [
+        "课堂区分领域人工智能、通用人工智能与混合增强人工智能，并把混合增强作为当前工程定位。"
+      ],
+      "supportingDetails": [],
+      "exampleRefs": [],
+      "warningRefs": [],
+      "expansionLevel": "EXPLAINED",
+      "displayMode": "PARAGRAPH",
+      "mustSeparateFrom": [
+        "ch1-comparison",
+        "ch1-mixed-components",
+        "ch1-method-advice"
+      ],
+      "mergeRationale": "分类与能力定位是独立 recall target；组件分工另成块。",
+      "flowOrder": 10
+    },
+    {
+      "blockId": "ch1-mixed-components",
+      "chapterId": "chapter-1",
+      "sectionId": "routes",
+      "title": "混合增强的组件分工",
+      "moduleRefs": [
+        "lm-rc001-m11",
+        "lm-rc001-m12"
+      ],
+      "blockRole": "CONCEPT",
+      "recallTarget": "混合增强的组件分工",
+      "coreStatements": [
+        "模型负责理解、对答和规划，skill、插件、Harness、Agent 等组件补充能力、执行与数据流转。"
+      ],
+      "supportingDetails": [
+        "课堂还把机械臂、外骨骼等视为未来可能接入的物理载体。"
+      ],
+      "exampleRefs": [],
+      "warningRefs": [
+        "参数规模、能力涌现上限与成本门槛属于邻近课堂判断，具体说法需回看来源。"
+      ],
+      "expansionLevel": "DEVELOPED",
+      "displayMode": "COMPACT_MIXED",
+      "mustSeparateFrom": [
+        "ch1-domain-classification",
+        "ch1-method-advice"
+      ],
+      "mergeRationale": "组件分工与载体属于同一工程形态；m12 只作邻近 warning，不独立成块。",
+      "flowOrder": 11
+    },
+    {
+      "blockId": "ch1-method-advice",
+      "chapterId": "chapter-1",
+      "sectionId": "advice",
+      "title": "课堂方法与提醒",
+      "moduleRefs": [
+        "lm-rc001-m14",
+        "lm-rc001-m15"
+      ],
+      "blockRole": "ADVICE",
+      "recallTarget": "课堂方法与提醒",
+      "coreStatements": [
+        "先找本领域痛点，再用 AI 做赋能与服务。"
+      ],
+      "supportingDetails": [
+        "基础知识影响思考能力，使用 AI 时仍需保留自己的思考。"
+      ],
+      "exampleRefs": [],
+      "warningRefs": [
+        "两条内容均保留为教师建议，不作为普遍学科事实。"
+      ],
+      "expansionLevel": "MENTION",
+      "displayMode": "BULLETS",
+      "mustSeparateFrom": [
+        "ch1-domain-classification",
+        "ch1-mixed-components"
+      ],
+      "mergeRationale": "两条教师建议属于同一课堂方法与提醒区域，以两个短 bullet 呈现，不制造重型三级标题。",
+      "flowOrder": 14
+    },
+    {
+      "blockId": "ch2-representation",
+      "chapterId": "chapter-2",
+      "sectionId": "representation",
+      "title": "知识表达与规则映射",
+      "moduleRefs": [
+        "lm-rc001-m17",
+        "lm-rc001-m18"
+      ],
+      "blockRole": "CONCEPT",
+      "recallTarget": "知识表达从固定规则转向映射",
+      "coreStatements": [
+        "第二章从 token 与向量的知识表达入口开始；逐条写死规则会使换一个提问就需要重写，问题于是转向在集合之间寻找映射。"
+      ],
+      "supportingDetails": [],
+      "exampleRefs": [],
+      "warningRefs": [
+        "具体符号、公式和规则例句需要按来源核对。"
+      ],
+      "expansionLevel": "DEVELOPED",
+      "displayMode": "PARAGRAPH",
+      "mustSeparateFrom": [
+        "ch2-propositional-logic",
+        "ch2-knowledge-graph-definition"
+      ],
+      "mergeRationale": "两个 module 共同回答知识表达入口及其规则扩展性问题。",
+      "flowOrder": 17
+    },
+    {
+      "blockId": "ch2-propositional-logic",
+      "chapterId": "chapter-2",
+      "sectionId": "logic",
+      "title": "命题逻辑",
+      "moduleRefs": [
+        "lm-rc001-m20",
+        "lm-rc001-m21",
+        "lm-rc001-m22",
+        "lm-rc001-m23"
+      ],
+      "blockRole": "METHOD",
+      "recallTarget": "命题逻辑：定义、操作与证明",
+      "coreStatements": [
+        "命题是可以判定真假的陈述，联结词把命题组合起来；真值表、逻辑定律和证明演示把这套表示用于推理。"
+      ],
+      "supportingDetails": [
+        "命题判定和真值表提供操作依据，证明则把每一步写成有依据的定律展开。"
+      ],
+      "exampleRefs": [],
+      "warningRefs": [
+        "练习、符号、定律名称和完整证明步骤需要按原始材料核对。"
+      ],
+      "expansionLevel": "DEVELOPED",
+      "displayMode": "COMPACT_MIXED",
+      "mustSeparateFrom": [
+        "ch2-predicate",
+        "ch2-knowledge-graph-definition"
+      ],
+      "mergeRationale": "定义、操作、定律和证明都服务同一个 recall target：命题逻辑如何表达并推理。",
+      "flowOrder": 20
+    },
+    {
+      "blockId": "ch2-predicate",
+      "chapterId": "chapter-2",
+      "sectionId": "logic",
+      "title": "谓词逻辑",
+      "moduleRefs": [
+        "lm-rc001-m24"
+      ],
+      "blockRole": "CONCEPT",
+      "recallTarget": "个体、谓词与量词",
+      "coreStatements": [
+        "谓词逻辑在命题逻辑之上增加个体、谓词和量词，以表达更丰富的关系。"
+      ],
+      "supportingDetails": [
+        "苏格拉底三段论是课堂用来说明这种表达的例子。"
+      ],
+      "exampleRefs": [
+        "苏格拉底三段论"
+      ],
+      "warningRefs": [
+        "量词的具体写法需要按来源核对。"
+      ],
+      "expansionLevel": "EXPLAINED",
+      "displayMode": "COMPACT_MIXED",
+      "mustSeparateFrom": [
+        "ch2-propositional-logic"
+      ],
+      "mergeRationale": "谓词逻辑是不同于命题逻辑的独立 recall target；例子服务本块。",
+      "flowOrder": 24
+    },
+    {
+      "blockId": "ch2-knowledge-graph-definition",
+      "chapterId": "chapter-2",
+      "sectionId": "knowledge-graph",
+      "title": "知识图谱",
+      "moduleRefs": [
+        "lm-rc001-m19",
+        "lm-rc001-m25"
+      ],
+      "blockRole": "CONCEPT",
+      "recallTarget": "知识图谱",
+      "coreStatements": [
+        "关系网可以抽象为图，知识图谱在此基础上用图结构组织实体及关系。"
+      ],
+      "supportingDetails": [],
+      "exampleRefs": [
+        "六度连接（课堂背景例子）"
+      ],
+      "warningRefs": [
+        "具体数量不作为精确结论。"
+      ],
+      "expansionLevel": "EXPLAINED",
+      "displayMode": "PARAGRAPH",
+      "mustSeparateFrom": [
+        "ch2-propositional-logic",
+        "ch2-knowledge-graph-inference"
+      ],
+      "mergeRationale": "关系网抽象与知识图谱定义共同回答图结构如何组织知识；知识图谱推理另成独立 recall target。",
+      "flowOrder": 25
+    },
+    {
+      "blockId": "ch2-knowledge-graph-inference",
+      "chapterId": "chapter-2",
+      "sectionId": "knowledge-graph",
+      "title": "知识图谱推理",
+      "moduleRefs": [
+        "lm-rc001-m26",
+        "lm-rc001-m27"
+      ],
+      "blockRole": "METHOD",
+      "recallTarget": "知识图谱推理",
+      "coreStatements": [
+        "课堂用沿关系路径查找与关系补全说明图谱推理。"
+      ],
+      "supportingDetails": [
+        "课堂还提到把符号转为 token 放进向量空间来进行关系推理；这里只保留课堂线索。"
+      ],
+      "exampleRefs": [],
+      "warningRefs": [
+        "路径推理效果、token/向量运算、算法名称和公式需按来源核对。"
+      ],
+      "expansionLevel": "EXPLAINED",
+      "displayMode": "COMPACT_MIXED",
+      "mustSeparateFrom": [
+        "ch2-knowledge-graph-definition",
+        "ch2-bayes-network"
+      ],
+      "mergeRationale": "m26 与 m27 都服务图谱如何推理；m27 不稳定机制仅作 source-bound 补充和 warning。",
+      "flowOrder": 26
+    },
+    {
+      "blockId": "ch2-bayes-network",
+      "chapterId": "chapter-2",
+      "sectionId": "probability",
+      "title": "贝叶斯网络",
+      "moduleRefs": [
+        "lm-rc001-m29"
+      ],
+      "blockRole": "CONCEPT",
+      "recallTarget": "贝叶斯网络",
+      "coreStatements": [
+        "课堂把贝叶斯网络列为概率图推理的有向结构。"
+      ],
+      "supportingDetails": [],
+      "exampleRefs": [],
+      "warningRefs": [
+        "模型清单和公式需要按来源核对。"
+      ],
+      "expansionLevel": "EXPLAINED",
+      "displayMode": "PARAGRAPH",
+      "mustSeparateFrom": [
+        "ch2-markov-network"
+      ],
+      "mergeRationale": "贝叶斯网络是独立 recall target。",
+      "flowOrder": 29
+    },
+    {
+      "blockId": "ch2-markov-network",
+      "chapterId": "chapter-2",
+      "sectionId": "probability",
+      "title": "马尔可夫网络",
+      "moduleRefs": [
+        "lm-rc001-m29"
+      ],
+      "blockRole": "CONCEPT",
+      "recallTarget": "马尔可夫网络",
+      "coreStatements": [
+        "课堂把马尔可夫网络列为概率图推理的无向结构。"
+      ],
+      "supportingDetails": [],
+      "exampleRefs": [],
+      "warningRefs": [
+        "术语、模型名和公式存在转写风险。"
+      ],
+      "expansionLevel": "EXPLAINED",
+      "displayMode": "PARAGRAPH",
+      "mustSeparateFrom": [
+        "ch2-bayes-network"
+      ],
+      "mergeRationale": "与贝叶斯网络分开保留结构差异。",
+      "flowOrder": 29.1
+    },
+    {
+      "blockId": "ch2-language-model",
+      "chapterId": "chapter-2",
+      "sectionId": "probability",
+      "title": "语言模型的概率入口",
+      "moduleRefs": [
+        "lm-rc001-m30"
+      ],
+      "blockRole": "CONCEPT",
+      "recallTarget": "大语言模型的概率入口",
+      "coreStatements": [
+        "课堂用给定前置词求后置词概率来描述大语言模型的概率入口。"
+      ],
+      "supportingDetails": [],
+      "exampleRefs": [],
+      "warningRefs": [
+        "关于解释性和创造力的评价保留为教师观点，公式不自行补写。"
+      ],
+      "expansionLevel": "EXPLAINED",
+      "displayMode": "PARAGRAPH",
+      "mustSeparateFrom": [
+        "ch2-conditional-independence"
+      ],
+      "mergeRationale": "语言模型概率入口是概率图之后的独立课堂支点。",
+      "flowOrder": 30
+    },
+    {
+      "blockId": "ch2-conditional-independence",
+      "chapterId": "chapter-2",
+      "sectionId": "probability",
+      "title": "条件独立与联合概率",
+      "moduleRefs": [
+        "lm-rc001-m31"
+      ],
+      "blockRole": "METHOD",
+      "recallTarget": "条件独立与联合概率分解",
+      "coreStatements": [
+        "课堂用多云、下雨、洒水车和路面湿的例子说明联合概率需要按条件关系拆开处理。"
+      ],
+      "supportingDetails": [],
+      "exampleRefs": [
+        "多云、下雨、洒水车与路面湿"
+      ],
+      "warningRefs": [
+        "完整推导和符号在转写中不稳定，暂不补写。"
+      ],
+      "expansionLevel": "ANCHOR",
+      "displayMode": "COMPACT_MIXED",
+      "mustSeparateFrom": [
+        "ch2-language-model"
+      ],
+      "mergeRationale": "例子服务条件独立与分解方法，不另拆成标题。",
+      "flowOrder": 31
+    },
+    {
+      "blockId": "ch1-computing-forms",
+      "chapterId": "chapter-1",
+      "sectionId": "routes",
+      "title": "智能计算形式",
+      "moduleRefs": [
+        "lm-rc001-m13"
+      ],
+      "blockRole": "SUMMARY",
+      "recallTarget": "智能计算形式",
+      "coreStatements": [
+        "智能计算形式包括："
+      ],
+      "supportingDetails": [
+        "逻辑推理",
+        "搜索",
+        "机器学习",
+        "强化学习",
+        "决策智能"
+      ],
+      "exampleRefs": [],
+      "warningRefs": [
+        "列表末尾的课堂表述需按来源核对。"
+      ],
+      "expansionLevel": "MENTION",
+      "displayMode": "BULLETS",
+      "mustSeparateFrom": [
+        "ch1-comparison",
+        "ch1-domain-classification"
+      ],
+      "mergeRationale": "这是全课方法框架，可单独复习；只做紧凑并列列表。",
+      "flowOrder": 13
+    }
+  ],
+  "presentationOverrides": {
+    "adviceSectionId": "advice",
+    "displayMode": "BULLETS",
+    "blockIds": [
+      "ch1-method-advice"
+    ]
+  },
+  "nonBlockPresentation": {
+    "lm-rc001-m03": {
+      "chapterId": "chapter-1",
+      "sectionId": "routes",
+      "kind": "OPENING_WARNING",
+      "text": "本次转写从 AI 文本与图灵测试话题中途开始，开场表述需回看原始课堂语境。"
+    },
+    "lm-rc001-m28": {
+      "chapterId": "chapter-2",
+      "sectionId": "probability",
+      "kind": "SECTION_LEAD",
+      "text": "现实关系并不总是确定成立，因此课堂转向概率图表示不确定关系。"
+    }
+  },
+  "phaseAStatus": "FROZEN_FOR_REAL_CASE_001",
+  "composerMode": "bounded-pedagogical-enrichment",
+  "baselineOutputDir": "scratch/real-case-001/human-note-v2-1",
+  "outputDir": "scratch/real-case-001/human-note-v2-2"
+}

@@ -16,6 +16,7 @@ import {
   auditNoteBoundaries,
   auditScanability
 } from '../src/human-note-v2/structure-audits.ts';
+import { renderV22Example, selectV22Warnings, validateV22Enrichment } from '../src/human-note-v2/composer-v2-1.ts';
 
 const basePlan = {
   orderedSections: [{ sectionId: 'self-test' }],
@@ -128,5 +129,55 @@ const fragmented = auditBlockFragmentation([
 assert.equal(fragmented.status, 'FAIL');
 assert.ok(fragmented.sameRecallTargetSplits.length >= 2);
 assert.ok(fragmented.tinyBlockCandidates.includes('tiny'));
+
+// v2.2 bounded pedagogical enrichment: a triggered Bayesian-network block may
+// receive one canonical definition while remaining on its existing target.
+const bayesBlock = block('ch2-bayes-network', { recallTarget: '贝叶斯网络', moduleRefs: ['lm-rc001-m29'] });
+assert.deepEqual(validateV22Enrichment({
+  targetBlockId: 'ch2-bayes-network',
+  recallTarget: '贝叶斯网络',
+  enrichmentType: 'CANONICAL_DEFINITION',
+  introducesNewRecallTarget: false
+}, bayesBlock), []);
+
+// d-separation is a new independent concept and must fail the topic lock.
+assert.ok(validateV22Enrichment({
+  targetBlockId: 'ch2-bayes-network',
+  recallTarget: '贝叶斯网络',
+  enrichmentType: 'CANONICAL_DEFINITION',
+  introducesNewRecallTarget: true
+}, bayesBlock).includes('NEW_RECALL_TARGET:ch2-bayes-network'));
+
+// An enrichment for an untriggered or different target cannot pass the same
+// validator, which covers the no-new-knowledge-title case.
+assert.ok(validateV22Enrichment({
+  targetBlockId: 'ch2-bayes-network',
+  recallTarget: 'd-separation',
+  enrichmentType: 'CANONICAL_DEFINITION',
+  introducesNewRecallTarget: false
+}, bayesBlock).some(error => error.startsWith('ENRICHMENT_RECALL_TARGET_MISMATCH')));
+
+// A warning about unused unstable material is suppressed; a warning policy
+// does not make every source uncertainty human-visible.
+assert.deepEqual(selectV22Warnings('ch2-bayes-network', ['公式需要回看来源']), {
+  visible: [],
+  suppressed: ['公式需要回看来源']
+});
+
+// If an example is already stated naturally, do not emit a second machine-like
+// “课堂例子” label.
+assert.deepEqual(renderV22Example({ exampleRefs: ['婴儿学步'] }, ['婴儿学步是课堂用来说明行动—反馈—调整的类比。']), {
+  text: '',
+  duplicateLabel: true
+});
+
+// A canonical enrichment that would exceed the block target is rejected by the
+// same topic-lock validation before it can reach the candidate note.
+assert.ok(validateV22Enrichment({
+  targetBlockId: 'ch2-bayes-network',
+  recallTarget: '贝叶斯网络',
+  enrichmentType: 'MINIMAL_EXPLANATION',
+  introducesNewRecallTarget: true
+}, bayesBlock).length > 0);
 
 console.log('human-note-v2 tests passed');
