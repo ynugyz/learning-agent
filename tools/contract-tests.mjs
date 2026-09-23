@@ -62,7 +62,61 @@ const expectations = JSON.parse(readFileSync(expectationsPath, 'utf8'));
 
 const readJson = (relativePath) => JSON.parse(readFileSync(join(repoRoot, relativePath), 'utf8'));
 
-/** Collect every failing keyword from an Ajv error tree. */
+const describeError = (error) =>
+  `${error.instancePath === '' ? '(root)' : error.instancePath} ${error.keyword} ${JSON.stringify(error.params)}`;
+
+/**
+ * Keywords whose Ajv report is attached to the object owning the conditional
+ * rather than to the leaf that violated the branch.
+ */
+const CONDITIONAL_KEYWORDS = new Set(['if', 'then', 'anyOf', 'allOf', 'not']);
+
+/**
+ * Does ONE Ajv error satisfy the declared expectation?
+ *
+ * M1A-FINAL fix: keyword and instancePath must match on the SAME error object.
+ * The previous implementation collected keywords and paths into two separate
+ * sets and tested each independently, which admits a false positive: one error
+ * could hit the keyword while a different error hit the path, and the fixture
+ * still passed. A fixture that passes for that reason proves nothing.
+ *
+ * Nested errors (`params.errors` from `anyOf` / `if` / `then` / `not`) are
+ * matched one by one, each against the complete expectation, so a nested error
+ * cannot satisfy one half of the expectation while a sibling satisfies the
+ * other.
+ *
+ * `instancePath` matching still honours the conditional-keyword relaxation: a
+ * conditional rule is reported against the object that owns the conditional, so
+ * a prefix match is allowed there, exactly as before.
+ */
+function errorMatchesExpectation(error, expectation) {
+  if (error.keyword !== expectation.keyword) return false;
+
+  if (expectation.instancePath !== undefined) {
+    const wanted = expectation.instancePath;
+    const actual = error.instancePath ?? '';
+    const pathOk = CONDITIONAL_KEYWORDS.has(expectation.keyword)
+      ? actual === wanted || actual.startsWith(wanted === '' ? '' : `${wanted}/`)
+      : actual === wanted;
+    if (!pathOk) return false;
+  }
+
+  return true;
+}
+
+/** True when any error — including nested ones — matches the whole expectation. */
+function anyErrorMatches(errors, expectation) {
+  for (const error of errors ?? []) {
+    if (errorMatchesExpectation(error, expectation)) return true;
+    if (anyErrorMatches(error.params?.errors, expectation)) return true;
+  }
+  return false;
+}
+
+/**
+ * Every keyword seen anywhere in an error tree. Diagnostic only: this is used
+ * for failure messages, never for the assertion itself.
+ */
 function collectKeywords(errors, into = new Set()) {
   for (const error of errors ?? []) {
     into.add(error.keyword);
@@ -71,26 +125,14 @@ function collectKeywords(errors, into = new Set()) {
   return into;
 }
 
-const describeError = (error) =>
-  `${error.instancePath === '' ? '(root)' : error.instancePath} ${error.keyword} ${JSON.stringify(error.params)}`;
-
-/**
- * Instance paths Ajv may blame for a failure.
- *
- * A conditional (`if`/`then`) rule is reported against the object that owns the
- * conditional, not the leaf that violated the `then` branch — so a prefix match
- * is used for conditional rules, while ordinary keyword failures still require
- * the exact path.
- */
-function instancePaths(errors, into = []) {
+/** Every instancePath seen anywhere in an error tree. Diagnostic only. */
+function allInstancePaths(errors, into = []) {
   for (const error of errors ?? []) {
     into.push(error.instancePath);
-    if (error.params?.errors) instancePaths(error.params.errors, into);
+    if (error.params?.errors) allInstancePaths(error.params.errors, into);
   }
   return into;
 }
-
-const CONDITIONAL_KEYWORDS = new Set(['if', 'then', 'anyOf', 'allOf', 'not']);
 
 const ajv = new Ajv2020({
   allErrors: true,
@@ -147,24 +189,15 @@ for (const contract of contracts) {
       continue;
     }
 
+    // M1A-FINAL: keyword AND instancePath must be satisfied by ONE error object
+    // (recursively, for nested errors), not by two different errors.
     const errors = validate.errors ?? [];
-    const keywords = collectKeywords(errors);
-    const paths = instancePaths(errors);
-
-    if (!keywords.has(expectation.keyword)) {
-      fail(`${file} rejected, but NOT via the expected keyword "${expectation.keyword}" (saw: ${[...keywords].sort().join(', ')}): ${errors.map(describeError).slice(0, 3).join(' | ')}`);
+    if (!anyErrorMatches(errors, expectation)) {
+      const sawKeywords = [...collectKeywords(errors)].sort().join(', ');
+      const sawPaths = [...new Set(allInstancePaths(errors))].join(', ');
+      const wantedPath = expectation.instancePath === '' ? '(root)' : expectation.instancePath;
+      fail(`${file} was rejected, but no single Ajv error matched the declared expectation (keyword "${expectation.keyword}" at ${wantedPath ?? 'any path'}); saw keywords [${sawKeywords}] at paths [${sawPaths}]`);
       continue;
-    }
-
-    if (expectation.instancePath !== undefined) {
-      const wanted = expectation.instancePath;
-      const matched = CONDITIONAL_KEYWORDS.has(expectation.keyword)
-        ? paths.some((p) => p === wanted || p.startsWith(wanted === '' ? '' : `${wanted}/`))
-        : paths.includes(wanted);
-      if (!matched) {
-        fail(`${file} rejected via ${expectation.keyword}, but at an unexpected path (want ${wanted === '' ? '(root)' : wanted}, saw: ${[...new Set(paths)].join(', ')})`);
-        continue;
-      }
     }
 
     pass(`${file} rejected via ${expectation.keyword} at ${expectation.instancePath === '' ? '(root)' : expectation.instancePath}`);
