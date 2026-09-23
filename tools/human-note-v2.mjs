@@ -9,6 +9,11 @@ const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 const repo = process.cwd();
 const readJson = file => JSON.parse(fs.readFileSync(path.resolve(repo, file), 'utf8'));
 const writeJson = (file, value) => fs.writeFileSync(path.resolve(repo, file), JSON.stringify(value, null, 2) + '\n', 'utf8');
+if (config.composerMode === 'frozen-chapter-blocks') {
+  const { composeFrozenChapterNotes } = await import('../src/human-note-v2/composer-v2-1.ts');
+  composeFrozenChapterNotes(config, repo);
+  process.exit(0);
+}
 const hash = text => crypto.createHash('sha256').update(Buffer.from(text, 'utf8')).digest('hex');
 const outputDir = path.resolve(repo, `scratch/${config.caseId.toLowerCase().replaceAll('_', '-')}/human-note-v2`);
 const candidateDir = path.join(outputDir, 'candidate');

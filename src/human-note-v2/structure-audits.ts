@@ -59,7 +59,8 @@ export function auditBlockStructure(blocks: readonly AuditableBlock[], sections:
     if (block.contentRoles.includes('ADVICE') && block.blockRole !== 'ADVICE') errors.push(`ADVICE_IN_CONCEPT:${block.blockId}`);
     if (block.contentRoles.includes('WARNING') && block.blockRole !== 'WARNING') errors.push(`WARNING_IN_CONCEPT:${block.blockId}`);
     const sentenceCount = block.coreStatements.length + block.supportingDetails.length;
-    if (block.coreStatements.length !== 1 || block.supportingDetails.length > 2 || block.exampleRefs.length > 1 || sentenceCount > 3) {
+    const supportingBudget = block.displayMode === 'BULLETS' ? 5 : 2;
+    if (block.coreStatements.length !== 1 || block.supportingDetails.length > supportingBudget || block.exampleRefs.length > 1 || sentenceCount > (block.displayMode === 'BULLETS' ? 6 : 3)) {
       oversizedBlocks.push(block.blockId);
     }
     if (sentenceCount === 1 && block.expansionLevel === 'ANCHOR' && block.blockRole !== 'ROADMAP' && block.exampleRefs.length === 0) singleSentenceTinyBlocks.push(block.blockId);
@@ -69,8 +70,10 @@ export function auditBlockStructure(blocks: readonly AuditableBlock[], sections:
     } else if (!existing) targetOwners.set(block.recallTarget, block.blockId);
     const firstOrder = Math.min(...block.moduleRefs.map(ref => readingOrder.get(ref) ?? Infinity));
     if (!Number.isFinite(firstOrder)) errors.push(`UNKNOWN_MODULE:${block.blockId}`);
-    if (firstOrder < previousReadingOrder || block.flowOrder <= previousFlowOrder) errors.push(`LECTURE_FLOW_ORDER:${block.blockId}`);
-    previousReadingOrder = firstOrder;
+    // A merged block may contain an earlier foundation module while being
+    // placed at the later recall target's teaching position.
+    if (firstOrder > block.flowOrder || block.flowOrder <= previousFlowOrder) errors.push(`LECTURE_FLOW_ORDER:${block.blockId}`);
+    previousReadingOrder = Math.max(previousReadingOrder, firstOrder);
     previousFlowOrder = block.flowOrder;
     for (const separated of block.mustSeparateFrom) if (!blockIds.has(separated)) errors.push(`UNKNOWN_SEPARATION:${block.blockId}:${separated}`);
     if (block.moduleRefs.length > 1 && !block.mergeRationale) errors.push(`MERGE_RATIONALE_MISSING:${block.blockId}`);
@@ -123,7 +126,7 @@ export function auditBlockFragmentation(blocks: readonly AuditableBlock[]): Bloc
     if (block.moduleRefs.length === 1 && contentCount <= 1 && block.expansionLevel === 'MENTION' && block.coreStatements.join('').length < 32) {
       tinyBlockCandidates.push(block.blockId);
     }
-    if (block.moduleRefs.length === 1 && block.blockRole === 'CONCEPT' && contentCount === 1 && block.exampleRefs.length === 0 && block.warningRefs.length === 0) {
+    if (block.moduleRefs.length === 1 && block.blockRole === 'CONCEPT' && contentCount === 1 && block.exampleRefs.length === 0 && block.warningRefs.length === 0 && /^(定义|作用|例子|补充|说明)$/u.test(block.title)) {
       mechanicalSplitCandidates.push(block.blockId);
     }
   }

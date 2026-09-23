@@ -98,7 +98,8 @@ if (errors.length) throw new Error(errors.join('; '));
 
 const blockTemplates = config.blockTemplates ?? [];
 const nonBlockModuleHandling = config.nonBlockModuleHandling ?? {};
-const nonBlockModuleRefs = new Set(Object.keys(nonBlockModuleHandling));
+const nonBlockPresentation = config.nonBlockPresentation ?? {};
+const nonBlockModuleRefs = new Set([...Object.keys(nonBlockModuleHandling), ...Object.keys(nonBlockPresentation)]);
 const blocks = blockTemplates.map(template => ({
   ...template,
   sourceRefs: refsToSources(template.moduleRefs),
@@ -119,7 +120,8 @@ for (const block of blocks) {
     blockModuleRefs.add(ref);
   }
   if (block.coreStatements.length !== 1) blockErrors.push(`core statement budget ${block.blockId}`);
-  if (block.supportingDetails.length > 2 || block.exampleRefs.length > 1) blockErrors.push(`block budget ${block.blockId}`);
+  const supportingBudget = block.displayMode === 'BULLETS' ? 5 : 2;
+  if (block.supportingDetails.length > supportingBudget || block.exampleRefs.length > 1) blockErrors.push(`block budget ${block.blockId}`);
 }
 for (const ref of chapterTeachingRefs) if (!blockModuleRefs.has(ref) && !nonBlockModuleRefs.has(ref)) blockErrors.push(`block plan omitted ${ref}`);
 for (const ref of nonBlockModuleRefs) if (!chapterTeachingRefs.has(ref)) blockErrors.push(`non-block handling outside teaching set ${ref}`);
@@ -161,6 +163,7 @@ if (allErrors.length) throw new Error(`STRUCTURE_AUDIT_FAILED: ${allErrors.join(
 const segmentation = {
   prototype: true,
   notFormalSchema: true,
+  phaseAStatus: config.phaseAStatus ?? 'STRUCTURE_REVIEW_REQUIRED',
   caseId: config.caseId,
   sessionId: 'REAL_CASE_001-2026-09-20',
   sourceRefs: { lessonModel: config.lessonModelPath, sourceMap: config.sourceMapPath },
@@ -172,6 +175,7 @@ const segmentation = {
 const boundaryPlan = {
   prototype: true,
   notFormalSchema: true,
+  phaseAStatus: config.phaseAStatus ?? 'STRUCTURE_REVIEW_REQUIRED',
   sessionId: segmentation.sessionId,
   chapterCandidates: chapterCandidates.map(chapter => ({
     chapterId: chapter.chapterId,
@@ -194,10 +198,12 @@ for (const chapter of chapterCandidates) {
   const plan = {
     prototype: true,
     notFormalSchema: true,
+    phaseAStatus: config.phaseAStatus ?? 'STRUCTURE_REVIEW_REQUIRED',
     chapterId: chapter.chapterId,
     chapterTitle: chapter.chapterTitle,
     majorSections: sectionsByChapter.find(item => item.chapterId === chapter.chapterId)?.majorSections ?? [],
     nonBlockModuleHandling: Object.fromEntries(Object.entries(nonBlockModuleHandling).filter(([moduleRef]) => chapter.moduleRefs.includes(moduleRef))),
+    nonBlockPresentation: Object.fromEntries(Object.entries(nonBlockPresentation).filter(([moduleRef]) => chapter.moduleRefs.includes(moduleRef))),
     blocks: blocks.filter(block => block.chapterId === chapter.chapterId).map(({ contentRoles, recallTargets, ...block }) => block)
   };
   writeJson(`scratch/real-case-001/human-note-v2-1/block-plans/human-note-block-plan.${chapter.chapterId}.json`, plan);
@@ -205,6 +211,7 @@ for (const chapter of chapterCandidates) {
 writeJson('scratch/real-case-001/human-note-v2-1/human-note-structure-audit.json', {
   prototype: true,
   phase: 'A_STRUCTURE_ONLY',
+  phaseAStatus: config.phaseAStatus ?? 'STRUCTURE_REVIEW_REQUIRED',
   noteBoundary: { errors: noteBoundaryErrors, status: noteBoundaryErrors.length ? 'FAIL' : 'PASS' },
   blockStructure: structureAudit,
   blockFragmentation: fragmentationAudit,
@@ -213,7 +220,7 @@ writeJson('scratch/real-case-001/human-note-v2-1/human-note-structure-audit.json
   humanGate: 'REQUIRED'
 });
 const boundaryMarkdown = `# REAL_CASE_001 Note Boundary Audit\n\n- status: **PASS_WITH_HUMAN_GATE**\n- session input: ${segmentation.sessionId}\n- candidate chapter notes: ${chapterCandidates.length}\n- note boundary collapse: **${chapterCandidates.length < 2 ? 'FAIL' : 'PASS'}**\n\n| chapter | title | confidence | evidence | action | existing chapter note |\n|---|---|---|---|---|---|\n${chapterCandidates.map(chapter => `| ${chapter.chapterId} | ${chapter.chapterTitle} | ${chapter.confidence} | ${chapter.chapterBoundaryEvidence.map(item => item.sourceUnitRef).join(', ')} | ${chapter.plannedAction} | ${chapter.existingChapterNoteRef ?? 'none'} |`).join('\n')}\n\n章节边界来自 SourceMap / LessonModel 与教师明确的第二章口述。第一章标题与范围仍保留 human review，因为转写从课堂中段开始。\n`;
-const blockMarkdown = `# REAL_CASE_001 Human Note Block Structure Audit\n\n- status: **PASS_WITH_HUMAN_GATE**\n- block count: ${structureAudit.blockCount}\n- block collapse candidates: ${structureAudit.blockCollapseCandidates.length}\n- BLOCK_FRAGMENTATION: **${fragmentationAudit.status}**\n- single-module block ratio: ${fragmentationAudit.singleModuleBlockRatio.toFixed(2)}\n- same recall target splits: ${fragmentationAudit.sameRecallTargetSplits.length}\n- oversized blocks: ${structureAudit.oversizedBlocks.length}\n- tiny fragment candidates: ${structureAudit.singleSentenceTinyBlocks.length}\n- scanability: **${scanAudit.status}**\n\n## Blocks per chapter\n\n${sectionsByChapter.map(chapter => `### ${chapter.chapterId}\n\n${chapter.majorSections.map(section => `- ${section.title}：${structureAudit.blocksPerMajorSection[section.sectionId] ?? 0} blocks`).join('\n')}`).join('\n\n')}\n\n## Hard checks\n\n- block 数由 recall target 决定，不要求 1 module = 1 block。\n- 三大流派、混合增强、教师建议已分离。\n- 命题逻辑的定义、操作、推理和证明已合并为一个 recall block。\n- 谓词逻辑保持独立。\n- 知识图谱、路径推理和 token/向量机制按同一 recall target 合并。\n- 贝叶斯网络和马尔可夫网络保持独立 recall targets。\n- 行为主义与婴儿学步保留在同一块。\n- m03 开场线索和 m28 概率转场保留为 non-block handling。\n- 块顺序按 readingOrder / flowOrder 保留。\n- HUMAN_GATE_REQUIRED = true\n`;
+const blockMarkdown = `# REAL_CASE_001 Human Note Block Structure Audit\n\n- status: **PASS_WITH_HUMAN_GATE**\n- block count: ${structureAudit.blockCount}\n- block collapse candidates: ${structureAudit.blockCollapseCandidates.length}\n- BLOCK_FRAGMENTATION: **${fragmentationAudit.status}**\n- single-module block ratio: ${fragmentationAudit.singleModuleBlockRatio.toFixed(2)}\n- same recall target splits: ${fragmentationAudit.sameRecallTargetSplits.length}\n- oversized blocks: ${structureAudit.oversizedBlocks.length}\n- tiny fragment candidates: ${structureAudit.singleSentenceTinyBlocks.length}\n- scanability: **${scanAudit.status}**\n\n## Blocks per chapter\n\n${sectionsByChapter.map(chapter => `### ${chapter.chapterId}\n\n${chapter.majorSections.map(section => `- ${section.title}：${structureAudit.blocksPerMajorSection[section.sectionId] ?? 0} blocks`).join('\n')}`).join('\n\n')}\n\n## Hard checks\n\n- block 数由 recall target 决定，不要求 1 module = 1 block。\n- 三大流派、混合增强、教师建议已分离。\n- 命题逻辑的定义、操作、推理和证明已合并为一个 recall block。\n- 谓词逻辑保持独立。\n- 知识图谱定义与知识图谱推理保持两个 recall targets；m27 作为后者的 source-bound supporting detail。\n- 贝叶斯网络和马尔可夫网络保持独立 recall targets。\n- 行为主义与婴儿学步保留在同一块。\n- m03 开场线索和 m28 概率转场保留为 non-block handling。\n- 块顺序按 readingOrder / flowOrder 保留。\n- HUMAN_GATE_REQUIRED = true\n`;
 const coverageMarkdown = `# REAL_CASE_001 Human Note Coverage Audit\n\n- teaching modules: ${teachingModules.length}\n- modules represented by blocks: ${new Set(blocks.flatMap(block => block.moduleRefs)).size}\n- non-block warning/transition modules: ${[...nonBlockModuleRefs].join(', ')}\n- source boundary errors: ${contentAudit.filter(error => error.startsWith('UNSUPPORTED_SOURCE')).length}\n- REVIEW content omitted: false\n\n${chapterCandidates.map(chapter => `## ${chapter.chapterTitle}\n\n${chapter.moduleRefs.map(ref => `- ${ref}${nonBlockModuleRefs.has(ref) ? `（${nonBlockModuleHandling[ref]}）` : ''}`).join('\n')}`).join('\n\n')}\n`;
 fs.writeFileSync(path.join(outputDir, 'audits', 'NOTE_BOUNDARY_AUDIT.md'), boundaryMarkdown, 'utf8');
 fs.writeFileSync(path.join(outputDir, 'audits', 'HUMAN_NOTE_BLOCK_AUDIT.md'), blockMarkdown, 'utf8');

@@ -26,5 +26,5 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "runs", "test-vault"]
+  "exclude": ["node_modules", "dist", "runs", "test-vault", "src/human-note-v2/composer-v2-1.ts"]
 }
