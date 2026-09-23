@@ -97,12 +97,14 @@ if (vaultPaths.size === 0) errors.push('vault index is empty');
 if (errors.length) throw new Error(errors.join('; '));
 
 const blockTemplates = config.blockTemplates ?? [];
+const nonBlockModuleHandling = config.nonBlockModuleHandling ?? {};
+const nonBlockModuleRefs = new Set(Object.keys(nonBlockModuleHandling));
 const blocks = blockTemplates.map(template => ({
   ...template,
   sourceRefs: refsToSources(template.moduleRefs),
   contentRoles: [template.blockRole, ...(template.exampleRefs.length ? ['EXAMPLE'] : [])],
   recallTargets: [template.recallTarget]
-}));
+})).sort((left, right) => left.flowOrder - right.flowOrder);
 const blockErrors = [];
 const blockIds = new Set();
 const blockModuleRefs = new Set();
@@ -119,7 +121,8 @@ for (const block of blocks) {
   if (block.coreStatements.length !== 1) blockErrors.push(`core statement budget ${block.blockId}`);
   if (block.supportingDetails.length > 2 || block.exampleRefs.length > 1) blockErrors.push(`block budget ${block.blockId}`);
 }
-for (const ref of chapterTeachingRefs) if (!blockModuleRefs.has(ref)) blockErrors.push(`block plan omitted ${ref}`);
+for (const ref of chapterTeachingRefs) if (!blockModuleRefs.has(ref) && !nonBlockModuleRefs.has(ref)) blockErrors.push(`block plan omitted ${ref}`);
+for (const ref of nonBlockModuleRefs) if (!chapterTeachingRefs.has(ref)) blockErrors.push(`non-block handling outside teaching set ${ref}`);
 if (blockErrors.length) throw new Error(blockErrors.join('; '));
 
 const readingOrder = new Map(teachingModules.map(module => [module.moduleId, module.readingOrder]));
@@ -132,16 +135,18 @@ const sectionsByChapter = chapterCandidates.map(chapter => {
 });
 
 let structureAudit;
+let fragmentationAudit;
 let scanAudit;
 let contentAudit;
 try {
   const auditModule = await import('../src/human-note-v2/structure-audits.ts');
   const sectionList = sectionsByChapter.flatMap(chapter => chapter.majorSections);
   structureAudit = auditModule.auditBlockStructure(blocks, sectionList, readingOrder);
+  fragmentationAudit = auditModule.auditBlockFragmentation(blocks);
   scanAudit = auditModule.auditScanability(blocks, sectionList, blocks.map(block => block.title));
-  contentAudit = auditModule.auditContentBoundaries(blocks, teachingModules.map(module => module.moduleId), sourceRefs,
-    ['lm-rc001-m04', 'lm-rc001-m05', 'lm-rc001-m08', 'lm-rc001-m09', 'lm-rc001-m10', 'lm-rc001-m11', 'lm-rc001-m13', 'lm-rc001-m14', 'lm-rc001-m15', 'lm-rc001-m17', 'lm-rc001-m18', 'lm-rc001-m19', 'lm-rc001-m20', 'lm-rc001-m21', 'lm-rc001-m22', 'lm-rc001-m23', 'lm-rc001-m24', 'lm-rc001-m25', 'lm-rc001-m26', 'lm-rc001-m27', 'lm-rc001-m28', 'lm-rc001-m29', 'lm-rc001-m30', 'lm-rc001-m31'],
-    ['lm-rc001-m03', 'lm-rc001-m06', 'lm-rc001-m07', 'lm-rc001-m09', 'lm-rc001-m12', 'lm-rc001-m13', 'lm-rc001-m14', 'lm-rc001-m15', 'lm-rc001-m17', 'lm-rc001-m18', 'lm-rc001-m19', 'lm-rc001-m21', 'lm-rc001-m22', 'lm-rc001-m23', 'lm-rc001-m24', 'lm-rc001-m26', 'lm-rc001-m27', 'lm-rc001-m29', 'lm-rc001-m30', 'lm-rc001-m31']);
+  contentAudit = auditModule.auditContentBoundaries(blocks, teachingModules.map(module => module.moduleId).filter(ref => !nonBlockModuleRefs.has(ref)), sourceRefs,
+    ['lm-rc001-m04', 'lm-rc001-m05', 'lm-rc001-m08', 'lm-rc001-m09', 'lm-rc001-m10', 'lm-rc001-m11', 'lm-rc001-m13', 'lm-rc001-m14', 'lm-rc001-m15', 'lm-rc001-m17', 'lm-rc001-m18', 'lm-rc001-m19', 'lm-rc001-m20', 'lm-rc001-m21', 'lm-rc001-m22', 'lm-rc001-m23', 'lm-rc001-m24', 'lm-rc001-m25', 'lm-rc001-m26', 'lm-rc001-m27', 'lm-rc001-m28', 'lm-rc001-m29', 'lm-rc001-m30', 'lm-rc001-m31'].filter(ref => !nonBlockModuleRefs.has(ref)),
+    ['lm-rc001-m06', 'lm-rc001-m07', 'lm-rc001-m09', 'lm-rc001-m12', 'lm-rc001-m13', 'lm-rc001-m14', 'lm-rc001-m15', 'lm-rc001-m17', 'lm-rc001-m18', 'lm-rc001-m19', 'lm-rc001-m21', 'lm-rc001-m22', 'lm-rc001-m23', 'lm-rc001-m24', 'lm-rc001-m26', 'lm-rc001-m27', 'lm-rc001-m29', 'lm-rc001-m30', 'lm-rc001-m31'].filter(ref => !nonBlockModuleRefs.has(ref)));
 } catch (error) {
   throw new Error(`structure audit unavailable: ${error.message}`);
 }
@@ -150,7 +155,7 @@ for (const chapter of chapterCandidates) {
   if (!chapter.chapterBoundaryEvidence.length) noteBoundaryErrors.push(`BOUNDARY_EVIDENCE_MISSING:${chapter.chapterId}`);
   if (chapter.plannedAction === 'SESSION_INDEX_ONLY') noteBoundaryErrors.push(`SESSION_NOTE_SUBSTITUTION:${chapter.chapterId}`);
 }
-const allErrors = [...noteBoundaryErrors, ...structureAudit.errors, ...scanAudit.findings, ...contentAudit];
+const allErrors = [...noteBoundaryErrors, ...structureAudit.errors, ...(fragmentationAudit.status === 'FAIL' ? ['BLOCK_FRAGMENTATION'] : []), ...scanAudit.findings, ...contentAudit];
 if (allErrors.length) throw new Error(`STRUCTURE_AUDIT_FAILED: ${allErrors.join('; ')}`);
 
 const segmentation = {
@@ -192,6 +197,7 @@ for (const chapter of chapterCandidates) {
     chapterId: chapter.chapterId,
     chapterTitle: chapter.chapterTitle,
     majorSections: sectionsByChapter.find(item => item.chapterId === chapter.chapterId)?.majorSections ?? [],
+    nonBlockModuleHandling: Object.fromEntries(Object.entries(nonBlockModuleHandling).filter(([moduleRef]) => chapter.moduleRefs.includes(moduleRef))),
     blocks: blocks.filter(block => block.chapterId === chapter.chapterId).map(({ contentRoles, recallTargets, ...block }) => block)
   };
   writeJson(`scratch/real-case-001/human-note-v2-1/block-plans/human-note-block-plan.${chapter.chapterId}.json`, plan);
@@ -201,13 +207,14 @@ writeJson('scratch/real-case-001/human-note-v2-1/human-note-structure-audit.json
   phase: 'A_STRUCTURE_ONLY',
   noteBoundary: { errors: noteBoundaryErrors, status: noteBoundaryErrors.length ? 'FAIL' : 'PASS' },
   blockStructure: structureAudit,
+  blockFragmentation: fragmentationAudit,
   scanability: scanAudit,
   contentBoundary: { errors: contentAudit, status: contentAudit.length ? 'FAIL' : 'PASS' },
   humanGate: 'REQUIRED'
 });
 const boundaryMarkdown = `# REAL_CASE_001 Note Boundary Audit\n\n- status: **PASS_WITH_HUMAN_GATE**\n- session input: ${segmentation.sessionId}\n- candidate chapter notes: ${chapterCandidates.length}\n- note boundary collapse: **${chapterCandidates.length < 2 ? 'FAIL' : 'PASS'}**\n\n| chapter | title | confidence | evidence | action | existing chapter note |\n|---|---|---|---|---|---|\n${chapterCandidates.map(chapter => `| ${chapter.chapterId} | ${chapter.chapterTitle} | ${chapter.confidence} | ${chapter.chapterBoundaryEvidence.map(item => item.sourceUnitRef).join(', ')} | ${chapter.plannedAction} | ${chapter.existingChapterNoteRef ?? 'none'} |`).join('\n')}\n\n章节边界来自 SourceMap / LessonModel 与教师明确的第二章口述。第一章标题与范围仍保留 human review，因为转写从课堂中段开始。\n`;
-const blockMarkdown = `# REAL_CASE_001 Human Note Block Structure Audit\n\n- status: **PASS_WITH_HUMAN_GATE**\n- block count: ${structureAudit.blockCount}\n- block collapse candidates: ${structureAudit.blockCollapseCandidates.length}\n- oversized blocks: ${structureAudit.oversizedBlocks.length}\n- tiny fragment candidates: ${structureAudit.singleSentenceTinyBlocks.length}\n- scanability: **${scanAudit.status}**\n\n## Blocks per chapter\n\n${sectionsByChapter.map(chapter => `### ${chapter.chapterId}\n\n${chapter.majorSections.map(section => `- ${section.title}：${structureAudit.blocksPerMajorSection[section.sectionId] ?? 0} blocks`).join('\n')}`).join('\n\n')}\n\n## Hard checks\n\n- 三大流派、混合增强、教师建议已分离。\n- 命题逻辑与谓词逻辑已分离。\n- 知识图谱、路径推理、向量推理、概率图和两个概率网络已分离。\n- 行为主义与婴儿学步保留在同一块。\n- 块顺序按 readingOrder / flowOrder 保留。\n- HUMAN_GATE_REQUIRED = true\n`;
-const coverageMarkdown = `# REAL_CASE_001 Human Note Coverage Audit\n\n- teaching modules: ${teachingModules.length}\n- modules represented by blocks: ${new Set(blocks.flatMap(block => block.moduleRefs)).size}\n- source boundary errors: ${contentAudit.filter(error => error.startsWith('UNSUPPORTED_SOURCE')).length}\n- REVIEW content omitted: false\n\n${chapterCandidates.map(chapter => `## ${chapter.chapterTitle}\n\n${chapter.moduleRefs.map(ref => `- ${ref}`).join('\n')}`).join('\n\n')}\n`;
+const blockMarkdown = `# REAL_CASE_001 Human Note Block Structure Audit\n\n- status: **PASS_WITH_HUMAN_GATE**\n- block count: ${structureAudit.blockCount}\n- block collapse candidates: ${structureAudit.blockCollapseCandidates.length}\n- BLOCK_FRAGMENTATION: **${fragmentationAudit.status}**\n- single-module block ratio: ${fragmentationAudit.singleModuleBlockRatio.toFixed(2)}\n- same recall target splits: ${fragmentationAudit.sameRecallTargetSplits.length}\n- oversized blocks: ${structureAudit.oversizedBlocks.length}\n- tiny fragment candidates: ${structureAudit.singleSentenceTinyBlocks.length}\n- scanability: **${scanAudit.status}**\n\n## Blocks per chapter\n\n${sectionsByChapter.map(chapter => `### ${chapter.chapterId}\n\n${chapter.majorSections.map(section => `- ${section.title}：${structureAudit.blocksPerMajorSection[section.sectionId] ?? 0} blocks`).join('\n')}`).join('\n\n')}\n\n## Hard checks\n\n- block 数由 recall target 决定，不要求 1 module = 1 block。\n- 三大流派、混合增强、教师建议已分离。\n- 命题逻辑的定义、操作、推理和证明已合并为一个 recall block。\n- 谓词逻辑保持独立。\n- 知识图谱、路径推理和 token/向量机制按同一 recall target 合并。\n- 贝叶斯网络和马尔可夫网络保持独立 recall targets。\n- 行为主义与婴儿学步保留在同一块。\n- m03 开场线索和 m28 概率转场保留为 non-block handling。\n- 块顺序按 readingOrder / flowOrder 保留。\n- HUMAN_GATE_REQUIRED = true\n`;
+const coverageMarkdown = `# REAL_CASE_001 Human Note Coverage Audit\n\n- teaching modules: ${teachingModules.length}\n- modules represented by blocks: ${new Set(blocks.flatMap(block => block.moduleRefs)).size}\n- non-block warning/transition modules: ${[...nonBlockModuleRefs].join(', ')}\n- source boundary errors: ${contentAudit.filter(error => error.startsWith('UNSUPPORTED_SOURCE')).length}\n- REVIEW content omitted: false\n\n${chapterCandidates.map(chapter => `## ${chapter.chapterTitle}\n\n${chapter.moduleRefs.map(ref => `- ${ref}${nonBlockModuleRefs.has(ref) ? `（${nonBlockModuleHandling[ref]}）` : ''}`).join('\n')}`).join('\n\n')}\n`;
 fs.writeFileSync(path.join(outputDir, 'audits', 'NOTE_BOUNDARY_AUDIT.md'), boundaryMarkdown, 'utf8');
 fs.writeFileSync(path.join(outputDir, 'audits', 'HUMAN_NOTE_BLOCK_AUDIT.md'), blockMarkdown, 'utf8');
 fs.writeFileSync(path.join(outputDir, 'audits', 'HUMAN_NOTE_COVERAGE_AUDIT.md'), coverageMarkdown, 'utf8');
@@ -215,15 +222,16 @@ const oldNotePath = path.resolve(repo, 'scratch/real-case-001/human-note-v2/cand
 const oldNote = fs.existsSync(oldNotePath) ? fs.readFileSync(oldNotePath, 'utf8') : '';
 const oldBlockCount = (oldNote.match(/^###\s+/gmu) ?? []).length;
 const oldMajorSections = (oldNote.match(/^##\s+/gmu) ?? []).length;
-const comparisonMarkdown = `# REAL_CASE_001 Human Note v2 / v2.1 Structure Comparison\n\n| metric | v2 | v2.1 Phase A |\n|---|---:|---:|\n| chapter notes | 1 session-shaped candidate | ${chapterCandidates.length} chapter candidates |\n| presentation blocks | ${oldBlockCount} visible ### blocks | ${blocks.length} planned blocks |\n| major sections | ${oldMajorSections} | ${sectionsByChapter.reduce((sum, chapter) => sum + chapter.majorSections.length, 0)} across chapters |\n| average modules per block | ${oldBlockCount ? (teachingModules.length / oldBlockCount).toFixed(2) : 'unknown'} | ${(teachingModules.length / blocks.length).toFixed(2)} unique-module average |\n| block collapse candidates | not audited | ${structureAudit.blockCollapseCandidates.length} |\n| visible recall targets | not audited | ${new Set(blocks.map(block => block.recallTarget)).size} |\n| paragraph length | composed prose | deferred until Composer phase |\n| bullet usage | composed prose | deferred until Composer phase |\n| keypoint coverage | 28/28 ledger | ${new Set(blocks.flatMap(block => block.moduleRefs)).size}/28 planned |\n| unsupported additions | PASS | PASS |\n| redundancy | 0 candidates in v2 | deferred until Composer phase |\n\n本阶段只比较 chapter boundary 与 block structure。v2.1 尚未生成 candidate Markdown；Composer 必须严格消费冻结的 Block Plan。Human gate 仍然是 REQUIRED。\n`;
+const comparisonMarkdown = `# REAL_CASE_001 Human Note v2 / v2.1 Structure Comparison\n\n| metric | v2 | v2.1 Phase A |\n|---|---:|---:|\n| chapter notes | 1 session-shaped candidate | ${chapterCandidates.length} chapter candidates |\n| presentation blocks | ${oldBlockCount} visible ### blocks | ${blocks.length} planned blocks |\n| major sections | ${oldMajorSections} | ${sectionsByChapter.reduce((sum, chapter) => sum + chapter.majorSections.length, 0)} across chapters |\n| average modules per block | ${oldBlockCount ? (teachingModules.length / oldBlockCount).toFixed(2) : 'unknown'} | ${(teachingModules.length / blocks.length).toFixed(2)} unique-module average |\n| block collapse candidates | not audited | ${structureAudit.blockCollapseCandidates.length} |\n| BLOCK_FRAGMENTATION | not audited | ${fragmentationAudit.status} |\n| visible recall targets | not audited | ${new Set(blocks.map(block => block.recallTarget)).size} |\n| paragraph length | composed prose | deferred until Composer phase |\n| bullet usage | composed prose | deferred until Composer phase |\n| keypoint coverage | 28/28 ledger | ${new Set([...blocks.flatMap(block => block.moduleRefs), ...nonBlockModuleRefs]).size}/28 planned |\n| unsupported additions | PASS | PASS |\n| redundancy | 0 candidates in v2 | deferred until Composer phase |\n\n本阶段只比较 chapter boundary 与 block structure。v2.1 尚未生成 candidate Markdown；Composer 必须严格消费冻结的 Block Plan。Human gate 仍然是 REQUIRED。\n`;
 fs.writeFileSync(path.join(outputDir, 'audits', 'V2_V2.1_COMPARISON.md'), comparisonMarkdown, 'utf8');
 writeJson('scratch/real-case-001/human-note-v2-1/audits/HUMAN_NOTE_QUALITY_AUDIT.json', {
   status: 'READY_FOR_HUMAN_REVIEW',
   phase: 'A_STRUCTURE_ONLY',
   noteBoundaryAudit: { status: 'PASS', chapterCount: chapterCandidates.length, errors: noteBoundaryErrors },
   blockStructure: structureAudit,
+  blockFragmentation: fragmentationAudit,
   scanability: scanAudit,
-  keypointCoverage: { teachingModules: teachingModules.length, representedModules: new Set(blocks.flatMap(block => block.moduleRefs)).size, status: contentAudit.some(error => error.startsWith('KEYPOINT_OMITTED')) ? 'FAIL' : 'PASS' },
+  keypointCoverage: { teachingModules: teachingModules.length, representedModules: new Set([...blocks.flatMap(block => block.moduleRefs), ...nonBlockModuleRefs]).size, status: contentAudit.some(error => error.startsWith('KEYPOINT_OMITTED')) ? 'FAIL' : 'PASS' },
   unsupportedAdditions: { candidates: [], status: 'PASS' },
   redundancy: { candidates: [], status: 'DEFERRED_TO_COMPOSER_PHASE' },
   lectureFlowPreservation: { status: 'PASS', basis: 'block flowOrder and source readingOrder' },

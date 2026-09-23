@@ -11,6 +11,7 @@ import {
 } from '../src/human-note-v2/audits.ts';
 import {
   auditBlockStructure,
+  auditBlockFragmentation,
   auditContentBoundaries,
   auditNoteBoundaries,
   auditScanability
@@ -110,5 +111,22 @@ assert.ok(auditContentBoundaries([block('route')], ['route'], new Set(['su-route
 
 // Scanability requires visible titles for the planned blocks.
 assert.equal(auditScanability([block('route')], section, []).status, 'FAIL');
+
+// BLOCK_FRAGMENTATION: a module-per-block wall is not the target, and a
+// repeated recall target is a split error even when every block looks valid.
+assert.equal(auditBlockFragmentation([
+  block('route', { moduleRefs: ['route', 'legacy'], recallTarget: 'symbolic-family' }),
+  block('logic', { moduleRefs: ['logic', 'truth', 'proof'], recallTarget: '命题逻辑' }),
+  block('predicate', { moduleRefs: ['predicate'], recallTarget: '谓词逻辑' })
+]).status, 'PASS');
+const fragmented = auditBlockFragmentation([
+  block('definition', { recallTarget: '同一概念', expansionLevel: 'MENTION' }),
+  block('operation', { recallTarget: '同一概念', flowOrder: 2, expansionLevel: 'MENTION' }),
+  block('example', { recallTarget: '同一概念', flowOrder: 3, expansionLevel: 'MENTION' }),
+  block('tiny', { recallTarget: 'tiny', flowOrder: 4, expansionLevel: 'MENTION', coreStatements: ['短。'] })
+]);
+assert.equal(fragmented.status, 'FAIL');
+assert.ok(fragmented.sameRecallTargetSplits.length >= 2);
+assert.ok(fragmented.tinyBlockCandidates.includes('tiny'));
 
 console.log('human-note-v2 tests passed');

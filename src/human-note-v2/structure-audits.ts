@@ -102,6 +102,43 @@ export function auditScanability(blocks: readonly AuditableBlock[], sections: re
   return { status: findings.length ? 'FAIL' : 'PASS', findings };
 }
 
+export interface BlockFragmentationAudit {
+  readonly singleModuleBlockRatio: number;
+  readonly sameRecallTargetSplits: readonly string[];
+  readonly mechanicalSplitCandidates: readonly string[];
+  readonly tinyBlockCandidates: readonly string[];
+  readonly status: 'PASS' | 'FAIL';
+}
+
+export function auditBlockFragmentation(blocks: readonly AuditableBlock[]): BlockFragmentationAudit {
+  const sameRecallTargetSplits: string[] = [];
+  const mechanicalSplitCandidates: string[] = [];
+  const tinyBlockCandidates: string[] = [];
+  const targetOwners = new Map<string, string>();
+  for (const block of blocks) {
+    const previous = targetOwners.get(block.recallTarget);
+    if (previous) sameRecallTargetSplits.push(`${previous}+${block.blockId}`);
+    else targetOwners.set(block.recallTarget, block.blockId);
+    const contentCount = block.coreStatements.length + block.supportingDetails.length + block.exampleRefs.length + block.warningRefs.length;
+    if (block.moduleRefs.length === 1 && contentCount <= 1 && block.expansionLevel === 'MENTION' && block.coreStatements.join('').length < 32) {
+      tinyBlockCandidates.push(block.blockId);
+    }
+    if (block.moduleRefs.length === 1 && block.blockRole === 'CONCEPT' && contentCount === 1 && block.exampleRefs.length === 0 && block.warningRefs.length === 0) {
+      mechanicalSplitCandidates.push(block.blockId);
+    }
+  }
+  const singleModuleCount = blocks.filter(block => block.moduleRefs.length === 1).length;
+  const singleModuleBlockRatio = blocks.length ? singleModuleCount / blocks.length : 0;
+  const errors = [
+    ...(singleModuleBlockRatio > 0.7 ? ['SINGLE_MODULE_BLOCK_RATIO'] : []),
+    ...(sameRecallTargetSplits.length ? ['SAME_RECALL_TARGET_SPLIT'] : []),
+    ...(mechanicalSplitCandidates.length > Math.ceil(blocks.length * 0.7) ? ['MECHANICAL_SPLIT_PATTERN'] : []),
+    ...(tinyBlockCandidates.length ? ['TINY_BLOCK_WITHOUT_RECALL_VALUE'] : [])
+  ];
+  return { singleModuleBlockRatio, sameRecallTargetSplits, mechanicalSplitCandidates, tinyBlockCandidates,
+    status: errors.length ? 'FAIL' : 'PASS' };
+}
+
 export function auditContentBoundaries(blocks: readonly AuditableBlock[], teachingRefs: readonly string[],
   allowedSourceRefs: ReadonlySet<string>, deltaRefs: readonly string[], reviewRefs: readonly string[]): string[] {
   const errors: string[] = [];
