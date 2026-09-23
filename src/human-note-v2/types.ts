@@ -44,6 +44,20 @@ export type CoverageDisposition =
   | 'SELF_TEST'
   | 'INTENTIONALLY_OMITTED';
 
+export type BlockRole =
+  | 'RECALL'
+  | 'ROADMAP'
+  | 'CONCEPT'
+  | 'METHOD'
+  | 'EXAMPLE'
+  | 'COMPARISON'
+  | 'ADVICE'
+  | 'WARNING'
+  | 'SUMMARY'
+  | 'SELF_TEST';
+
+export type DisplayMode = 'PARAGRAPH' | 'BULLETS' | 'COMPACT_MIXED';
+
 export interface LectureFlowEntry {
   readonly flowOrder: number;
   readonly sourceModuleRefs: readonly string[];
@@ -93,6 +107,26 @@ export interface KnowledgeAnchor {
   readonly mustNotExpandWith: readonly string[];
 }
 
+/** Prototype-only presentation boundary. This is deliberately not an M1B schema. */
+export interface HumanNoteBlockPlan {
+  readonly blockId: string;
+  readonly title: string;
+  readonly sectionId: string;
+  readonly moduleRefs: readonly string[];
+  readonly sourceRefs: readonly string[];
+  readonly blockRole: BlockRole;
+  readonly recallTarget: string;
+  readonly coreStatements: readonly string[];
+  readonly supportingDetails: readonly string[];
+  readonly exampleRefs: readonly string[];
+  readonly warningRefs: readonly string[];
+  readonly expansionLevel: ExpansionLevel;
+  readonly displayMode: DisplayMode;
+  readonly mustSeparateFrom: readonly string[];
+  readonly mergeRationale: string;
+  readonly flowOrder: number;
+}
+
 export interface CoverageLedgerEntry {
   readonly moduleRef: string;
   readonly disposition: CoverageDisposition;
@@ -117,6 +151,7 @@ export interface HumanNotePlan {
     readonly selfTest?: readonly string[];
   }[];
   readonly knowledgeAnchors: readonly KnowledgeAnchor[];
+  readonly presentationBlocks?: readonly HumanNoteBlockPlan[];
   readonly coverageLedger: readonly CoverageLedgerEntry[];
 }
 
@@ -131,4 +166,15 @@ export interface HumanNoteQualityAudit {
   readonly lectureFlowOrder: 'PASS' | 'FAIL';
   readonly paragraphBulletBalance: Readonly<{ paragraphs: number; bullets: number }>;
   readonly sourceBoundary: 'PASS' | 'FAIL';
+}
+
+export interface HumanNoteBlockAudit {
+  readonly blockCount: number;
+  readonly blocksPerMajorSection: Readonly<Record<string, number>>;
+  readonly modulesPerBlock: Readonly<Record<string, number>>;
+  readonly multiRoleBlocks: readonly string[];
+  readonly blockCollapseCandidates: readonly string[];
+  readonly oversizedBlocks: readonly string[];
+  readonly singleSentenceTinyBlocks: readonly string[];
+  readonly status: 'PASS' | 'FAIL';
 }
