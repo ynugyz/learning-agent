@@ -354,6 +354,28 @@ contract. Fields are expected to change; see D-0007.
   scripts with no extra dependency. The generated fixtures are committed so a
   reviewer can read them without running anything.
 
+### D-0015 — Human learning notes are a separate v2 branch from knowledge updates
+- Date: 2026-09-23
+- Status: proposed
+- Decision: Keep SourceMap and accepted LessonModel v1 frozen. Add a prototype
+  Human Note Composer branch that consumes a dual-axis LessonModel v2 view and a
+  declarative Human Note Plan. Keep Alignment, ChangePlan and the old Writer on
+  the long-term knowledge update path. Human-facing Markdown and machine
+  semantic sidecars are separate artifacts.
+- Rationale: REAL_CASE_001 showed that safe, provenance-preserving Vault
+  updates and useful human review notes have different objectives. Combining
+  them produced a safety/readability tradeoff that failed learning utility. A
+  lecture-flow axis, coverage ledger and explicit quality audits address the
+  note problem without weakening the frozen SourceMap or update path.
+- Alternatives considered: (a) continue extending the old Writer — rejected
+  because its patch target and human-note goals remain coupled; (b) let
+  Alignment REVIEW suppress note content — rejected because uncertainty needs
+  a warning, not silent omission; (c) freeze a new formal schema immediately —
+  rejected because this is an Architecture v2 prototype, not M1B schema freeze.
+- Consequences: v2 adds reusable prototype types, deterministic planning and
+  audit utilities. The current sidecar layout, section vocabulary and prose
+  policy remain reviewable and are not implementation-stable contracts.
+
 ---
 
 ## Template for new decisions

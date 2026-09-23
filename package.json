@@ -12,6 +12,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test:contracts": "node tools/contract-tests.mjs",
+    "test:human-note-v2": "node --experimental-strip-types tests/human-note-v2.test.mjs",
     "check": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/check.ps1"
   },
   "dependencies": {},
