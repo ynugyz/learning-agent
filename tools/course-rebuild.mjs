@@ -371,7 +371,7 @@ function ephemeralComposerInputs(tempRoot, sources, chapterSet = chapters, caseI
   return { sourceMapPath: path.join(tempRoot, 'source-map.json'), lessonModelPath: path.join(tempRoot, 'lesson-model.json'), boundaryPlanPath: path.join(tempRoot, 'note-boundary-plan.json') };
 }
 
-async function invokeExistingComposer(sources, chapterSet = chapters, caseId = 'COURSE_REBUILD_001') {
+async function invokeExistingComposer(sources, chapterSet = chapters, caseId = 'COURSE_REBUILD_001', presentationMode = null) {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'learning-agent-course-composer-'));
   try {
     const inputs = ephemeralComposerInputs(tempRoot, sources, chapterSet, caseId);
@@ -380,7 +380,7 @@ async function invokeExistingComposer(sources, chapterSet = chapters, caseId = '
     const originalLog = console.log;
     console.log = () => {};
     try {
-      composeConsolidatedHumanNote({ phaseAStatus: 'FROZEN_FOR_REAL_CASE_001', baselineOutputDir: tempRoot, outputDir, lessonModelPath: inputs.lessonModelPath, sourceMapPath: inputs.sourceMapPath, presentationOverrides: { blockIds: [] }, compositionObjective: 'COGNITIVE_PATH_RECOVERY', disableCanonicalEnrichment: true }, repoRoot);
+      composeConsolidatedHumanNote({ phaseAStatus: 'FROZEN_FOR_REAL_CASE_001', baselineOutputDir: tempRoot, outputDir, lessonModelPath: inputs.lessonModelPath, sourceMapPath: inputs.sourceMapPath, presentationOverrides: { blockIds: [] }, compositionObjective: 'COGNITIVE_PATH_RECOVERY', presentationMode, disableCanonicalEnrichment: true }, repoRoot);
     } finally {
       console.log = originalLog;
     }
@@ -461,10 +461,11 @@ async function main() {
   const sources = config.sources.map((value, index) => sourceRecord(resolvePath(value, configDir), sourceDefinitions[index][0], sourceDefinitions[index][1], sourceDefinitions[index][2]));
   const contexts = (config.vaultContextFiles ?? []).map(value => contextRecord(resolvePath(value, configDir), 'EXISTING_VAULT_CONTEXT'));
   const caseId = config.runName ?? 'COURSE_REBUILD_001';
+  if (config.presentationMode != null && config.presentationMode !== 'REVIEW_INTENT') throw new Error('unsupported presentationMode');
   const artifactModel = buildArtifacts(sources, contexts, mode, caseId);
   const representative = process.argv.includes('--representative');
   const chapterSet = representative ? representativeChapterSet() : chapters;
-  const composerRun = await invokeExistingComposer(sources, chapterSet, caseId);
+  const composerRun = await invokeExistingComposer(sources, chapterSet, caseId, config.presentationMode ?? null);
   if (representative) {
     console.log(JSON.stringify(representativeReport(composerRun, chapterSet), null, 2));
     return;

@@ -746,7 +746,83 @@ function consolidatedBuildLedger(config: AnyRecord, plans: readonly AnyRecord[],
   };
 }
 
-type CompositionResult = { text: string; enrichments: AnyRecord[]; visibleWarnings: string[]; suppressedWarnings: string[]; duplicateExampleLabel: boolean; renderedDliIds: string[]; groundedSynthesis: AnyRecord[]; discourseGlue: AnyRecord[]; unsupportedClaims: string[] };
+type CompositionResult = { text: string; enrichments: AnyRecord[]; visibleWarnings: string[]; suppressedWarnings: string[]; duplicateExampleLabel: boolean; renderedDliIds: string[]; groundedSynthesis: AnyRecord[]; discourseGlue: AnyRecord[]; unsupportedClaims: string[]; reviewIntent?: AnyRecord };
+
+function deriveReviewIntent(block: AnyRecord, dli: ConsolidatedDli[]): AnyRecord {
+  const action = block.blockRole === 'METHOD' ? 'PROCEDURE'
+    : block.blockRole === 'BOUNDARY' ? 'JUDGE'
+      : block.blockRole === 'ROADMAP' ? 'RECALL' : 'UNDERSTAND';
+  const relation = (block.compositionGroups ?? []).find((group: AnyRecord) => group.kind === 'grounded-synthesis' && (group.dliKeys ?? []).length > 1);
+  const anchor = relation
+    ? dli.filter(item => (relation.dliKeys ?? []).some((key: string) => item.sourceUnitRefs.includes(`composer-unit-${block.blockId}-${key}`)))
+    : dli.filter(item => item.informationRole === 'CORE').slice(0, 1);
+  return {
+    action,
+    target: block.recallTarget,
+    retrievalAnchorDliIds: anchor.map(item => item.distinctInformationId),
+    evidenceDliIds: dli.map(item => item.distinctInformationId),
+    sourceEmphasis: block.recallTarget,
+    humanMarkdownLabel: false
+  };
+}
+
+function emphasizeOpening(statement: string): string {
+  const match = statement.match(/^([^，；。]{2,36})([，；。].*)$/u);
+  return match ? `**${match[1]}**${match[2]}` : statement;
+}
+
+function emphasizeListTerm(statement: string): string {
+  const match = statement.match(/^(.{2,12}?)(?=强调|用于|使用|通过|从|把|是|允许|利用)/u);
+  return match ? `**${match[1]}**${statement.slice(match[1].length)}` : statement;
+}
+
+function renderReviewIntentBlock(block: AnyRecord, dli: ConsolidatedDli[], warnings: string[]): CompositionResult {
+  const reviewIntent = deriveReviewIntent(block, dli);
+  const core = dli.filter(item => item.informationRole === 'CORE');
+  const details = dli.filter(item => item.informationRole !== 'CORE' && item.informationRole !== 'EXAMPLE');
+  const examples = dli.filter(item => item.informationRole === 'EXAMPLE');
+  const warning = details.find(item => /不自动等于|不等于|不能直接|不能仅凭/u.test(item.statement))
+    ?? examples.find(item => /泄漏/u.test(item.statement));
+  const tip = block.blockRole === 'METHOD'
+    ? details.find(item => item !== warning && /应停止|应调整|需检查|需要检查/u.test(item.statement))
+    : undefined;
+  const concreteExamples = examples.filter(item => item !== warning && /[A-Za-z]{2,}|\d|构成.*例子|“[^”]+”/u.test(item.statement));
+  const plainExamples = examples.filter(item => item !== warning && !concreteExamples.includes(item));
+  const lines = [`### ${block.title}`];
+  const first = core[0]?.statement ?? '';
+  const parallel = first.split('，');
+  const parallelList = parallel.length >= 3 && parallel.slice(0, 3).every(part => part.includes('用于'));
+  if (core.length >= 3 && core.every(item => item.statement.length <= 65)) {
+    lines.push('', ...core.map(item => `- ${emphasizeListTerm(item.statement)}`));
+  } else if (parallelList) {
+    const entries = parallel.slice(0, 3);
+    if (parallel.length > 3) entries[2] += `，${parallel.slice(3).join('，')}`;
+    lines.push('', ...entries.map(entry => `- ${emphasizeListTerm(entry)}`));
+    for (const item of core.slice(1)) lines.push('', item.statement);
+  } else {
+    for (const [index, item] of core.entries()) lines.push('', index === 0 ? emphasizeOpening(item.statement) : item.statement);
+  }
+  const remaining = details.filter(item => item !== warning && item !== tip);
+  const grouped = new Set<string>();
+  for (const group of block.compositionGroups ?? []) {
+    if (group.kind !== 'grounded-synthesis') continue;
+    const members = remaining.filter(item => (group.dliKeys ?? []).some((key: string) => item.sourceUnitRefs.includes(`composer-unit-${block.blockId}-${key}`)) && !grouped.has(item.distinctInformationId));
+    if (!members.length) continue;
+    lines.push('', members.map(item => item.statement).join(' '));
+    members.forEach(item => grouped.add(item.distinctInformationId));
+  }
+  for (const item of remaining) if (!grouped.has(item.distinctInformationId)) lines.push('', item.statement);
+  for (const item of plainExamples) lines.push('', item.statement);
+  if (warning) lines.push('', '> [!warning] 易混淆', `> ${warning.statement}`);
+  if (concreteExamples.length) lines.push('', '> [!example] 课堂例子', ...concreteExamples.map(item => `> ${item.statement}`));
+  if (tip) lines.push('', '> [!tip] 学习/做题提示', `> ${tip.statement}`);
+  for (const warningText of warnings) lines.push('', `> 待确认：${warningText}`);
+  return {
+    text: lines.filter((line, index) => !(line === '' && lines[index - 1] === '')).join('\n').trim(),
+    enrichments: [], visibleWarnings: warnings, suppressedWarnings: [], duplicateExampleLabel: false,
+    renderedDliIds: dli.map(item => item.distinctInformationId), groundedSynthesis: [], discourseGlue: [], unsupportedClaims: [], reviewIntent
+  };
+}
 
 function renderCognitivePath(block: AnyRecord, sourceDli: ConsolidatedDli[], warnings: string[]): CompositionResult {
   const dliByRef = new Map(sourceDli.flatMap(item => item.sourceUnitRefs.map(ref => [ref, item] as const)));
@@ -794,6 +870,7 @@ function renderConsolidatedBlock(block: AnyRecord, adviceBlockIds: readonly stri
   const unresolved = ledger.dli.filter(item => item.blockId === block.blockId && item.renderDecision === 'WARNING');
   const visibleWarnings = unresolved.length ? ['本块有重要课堂信息受转写或公式风险影响，需回看原始材料。'] : [];
   const warnings = visibleWarnings.map(warning => `> 待确认：${warning}`);
+  if (config.compositionObjective === 'COGNITIVE_PATH_RECOVERY' && config.presentationMode === 'REVIEW_INTENT') return renderReviewIntentBlock(block, sourceDli, visibleWarnings);
   if (config.compositionObjective === 'COGNITIVE_PATH_RECOVERY') return renderCognitivePath(block, sourceDli, visibleWarnings);
   const example = { text: '', duplicateLabel: false };
   const suppressedWarnings = ledger.dli.filter(item => item.blockId === block.blockId && item.renderDecision === 'MACHINE_ONLY').map(item => item.distinctInformationId);
@@ -903,7 +980,7 @@ export function composeConsolidatedHumanNote(config: AnyRecord, repo: string): v
       dliCoverage: { produced: chapterDli.length, retained: chapterDli.filter(item => item.disposition === 'RETAIN').length, rendered: renderRecords.flatMap(record => record.renderedDliIds), unaccounted: chapterDli.filter(item => !renderRecords.flatMap(record => record.renderedDliIds).includes(item.distinctInformationId)).map(item => item.distinctInformationId), machineOnly: chapterDli.filter(item => item.disposition === 'MACHINE_ONLY').length, warnings: chapterDli.filter(item => item.disposition === 'WARNING').length },
       dli: chapterDli.map(item => ({ distinctInformationId: item.distinctInformationId, blockId: item.blockId, informationRole: item.informationRole, disposition: item.disposition, renderDecision: item.renderDecision, sourceUnitRefs: item.sourceUnitRefs, moduleRefs: item.moduleRefs, humanClaimRef: item.humanClaimRef, provenance: item.provenance, mergeGroup: item.mergeGroup, uncertainty: item.uncertainty })),
       enrichments: renderRecords.flatMap(record => record.enrichments),
-      composition: { objective: config.compositionObjective ?? 'CONCISE_DLI', groundedSynthesis: renderRecords.flatMap(record => record.groundedSynthesis), discourseGlue: renderRecords.flatMap(record => record.discourseGlue), unsupportedClaims: renderRecords.flatMap(record => record.unsupportedClaims), renderedDliIds: renderRecords.flatMap(record => record.renderedDliIds) },
+      composition: { objective: config.compositionObjective ?? 'CONCISE_DLI', presentationMode: config.presentationMode ?? null, reviewIntents: renderRecords.map(record => record.reviewIntent).filter(Boolean), groundedSynthesis: renderRecords.flatMap(record => record.groundedSynthesis), discourseGlue: renderRecords.flatMap(record => record.discourseGlue), unsupportedClaims: renderRecords.flatMap(record => record.unsupportedClaims), renderedDliIds: renderRecords.flatMap(record => record.renderedDliIds) },
       warningCount: renderRecords.reduce((sum, record) => sum + record.visibleWarnings.length, 0),
       contentFingerprint: { alg: 'sha256', value: hash(note) }
     });

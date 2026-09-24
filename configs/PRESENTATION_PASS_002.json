@@ -1,0 +1,31 @@
+{
+  "allowedPilotRoot": "D:\\ProgramData\\Learning-agent\\pilot-vault\\PRESENTATION_PASS_002",
+  "allowExternalPilotRoot": true,
+  "productionVaultRoots": [
+    "D:\\Basical App\\Work App\\Obsidian\\Obsidian Vault"
+  ],
+  "sources": [
+    "D:\\Basical App\\Tencent\\Chat\\Wechat\\Wechat files\\xwechat_files\\wxid_nx1352qo8qgp22_58bc\\msg\\file\\2026-09\\AI技术应用与诺贝尔奖讨论_实时转写.txt",
+    "D:\\Basical App\\Tencent\\Chat\\Wechat\\Wechat files\\xwechat_files\\wxid_nx1352qo8qgp22_58bc\\msg\\file\\2026-09\\图灵测试与神经网络发展探讨_实时转写.txt",
+    "D:\\Basical App\\Tencent\\Chat\\Wechat\\Wechat files\\xwechat_files\\wxid_nx1352qo8qgp22_58bc\\msg\\file\\2026-09\\贝叶斯网络与概率图模型讲解_实时转写.txt",
+    "D:\\Basical App\\Tencent\\Chat\\Wechat\\Wechat files\\xwechat_files\\wxid_nx1352qo8qgp22_58bc\\msg\\file\\2026-09\\梯度下降与优化算法讲解_实时转写.txt"
+  ],
+  "vaultContextFiles": [
+    "D:\\Basical App\\Work App\\Obsidian\\Obsidian Vault\\Mine\\learn\\AI\\学校课程\\人工智能导论\\人工智能导论 MOC.md",
+    "D:\\Basical App\\Work App\\Obsidian\\Obsidian Vault\\Mine\\learn\\AI\\学校课程\\人工智能导论\\AI导论917.md",
+    "D:\\Basical App\\Work App\\Obsidian\\Obsidian Vault\\Mine\\learn\\AI\\学校课程\\人工智能导论\\AI导论920.md",
+    "D:\\Basical App\\Work App\\Obsidian\\Obsidian Vault\\Mine\\learn\\AI\\学校课程\\人工智能导论\\人工智能发展史与关键突破.md",
+    "D:\\Basical App\\Work App\\Obsidian\\Obsidian Vault\\Mine\\learn\\AI\\学校课程\\人工智能导论\\人工智能能力与图灵测试.md",
+    "D:\\Basical App\\Work App\\Obsidian\\Obsidian Vault\\Mine\\learn\\AI\\学校课程\\人工智能导论\\AI技术路线与金融应用.md",
+    "D:\\Basical App\\Work App\\Obsidian\\Obsidian Vault\\Mine\\learn\\AI\\学校课程\\人工智能导论\\AI科学发现与AlphaFold.md",
+    "D:\\Basical App\\Work App\\Obsidian\\Obsidian Vault\\Mine\\learn\\AI\\学校课程\\人工智能导论\\概率图模型与贝叶斯网络\\概率图模型与贝叶斯网络.md",
+    "D:\\Basical App\\Work App\\Obsidian\\Obsidian Vault\\Mine\\learn\\程序学习\\编程语言\\python\\python learn\\py81-机器学习概述.md",
+    "D:\\Basical App\\Work App\\Obsidian\\Obsidian Vault\\Mine\\learn\\程序学习\\编程语言\\python\\python learn\\py88-神经网络.md",
+    "D:\\Basical App\\Work App\\Obsidian\\Obsidian Vault\\Mine\\learn\\程序学习\\编程语言\\python\\python learn\\py89-自然语言处理.md"
+  ],
+  "course": "人工智能导论",
+  "runName": "PRESENTATION_PASS_002",
+  "mode": "dry-run",
+  "automaticRepair": false,
+  "presentationMode": "REVIEW_INTENT"
+}
