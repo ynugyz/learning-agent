@@ -16,7 +16,14 @@ import {
   auditNoteBoundaries,
   auditScanability
 } from '../src/human-note-v2/structure-audits.ts';
-import { renderV22Example, selectV22Warnings, validateV22Enrichment } from '../src/human-note-v2/composer-v2-1.ts';
+import { renderV22Example, selectV22Warnings, validateV22Enrichment, semanticFeatureSet, semanticEquivalent, isPureExampleLabel } from '../src/human-note-v2/composer-v2-1.ts';
+
+assert.ok(semanticFeatureSet('命题是可判定真假的陈述句').has('proposition'));
+assert.ok(semanticFeatureSet('带做真值表判断练习').has('truthTable'));
+assert.ok(semanticFeatureSet('逻辑定律用于推理').has('lawInference'));
+assert.ok(semanticFeatureSet('完整的证明演示').has('proof'));
+assert.equal(semanticEquivalent('都在讲命题逻辑', '真值表把真假组合穷举出来', 'DETAIL', 'DETAIL'), false);
+assert.equal(isPureExampleLabel('例如：婴儿学步'), true);
 
 const basePlan = {
   orderedSections: [{ sectionId: 'self-test' }],

@@ -457,8 +457,9 @@ type ConsolidatedDli = {
   distinctInformationId: string;
   blockId: string;
   statement: string;
-  informationRole: 'CORE' | 'DETAIL' | 'EXAMPLE' | 'METHOD' | 'TEACHER_NOTE' | 'UNCERTAIN_ESSENTIAL';
+  informationRole: 'CORE' | 'DETAIL' | 'EXAMPLE' | 'METHOD' | 'TEACHER_NOTE';
   disposition: 'RETAIN' | 'MERGED' | 'MACHINE_ONLY' | 'OMITTED_WITH_REASON' | 'WARNING';
+  renderDecision: 'RETAIN' | 'MACHINE_ONLY' | 'WARNING';
   sourceUnitRefs: string[];
   moduleRefs: string[];
   humanClaimRef: string | null;
@@ -472,12 +473,20 @@ type ConsolidatedDli = {
 type ConsolidatedLedger = {
   prototype: true;
   notFormalSchema: true;
-  sourceUnitsInspected: number;
-  distinctLearningInformationProduced: number;
+  inspectedSourceUnits: number;
+  producedDli: number;
   dli: ConsolidatedDli[];
   records: AnyRecord[];
   retainedDli: string[];
-  mergedRepetitions: string[];
+  sourceUnitsMergedIntoDli: string[];
+  sourceUnitsMachineOnly: string[];
+  sourceUnitsWarningRelated: string[];
+  warningDli: string[];
+  machineOnlyDli: string[];
+  invalidSemanticMerges: AnyRecord[];
+  duplicateDli: string[];
+  sourceDerivedEmptyRefs: string[];
+  unaccountedDli: string[];
   machineOnly: string[];
   omittedWithReason: string[];
   warnings: string[];
@@ -488,17 +497,6 @@ type ConsolidatedLedger = {
 const CONSOLIDATED_DISPOSITIONS = new Set(['RETAIN', 'MERGED', 'MACHINE_ONLY', 'OMITTED_WITH_REASON', 'WARNING']);
 const CONSOLIDATED_LEARNING_TYPES = new Set(['claim', 'definition', 'explanation', 'example', 'worked-example', 'analogy', 'derivation', 'problem-solving-tip', 'opinion']);
 const CONSOLIDATED_RISK_TYPES = new Set(['asr-suspect', 'has-formula', 'needs-human-review', 'terminology-unstable', 'compression-loses-meaning']);
-
-function consolidatedTokens(text: string): Set<string> {
-  return new Set((text.toLowerCase().match(/[\p{Script=Han}]{2,}|[a-z][a-z0-9-]{1,}/gu) ?? []).filter(token => token.length > 1));
-}
-
-function consolidatedSimilarity(left: string, right: string): number {
-  const a = consolidatedTokens(left);
-  const b = consolidatedTokens(right);
-  if (!a.size || !b.size) return 0;
-  return [...a].filter(token => b.has(token)).length / Math.max(1, Math.min(a.size, b.size));
-}
 
 function consolidatedRole(unit: AnyRecord): ConsolidatedDli['informationRole'] {
   const contentType = unit.contentType ?? '';
@@ -523,31 +521,101 @@ function consolidatedRisk(unit: AnyRecord): string[] {
   return (unit.observations ?? []).map((observation: AnyRecord) => observation.observation).filter((value: string) => CONSOLIDATED_RISK_TYPES.has(value));
 }
 
-function consolidatedSeedDli(block: AnyRecord): ConsolidatedDli[] {
-  const seeds: ConsolidatedDli[] = [];
-  const add = (statement: string, role: ConsolidatedDli['informationRole'], index: number): void => {
-    if (!statement) return;
-    seeds.push({
-      distinctInformationId: `dli-${block.blockId}-${index}`,
-      blockId: block.blockId,
-      statement,
-      informationRole: role,
-      disposition: 'RETAIN',
-      sourceUnitRefs: [],
-      moduleRefs: [...(block.moduleRefs ?? [])],
-      humanClaimRef: `claim-${block.blockId}-${index}`,
-      provenance: 'SOURCE_DERIVED',
-      mergeGroup: `merge-${block.blockId}-${index}`,
-      omissionReason: null,
-      uncertainty: [],
-      render: true
-    });
+const CONSOLIDATED_RENDER_DECISIONS = new Set(['RETAIN', 'MACHINE_ONLY', 'WARNING']);
+
+/** A conservative feature vocabulary used only for the merge-loss invariant. */
+export function semanticFeatureSet(text: string): Set<string> {
+  const features = new Set<string>();
+  const groups: Record<string, RegExp> = {
+    proposition: /命题|陈述句|联结词|合取|析取|否定|蕴含|等价/u,
+    truthTable: /真值表|真假|判断练习|祈使句|疑问句|感叹句|悖论/u,
+    lawInference: /定律|推理|逆否|交换律|结合律|分配律|蕴含消除/u,
+    proof: /证明|演示|步骤|提取公因式/u,
+    definition: /定义|指的是|由.+构成|节点|实体|关系/u,
+    mechanism: /机制|方法|映射|路径|补全|分解|交互|反馈|学习/u,
+    limitation: /限制|不足|缺点|局限|无法|不能|上限|代价/u,
+    contrast: /冲突|矛盾|对比|相反|不同|取代/u,
+    combination: /组合|融合|叠加|借鉴|大一统|共同/u,
+    example: /例如|以.+为例|例子|类比|婴儿|苏格拉底|天气|洒水车|多云/u,
+    teacherAdvice: /建议|劝诫|应当|应该|提醒|学生/u,
+    condition: /条件|前提|给定|若.+则|概率/u
   };
-  let index = 1;
-  for (const statement of block.coreStatements ?? []) add(statement, 'CORE', index++);
-  for (const statement of block.supportingDetails ?? []) add(statement, 'DETAIL', index++);
-  for (const example of block.exampleRefs ?? []) add(`例如：${example}`, 'EXAMPLE', index++);
-  return seeds;
+  for (const [feature, pattern] of Object.entries(groups)) if (pattern.test(text)) features.add(feature);
+  return features;
+}
+
+function normalizeDliText(text: string): string {
+  return text.replace(/[“”"'「」『』：:，,。.!！?？；;、\s]/gu, '').toLowerCase();
+}
+
+export function isPureExampleLabel(text: string): boolean {
+  return /^(例如|例子|案例|类比)[:：]?\s*[^，。；;]{1,24}$/u.test(text.trim());
+}
+
+/** Same topic is deliberately insufficient: only exact claims or a pure example label may merge. */
+export function semanticEquivalent(left: string, right: string, leftRole?: ConsolidatedDli['informationRole'], rightRole?: ConsolidatedDli['informationRole']): boolean {
+  if (leftRole && rightRole && leftRole !== rightRole) return false;
+  const a = normalizeDliText(left);
+  const b = normalizeDliText(right);
+  if (a === b) return true;
+  if (isPureExampleLabel(left) || isPureExampleLabel(right)) {
+    const label = isPureExampleLabel(left) ? left : right;
+    const other = isPureExampleLabel(left) ? right : left;
+    const labelCore = label.replace(/^(例如|例子|案例|类比)[:：]?\s*/u, '').trim();
+    return labelCore.length > 1 && other.includes(labelCore);
+  }
+  return false;
+}
+
+function consolidatedCandidateStatement(unit: AnyRecord, role: ConsolidatedDli['informationRole']): string {
+  const text = consolidatedDliText(unit, role);
+  return text.replace(/^例如[:：]\s*/u, role === 'EXAMPLE' ? '例如：' : '').trim();
+}
+
+function sourceUnitModuleRefs(sourceUnitRef: string, modules: Map<string, AnyRecord>): string[] {
+  return [...modules.values()].filter(module => (module.sourceUnitRefs ?? []).includes(sourceUnitRef)).map(module => module.moduleId);
+}
+
+function dliRisk(unit: AnyRecord, moduleRefs: readonly string[], modules: Map<string, AnyRecord>): string[] {
+  const moduleRisk = moduleRefs.flatMap(moduleId => Object.entries(modules.get(moduleId)?.risk ?? {})
+    .filter(([, value]: [string, any]) => (value?.sourceUnitRefs ?? []).includes(unit.unitId))
+    .map(([risk]) => risk));
+  return [...new Set([...consolidatedRisk(unit), ...moduleRisk].filter(value => CONSOLIDATED_RISK_TYPES.has(value)))];
+}
+
+export function consolidatedRenderDecision(role: ConsolidatedDli['informationRole'], uncertainty: readonly string[]): ConsolidatedDli['renderDecision'] {
+  if (!uncertainty.length) return 'RETAIN';
+  if ((role === 'CORE' || role === 'METHOD') && uncertainty.some(risk => risk === 'needs-human-review' || risk === 'has-formula')) return 'WARNING';
+  return 'MACHINE_ONLY';
+}
+
+export function validateConsolidatedLedger(ledger: ConsolidatedLedger): string[] {
+  const violations: string[] = [];
+  violations.push(...ledger.invalidSemanticMerges.map(item => `INVALID_SEMANTIC_MERGE:${item.sourceUnitRef}`));
+  violations.push(...ledger.duplicateDli.map(id => `DUPLICATE_DLI:${id}`));
+  violations.push(...ledger.sourceDerivedEmptyRefs.map(id => `SOURCE_DERIVED_EMPTY_REFS:${id}`));
+  violations.push(...ledger.unaccountedDli.map(ref => `UNACCOUNTED_DLI:${ref}`));
+  for (const item of ledger.dli) {
+    if (!['CORE', 'DETAIL', 'EXAMPLE', 'METHOD', 'TEACHER_NOTE'].includes(item.informationRole)) violations.push(`INVALID_CONTENT_ROLE:${item.distinctInformationId}`);
+    if (!CONSOLIDATED_RENDER_DECISIONS.has(item.renderDecision)) violations.push(`INVALID_RENDER_DECISION:${item.distinctInformationId}`);
+    if (item.provenance === 'SOURCE_DERIVED' && item.sourceUnitRefs.length < 1) violations.push(`SOURCE_DERIVED_EMPTY_REFS:${item.distinctInformationId}`);
+  }
+  return [...new Set(violations)];
+}
+
+function dliBlockForUnit(unit: AnyRecord, blocks: AnyRecord[]): AnyRecord | null {
+  if (blocks.length < 2) return blocks[0] ?? null;
+  const summary = String(unit.summary ?? '');
+  const terms = unit.keyTerms ?? [];
+  const scored = blocks.map(block => {
+    const target = String(block.recallTarget ?? block.title ?? '');
+    const identifyingTerms = target.includes('马尔可夫') ? ['马尔可夫', '马可夫', '无向图', '状态转移']
+      : target.includes('贝叶斯') ? ['贝叶斯', '有向无环', '联合概率', '条件独立']
+      : [target];
+    return { block, score: identifyingTerms.reduce((score, term) => score + (summary.includes(term) ? 2 : 0) + (terms.some((value: string) => value.includes(term)) ? 1 : 0), 0) };
+  });
+  scored.sort((left, right) => right.score - left.score);
+  return scored[0]?.block ?? null;
 }
 
 function consolidatedBuildLedger(config: AnyRecord, plans: readonly AnyRecord[], lessonModel: AnyRecord, sourceMap: AnyRecord): ConsolidatedLedger {
@@ -555,122 +623,119 @@ function consolidatedBuildLedger(config: AnyRecord, plans: readonly AnyRecord[],
   const blockByModule = new Map<string, AnyRecord[]>();
   for (const block of blockList) for (const moduleRef of block.moduleRefs ?? []) blockByModule.set(moduleRef, [...(blockByModule.get(moduleRef) ?? []), block]);
   const nonBlock = config.nonBlockPresentation ?? {};
-  const pseudoSeeds = Object.entries(nonBlock).map(([moduleRef, item]: [string, any], index) => ({
-    distinctInformationId: `dli-nonblock-${index + 1}`,
-    blockId: `non-block-${moduleRef}`,
-    statement: item.text,
-    informationRole: item.kind === 'OPENING_WARNING' ? 'UNCERTAIN_ESSENTIAL' : 'CORE',
-    disposition: item.kind === 'OPENING_WARNING' ? 'WARNING' : 'RETAIN',
-    sourceUnitRefs: [],
-    moduleRefs: [moduleRef],
-    humanClaimRef: `claim-nonblock-${moduleRef}`,
-    provenance: 'SOURCE_DERIVED',
-    mergeGroup: `merge-nonblock-${moduleRef}`,
-    omissionReason: null,
-    uncertainty: item.kind === 'OPENING_WARNING' ? ['source-bound opening context'] : [],
-    render: item.kind !== 'OPENING_WARNING'
-  })) as ConsolidatedDli[];
-  const dli = [...pseudoSeeds];
+  const nonBlockModules = new Map(Object.entries(nonBlock));
+  const dli: ConsolidatedDli[] = [];
   const sourceRecords: AnyRecord[] = [];
   const modules = new Map((lessonModel.modules ?? []).map((module: AnyRecord) => [module.moduleId, module]));
   const sourceUnits = new Map((sourceMap.units ?? []).map((unit: AnyRecord) => [unit.unitId, unit]));
   const sourceRefs = [...new Set((lessonModel.modules ?? []).filter((module: AnyRecord) => module.kind === 'teaching').flatMap((module: AnyRecord) => module.sourceUnitRefs ?? []))];
-  const seedForBlock = new Map<string, ConsolidatedDli[]>();
-  for (const block of blockList) seedForBlock.set(block.blockId, consolidatedSeedDli(block));
-  for (const seeds of seedForBlock.values()) dli.push(...seeds);
-  const extraBySummary: { dli: ConsolidatedDli; summary: string }[] = [];
+  const candidatesByBlock = new Map<string, ConsolidatedDli[]>();
+  const invalidSemanticMerges: AnyRecord[] = [];
+  const duplicateDli: string[] = [];
+  const addCandidate = (candidate: ConsolidatedDli, unit: AnyRecord): ConsolidatedDli => {
+    const existing = (candidatesByBlock.get(candidate.blockId) ?? []).find(item => semanticEquivalent(item.statement, candidate.statement, item.informationRole, candidate.informationRole));
+    if (!existing) {
+      candidatesByBlock.set(candidate.blockId, [...(candidatesByBlock.get(candidate.blockId) ?? []), candidate]);
+      dli.push(candidate);
+      return candidate;
+    }
+    if (isPureExampleLabel(existing.statement) && !isPureExampleLabel(candidate.statement)) existing.statement = candidate.statement;
+    const sourceFeatures = semanticFeatureSet(candidate.statement);
+    const targetFeatures = semanticFeatureSet(existing.statement);
+    const missing = [...sourceFeatures].filter(feature => !targetFeatures.has(feature));
+    if (missing.length > 0) invalidSemanticMerges.push({ sourceUnitRef: unit.unitId, targetDli: existing.distinctInformationId, missingFeatures: missing, code: 'INVALID_SEMANTIC_MERGE' });
+    existing.sourceUnitRefs.push(...candidate.sourceUnitRefs.filter(ref => !existing.sourceUnitRefs.includes(ref)));
+    existing.moduleRefs.push(...candidate.moduleRefs.filter(ref => !existing.moduleRefs.includes(ref)));
+    existing.uncertainty = [...new Set([...existing.uncertainty, ...candidate.uncertainty])];
+    return existing;
+  };
   for (const sourceUnitRef of sourceRefs) {
     const unit = sourceUnits.get(sourceUnitRef);
     if (!unit) {
       sourceRecords.push({ sourceUnitRef, moduleRef: null, blockId: null, distinctInformationId: null, informationRole: null, disposition: 'OMITTED_WITH_REASON', humanClaimRef: null, provenance: 'SOURCE_DERIVED', mergeGroup: null, omissionReason: 'source unit reference missing from SourceMap', uncertainty: ['missing-source-unit'] });
       continue;
     }
-    const moduleRefs = [...modules.values()].filter(module => (module.sourceUnitRefs ?? []).includes(sourceUnitRef)).map(module => module.moduleId);
+    const moduleRefs = sourceUnitModuleRefs(sourceUnitRef, modules);
     const moduleRef = moduleRefs[0] ?? null;
     const candidateBlocks = moduleRefs.flatMap(moduleId => blockByModule.get(moduleId) ?? []);
     const uniqueBlocks = [...new Map(candidateBlocks.map(block => [block.blockId, block])).values()];
-    let block = uniqueBlocks[0] ?? null;
-    let bestSeed: ConsolidatedDli | undefined;
-    let bestScore = 0;
-    for (const candidateBlock of uniqueBlocks) {
-      const seeds = seedForBlock.get(candidateBlock.blockId) ?? [];
-      for (const seed of seeds) {
-        const keyTermScore = (unit.keyTerms ?? []).filter((term: string) => term.length > 1 && (seed.statement.includes(term) || (unit.summary ?? '').includes(term))).length;
-        const similarity = consolidatedSimilarity(unit.summary ?? '', seed.statement);
-        const score = keyTermScore + similarity;
-        if (score > bestScore) {
-          bestScore = score;
-          bestSeed = seed;
-          block = candidateBlock;
-        }
-      }
-    }
+    const block = dliBlockForUnit(unit, uniqueBlocks);
     const role = consolidatedRole(unit);
-    const moduleRisk = moduleRefs.flatMap(moduleId => Object.keys(modules.get(moduleId)?.risk ?? {}));
-    const uncertainty = [...new Set([...consolidatedRisk(unit), ...moduleRisk].filter(value => CONSOLIDATED_RISK_TYPES.has(value)))];
+    const uncertainty = dliRisk(unit, moduleRefs, modules);
     const learningType = CONSOLIDATED_LEARNING_TYPES.has(unit.contentType ?? '');
-    const pseudo = pseudoSeeds.find(seed => seed.moduleRefs.includes(moduleRef ?? ''));
+    const pseudo = moduleRef ? nonBlockModules.get(moduleRef) as AnyRecord | undefined : undefined;
     if (pseudo && !uniqueBlocks.length) {
-      pseudo.sourceUnitRefs.push(sourceUnitRef);
-      sourceRecords.push({ sourceUnitRef, moduleRef, blockId: pseudo.blockId, distinctInformationId: pseudo.distinctInformationId, informationRole: pseudo.informationRole, disposition: 'MERGED', humanClaimRef: pseudo.humanClaimRef, provenance: 'SOURCE_DERIVED', mergeGroup: pseudo.mergeGroup, omissionReason: 'retained in non-block chapter presentation', uncertainty });
+      const renderDecision = pseudo.kind === 'OPENING_WARNING' ? 'WARNING' : consolidatedRenderDecision(role, uncertainty);
+      const candidate: ConsolidatedDli = { distinctInformationId: `dli-source-${sourceUnitRef}`, blockId: `non-block-${moduleRef}`, statement: consolidatedCandidateStatement(unit, role), informationRole: role, disposition: renderDecision, renderDecision, sourceUnitRefs: [sourceUnitRef], moduleRefs, humanClaimRef: `claim-source-${sourceUnitRef}`, provenance: 'SOURCE_DERIVED', mergeGroup: `merge-source-${sourceUnitRef}`, omissionReason: renderDecision === 'RETAIN' ? null : 'non-block opening context or source risk retained in machine evidence', uncertainty, render: renderDecision === 'RETAIN' };
+      const retained = addCandidate(candidate, unit);
+      sourceRecords.push({ sourceUnitRef, moduleRef, blockId: candidate.blockId, distinctInformationId: retained.distinctInformationId, informationRole: retained.informationRole, disposition: retained.distinctInformationId === candidate.distinctInformationId ? candidate.disposition : 'MERGED', humanClaimRef: retained.humanClaimRef, provenance: 'SOURCE_DERIVED', mergeGroup: retained.mergeGroup, omissionReason: retained.distinctInformationId === candidate.distinctInformationId ? candidate.omissionReason : 'semantically equivalent source detail', uncertainty });
       continue;
     }
     if (!block) {
       sourceRecords.push({ sourceUnitRef, moduleRef, blockId: null, distinctInformationId: null, informationRole: role, disposition: 'MACHINE_ONLY', humanClaimRef: null, provenance: 'SOURCE_DERIVED', mergeGroup: null, omissionReason: 'teaching unit has no frozen block or non-block presentation', uncertainty });
       continue;
     }
-    if (bestSeed && bestScore >= 1) {
-      bestSeed.sourceUnitRefs.push(sourceUnitRef);
-      sourceRecords.push({ sourceUnitRef, moduleRef, blockId: bestSeed.blockId, distinctInformationId: bestSeed.distinctInformationId, informationRole: bestSeed.informationRole, disposition: 'MERGED', humanClaimRef: bestSeed.humanClaimRef, provenance: 'SOURCE_DERIVED', mergeGroup: bestSeed.mergeGroup, omissionReason: 'semantic equivalent retained in frozen recall-block content', uncertainty });
-      continue;
-    }
     if (!learningType || ['administrative', 'narration', 'data-point'].includes(unit.contentType ?? '')) {
       sourceRecords.push({ sourceUnitRef, moduleRef, blockId: block.blockId, distinctInformationId: null, informationRole: role, disposition: 'MACHINE_ONLY', humanClaimRef: null, provenance: 'SOURCE_DERIVED', mergeGroup: null, omissionReason: 'contextual or administrative source detail has no independent Human Note value', uncertainty });
       continue;
     }
-    const summary = unit.summary ?? '';
-    const previous = extraBySummary.find(item => consolidatedSimilarity(item.summary, summary) >= 0.78 || item.summary === summary);
-    if (previous) {
-      previous.dli.sourceUnitRefs.push(sourceUnitRef);
-      sourceRecords.push({ sourceUnitRef, moduleRef, blockId: previous.dli.blockId, distinctInformationId: previous.dli.distinctInformationId, informationRole: previous.dli.informationRole, disposition: 'MERGED', humanClaimRef: previous.dli.humanClaimRef, provenance: 'SOURCE_DERIVED', mergeGroup: previous.dli.mergeGroup, omissionReason: 'semantic duplicate of another source detail', uncertainty });
-      continue;
-    }
-    const highRisk = uncertainty.length > 0;
-    const retain = !highRisk;
+    const renderDecision = consolidatedRenderDecision(role, uncertainty);
     const dliEntry: ConsolidatedDli = {
       distinctInformationId: `dli-source-${sourceUnitRef}`,
       blockId: block.blockId,
-      statement: consolidatedDliText(unit, role),
-      informationRole: highRisk && !retain ? 'UNCERTAIN_ESSENTIAL' : role,
-      disposition: highRisk && !retain ? 'WARNING' : retain ? 'RETAIN' : 'MACHINE_ONLY',
+      statement: consolidatedCandidateStatement(unit, role),
+      informationRole: role,
+      disposition: renderDecision,
+      renderDecision,
       sourceUnitRefs: [sourceUnitRef],
-      moduleRefs: moduleRef ? [moduleRef] : [],
+      moduleRefs,
       humanClaimRef: `claim-source-${sourceUnitRef}`,
       provenance: 'SOURCE_DERIVED',
       mergeGroup: `merge-source-${sourceUnitRef}`,
-      omissionReason: highRisk && !retain ? 'important source detail remains too uncertain for safe prose' : retain ? null : 'source detail is not independently useful for Human Note',
+      omissionReason: renderDecision === 'RETAIN' ? null : 'source risk requires machine evidence or human review before safe prose',
       uncertainty,
-      render: retain
+      render: renderDecision === 'RETAIN'
     };
-    dli.push(dliEntry);
-    extraBySummary.push({ dli: dliEntry, summary });
-    sourceRecords.push({ sourceUnitRef, moduleRef, blockId: block.blockId, distinctInformationId: dliEntry.distinctInformationId, informationRole: dliEntry.informationRole, disposition: dliEntry.disposition, humanClaimRef: dliEntry.humanClaimRef, provenance: 'SOURCE_DERIVED', mergeGroup: dliEntry.mergeGroup, omissionReason: dliEntry.omissionReason, uncertainty });
+    const retained = addCandidate(dliEntry, unit);
+    const merged = retained.distinctInformationId !== dliEntry.distinctInformationId;
+    sourceRecords.push({ sourceUnitRef, moduleRef, blockId: block.blockId, distinctInformationId: retained.distinctInformationId, informationRole: retained.informationRole, disposition: merged ? 'MERGED' : dliEntry.disposition, humanClaimRef: retained.humanClaimRef, provenance: 'SOURCE_DERIVED', mergeGroup: retained.mergeGroup, omissionReason: merged ? 'semantic equivalent source detail' : dliEntry.omissionReason, uncertainty });
   }
-  const unaccounted = sourceRecords.filter(record => !CONSOLIDATED_DISPOSITIONS.has(record.disposition)).map(record => record.sourceUnitRef);
+  for (const record of sourceRecords) record.sourceUnitRefs = record.sourceUnitRef ? [record.sourceUnitRef] : [];
+  const dliByBlock = new Map<string, ConsolidatedDli[]>();
+  for (const item of dli) dliByBlock.set(item.blockId, [...(dliByBlock.get(item.blockId) ?? []), item]);
+  for (const [blockId, items] of dliByBlock.entries()) {
+    const seenStatements = new Set<string>();
+    for (const item of items) {
+      const key = normalizeDliText(item.statement);
+      if (seenStatements.has(key)) duplicateDli.push(item.distinctInformationId);
+      seenStatements.add(key);
+    }
+  }
+  const unaccounted = sourceRecords.filter(record => !CONSOLIDATED_DISPOSITIONS.has(record.disposition) || (record.provenance === 'SOURCE_DERIVED' && (!record.sourceUnitRef || !sourceUnits.has(record.sourceUnitRef)))).map(record => record.sourceUnitRef);
   const retained = dli.filter(item => item.disposition === 'RETAIN').map(item => item.distinctInformationId);
   const merged = sourceRecords.filter(record => record.disposition === 'MERGED').map(record => record.sourceUnitRef);
   const machineOnly = sourceRecords.filter(record => record.disposition === 'MACHINE_ONLY').map(record => record.sourceUnitRef);
   const omitted = sourceRecords.filter(record => record.disposition === 'OMITTED_WITH_REASON').map(record => record.sourceUnitRef);
   const warnings = dli.filter(item => item.disposition === 'WARNING').map(item => item.distinctInformationId);
+  const sourceDerivedEmptyRefs = dli.filter(item => item.provenance === 'SOURCE_DERIVED' && item.sourceUnitRefs.length === 0).map(item => item.distinctInformationId);
+  const warningRelated = sourceRecords.filter(record => (record.uncertainty ?? []).length > 0).map(record => record.sourceUnitRef);
   return {
     prototype: true,
     notFormalSchema: true,
-    sourceUnitsInspected: sourceRefs.length,
-    distinctLearningInformationProduced: dli.length,
+    inspectedSourceUnits: sourceRefs.length,
+    producedDli: dli.length,
     dli,
     records: sourceRecords,
     retainedDli: retained,
-    mergedRepetitions: merged,
+    sourceUnitsMergedIntoDli: merged,
+    sourceUnitsMachineOnly: machineOnly,
+    sourceUnitsWarningRelated: [...new Set(warningRelated)],
+    warningDli: warnings,
+    machineOnlyDli: dli.filter(item => item.disposition === 'MACHINE_ONLY').map(item => item.distinctInformationId),
+    invalidSemanticMerges,
+    duplicateDli,
+    sourceDerivedEmptyRefs,
+    unaccountedDli: unaccounted,
     machineOnly,
     omittedWithReason: omitted,
     warnings,
@@ -680,14 +745,19 @@ function consolidatedBuildLedger(config: AnyRecord, plans: readonly AnyRecord[],
 }
 
 function renderConsolidatedBlock(block: AnyRecord, adviceBlockIds: readonly string[], ledger: ConsolidatedLedger): { text: string; enrichments: AnyRecord[]; visibleWarnings: string[]; suppressedWarnings: string[]; duplicateExampleLabel: boolean } {
-  const extra = ledger.dli.filter(item => item.blockId === block.blockId && item.disposition === 'RETAIN' && !item.distinctInformationId.startsWith(`dli-${block.blockId}-`)).map(item => item.statement);
-  const unresolved = ledger.dli.filter(item => item.blockId === block.blockId && item.disposition === 'WARNING');
-  const selected = applyV22Enrichment({ ...block, supportingDetails: [...(block.supportingDetails ?? []), ...extra], warningRefs: [] });
-  const statements = [...selected.core, ...selected.supporting];
-  const visibleWarnings = unresolved.length ? ['本块有一项或多项课堂信息受转写风险影响，需回看原始材料。'] : [];
+  const sourceDli = ledger.dli.filter(item => item.blockId === block.blockId && item.renderDecision === 'RETAIN');
+  const core = sourceDli.filter(item => item.informationRole === 'CORE').map(item => item.statement);
+  const supporting = sourceDli.filter(item => item.informationRole !== 'CORE').map(item => item.statement);
+  // Existing prose is structural context only. Enrichment is considered after the source DLI set exists.
+  const needsMinimumDefinition = core.length === 0 && sourceDli.length > 0;
+  const selected = needsMinimumDefinition
+    ? applyV22Enrichment({ ...block, coreStatements: core, supportingDetails: supporting, moduleRefs: [...new Set(sourceDli.flatMap(item => item.sourceUnitRefs))] })
+    : { core, supporting, enrichments: [] as AnyRecord[] };
+  const unresolved = ledger.dli.filter(item => item.blockId === block.blockId && item.renderDecision === 'WARNING');
+  const visibleWarnings = unresolved.length ? ['本块有重要课堂信息受转写或公式风险影响，需回看原始材料。'] : [];
   const warnings = visibleWarnings.map(warning => `> 待确认：${warning}`);
-  const example = renderV22Example(block, statements);
-  const suppressedWarnings = (block.warningRefs ?? []).filter((warning: string) => !visibleWarnings.some(visible => visible.includes(warning)));
+  const example = { text: '', duplicateLabel: false };
+  const suppressedWarnings = ledger.dli.filter(item => item.blockId === block.blockId && item.renderDecision === 'MACHINE_ONLY').map(item => item.distinctInformationId);
   if (adviceBlockIds.includes(block.blockId)) {
     return { text: selected.core.concat(selected.supporting).map(statement => `- ${statement}`).concat(warnings).join('\n'), enrichments: selected.enrichments, visibleWarnings, suppressedWarnings, duplicateExampleLabel: example.duplicateLabel };
   }
@@ -701,6 +771,39 @@ function renderConsolidatedBlock(block: AnyRecord, adviceBlockIds: readonly stri
   if (example.text) lines.push('', example.text);
   if (warnings.length) lines.push('', ...warnings);
   return { text: lines.filter((line, index) => !(line === '' && lines[index - 1] === '')).join('\n').trim(), enrichments: selected.enrichments, visibleWarnings, suppressedWarnings, duplicateExampleLabel: example.duplicateLabel };
+}
+
+/** Refresh only the bottom-up ledger and its coverage audit; candidate notes are intentionally untouched. */
+export function refreshConsolidatedLedgerAndCoverage(config: AnyRecord, repo: string): void {
+  if (config.phaseAStatus !== 'FROZEN_FOR_REAL_CASE_001') throw new Error('PHASE_A_STRUCTURE_NOT_FROZEN');
+  const baselineRoot = config.baselineOutputDir ?? 'scratch/real-case-001/human-note-v2-1';
+  const outputRoot = config.outputDir ?? 'scratch/real-case-001/human-note-consolidated';
+  const boundaryPlan = v22ReadJson(repo, `${baselineRoot}/note-boundary-plan.json`);
+  const lessonModel = v22ReadJson(repo, config.lessonModelPath);
+  const sourceMap = v22ReadJson(repo, config.sourceMapPath);
+  const plans = (boundaryPlan.chapterCandidates ?? []).map((chapter: AnyRecord) => v22ReadJson(repo, `${baselineRoot}/block-plans/human-note-block-plan.${chapter.chapterId}.json`));
+  const ledger = consolidatedBuildLedger(config, plans, lessonModel, sourceMap);
+  const sourceCoverage = {
+    prototype: true,
+    notFormalSchema: true,
+    inspectedSourceUnits: ledger.inspectedSourceUnits,
+    sourceUnitsMergedIntoDli: ledger.sourceUnitsMergedIntoDli.length,
+    sourceUnitsMachineOnly: ledger.sourceUnitsMachineOnly.length,
+    sourceUnitsWarningRelated: ledger.sourceUnitsWarningRelated.length,
+    producedDli: ledger.producedDli,
+    retainedDli: ledger.retainedDli.length,
+    warningDli: ledger.warningDli.length,
+    machineOnlyDli: ledger.machineOnlyDli.length,
+    invalidSemanticMerges: ledger.invalidSemanticMerges.length,
+    duplicateDli: ledger.duplicateDli.length,
+    sourceDerivedEmptyRefs: ledger.sourceDerivedEmptyRefs.length,
+    unaccountedDli: ledger.unaccountedDli.length,
+    status: validateConsolidatedLedger(ledger).length ? 'FAIL' : 'PASS',
+    validationErrors: validateConsolidatedLedger(ledger)
+  };
+  writeJson(repo, `${outputRoot}/source-detail-ledger.json`, ledger);
+  writeJson(repo, `${outputRoot}/audits/INFORMATION_COVERAGE_AUDIT.json`, sourceCoverage);
+  console.log(JSON.stringify({ caseId: config.caseId, mode: 'consolidated-dli-ledger-only', sourceCoverage }, null, 2));
 }
 
 export function composeConsolidatedHumanNote(config: AnyRecord, repo: string): void {
@@ -755,7 +858,7 @@ export function composeConsolidatedHumanNote(config: AnyRecord, repo: string): v
       moduleRefs: [...new Set(blocks.flatMap((block: AnyRecord) => block.moduleRefs))],
       sourceUnitRefs: [...new Set(chapterDli.flatMap(item => item.sourceUnitRefs))],
       dliCoverage: { produced: chapterDli.length, retained: chapterDli.filter(item => item.disposition === 'RETAIN').length, machineOnly: chapterDli.filter(item => item.disposition === 'MACHINE_ONLY').length, warnings: chapterDli.filter(item => item.disposition === 'WARNING').length },
-      dli: chapterDli.map(item => ({ distinctInformationId: item.distinctInformationId, blockId: item.blockId, informationRole: item.informationRole, disposition: item.disposition, sourceUnitRefs: item.sourceUnitRefs, moduleRefs: item.moduleRefs, humanClaimRef: item.humanClaimRef, provenance: item.provenance, mergeGroup: item.mergeGroup, uncertainty: item.uncertainty })),
+      dli: chapterDli.map(item => ({ distinctInformationId: item.distinctInformationId, blockId: item.blockId, informationRole: item.informationRole, disposition: item.disposition, renderDecision: item.renderDecision, sourceUnitRefs: item.sourceUnitRefs, moduleRefs: item.moduleRefs, humanClaimRef: item.humanClaimRef, provenance: item.provenance, mergeGroup: item.mergeGroup, uncertainty: item.uncertainty })),
       enrichments: renderRecords.flatMap(record => record.enrichments),
       warningCount: renderRecords.reduce((sum, record) => sum + record.visibleWarnings.length, 0),
       contentFingerprint: { alg: 'sha256', value: hash(note) }
@@ -769,12 +872,12 @@ export function composeConsolidatedHumanNote(config: AnyRecord, repo: string): v
     const chapterWarnings = renderRecords.reduce((sum, record) => sum + record.visibleWarnings.length, 0);
     quality.push({ chapterId: chapter.chapterId, blockPreservation: { expected: expectedHeadings, actual: actualHeadings, status: JSON.stringify(expectedHeadings) === JSON.stringify(actualHeadings) ? 'PASS' : 'FAIL' }, canonicalEnrichmentCount: chapterEnrichments.length, humanVisibleWarningCount: chapterWarnings, duplicateExampleLabels: renderRecords.filter(record => record.duplicateExampleLabel).length, noteChars: note.length });
   }
-  const ledgerIntegrityViolations = ledger.dli.filter(item => !item.blockId || !item.distinctInformationId || !item.informationRole || !CONSOLIDATED_DISPOSITIONS.has(item.disposition)).map(item => item.distinctInformationId ?? 'missing-dli');
+  const ledgerIntegrityViolations = ledger.dli.filter(item => !item.blockId || !item.distinctInformationId || !item.informationRole || !CONSOLIDATED_DISPOSITIONS.has(item.disposition) || !CONSOLIDATED_RENDER_DECISIONS.has(item.renderDecision) || item.provenance === 'SOURCE_DERIVED' && item.sourceUnitRefs.length === 0).map(item => item.distinctInformationId ?? 'missing-dli');
   const enrichmentScopeViolations = allEnrichments.flatMap(enrichment => {
     const block = allBlocks.find(candidate => candidate.blockId === enrichment.targetBlockId);
     return block ? validateV22Enrichment(enrichment, block) : [`ENRICHMENT_BLOCK_MISSING:${enrichment.targetBlockId}`];
   });
-  const sourceCoverage = { sourceUnitsInspected: ledger.sourceUnitsInspected, distinctLearningInformationProduced: ledger.distinctLearningInformationProduced, retainedDli: ledger.retainedDli.length, mergedRepetitions: ledger.mergedRepetitions.length, machineOnlyInformation: ledger.machineOnly.length, omittedWithReason: ledger.omittedWithReason.length, warnings: ledger.warnings.length, unresolvedOrUnaccounted: ledger.unresolvedOrUnaccounted.length, unaccountedDistinctInformation: ledger.unaccountedDistinctInformation.length, status: ledger.unaccountedDistinctInformation.length ? 'FAIL' : 'PASS' };
+  const sourceCoverage = { inspectedSourceUnits: ledger.inspectedSourceUnits, sourceUnitsMergedIntoDli: ledger.sourceUnitsMergedIntoDli.length, sourceUnitsMachineOnly: ledger.sourceUnitsMachineOnly.length, sourceUnitsWarningRelated: ledger.sourceUnitsWarningRelated.length, producedDli: ledger.producedDli, retainedDli: ledger.retainedDli.length, warningDli: ledger.warningDli.length, machineOnlyDli: ledger.machineOnlyDli.length, invalidSemanticMerges: ledger.invalidSemanticMerges.length, duplicateDli: ledger.duplicateDli.length, sourceDerivedEmptyRefs: ledger.sourceDerivedEmptyRefs.length, unaccountedDli: ledger.unaccountedDli.length, status: validateConsolidatedLedger(ledger).length ? 'FAIL' : 'PASS', validationErrors: validateConsolidatedLedger(ledger) };
   const enrichments = ledger.dli.length ? quality.reduce((sum, item) => sum + item.canonicalEnrichmentCount, 0) : 0;
   const humanWarnings = quality.reduce((sum, item) => sum + item.humanVisibleWarningCount, 0);
   writeJson(repo, `${outputRoot}/source-detail-ledger.json`, ledger);
@@ -785,7 +888,7 @@ export function composeConsolidatedHumanNote(config: AnyRecord, repo: string): v
   const v22Candidates = fs.readdirSync(path.join(v22Root, 'candidate')).filter(file => file.endsWith('.md'));
   const v22Chars = v22Candidates.reduce((sum, file) => sum + fs.readFileSync(path.join(v22Root, 'candidate', file), 'utf8').length, 0);
   const consolidatedChars = candidates.reduce((sum, file) => sum + fs.readFileSync(path.resolve(repo, file), 'utf8').length, 0);
-  fs.writeFileSync(path.resolve(repo, outputRoot, 'audits', 'V2_2_CONSOLIDATED_COMPARISON.md'), `# REAL_CASE_001 v2.2 / Consolidated Composer Comparison\n\n| metric | v2.2 | consolidated |\n|---|---:|---:|\n| candidate chars | ${v22Chars} | ${consolidatedChars} |\n| source units inspected | not recorded | ${ledger.sourceUnitsInspected} |\n| distinct learning information | not recorded | ${ledger.distinctLearningInformationProduced} |\n| retained DLI | not recorded | ${ledger.retainedDli.length} |\n| merged repetitions | not recorded | ${ledger.mergedRepetitions.length} |\n| machine-only information | not recorded | ${ledger.machineOnly.length} |\n| omitted with reason | not recorded | ${ledger.omittedWithReason.length} |\n| canonical enrichment | 5 | ${enrichments} |\n| human-visible warnings | 6 | ${humanWarnings} |\n| unsupported additions | 0 | 0 |\n| unaccounted DLI | not recorded | ${ledger.unaccountedDistinctInformation.length} |\n\n结论：Consolidated Composer 先从 source evidence 建立 DLI ledger，再写入冻结 recall blocks；Source Unit 未被强制逐条写入 Human Note，语义重复进入 merge 记录，未能安全进入正文的内容保留 machine provenance。\n`, 'utf8');
+  fs.writeFileSync(path.resolve(repo, outputRoot, 'audits', 'V2_2_CONSOLIDATED_COMPARISON.md'), `# REAL_CASE_001 v2.2 / Consolidated Composer Comparison\n\n| metric | v2.2 | consolidated |\n|---|---:|---:|\n| candidate chars | ${v22Chars} | ${consolidatedChars} |\n| source units inspected | not recorded | ${ledger.inspectedSourceUnits} |\n| produced DLI | not recorded | ${ledger.producedDli} |\n| retained DLI | not recorded | ${ledger.retainedDli.length} |\n| source units merged into DLI | not recorded | ${ledger.sourceUnitsMergedIntoDli.length} |\n| machine-only DLI | not recorded | ${ledger.machineOnlyDli.length} |\n| omitted with reason | not recorded | ${ledger.omittedWithReason.length} |\n| canonical enrichment | 5 | ${enrichments} |\n| human-visible warnings | 6 | ${humanWarnings} |\n| unsupported additions | 0 | 0 |\n| unaccounted DLI | not recorded | ${ledger.unaccountedDli.length} |\n\n结论：Consolidated Composer 先从 source evidence 建立 DLI ledger，再写入冻结 recall blocks；Source Unit 只有在语义等价时合并，未能安全进入正文的内容保留 machine provenance。\n`, 'utf8');
   writeJson(repo, `${outputRoot}/audits/HUMAN_NOTE_QUALITY_AUDIT.json`, { status: 'READY_FOR_HUMAN_REVIEW', phase: 'B_COMPOSER_CONSOLIDATED_DLI', phaseAStatus: config.phaseAStatus, automaticRepair: 'DISABLED', productionVaultWrite: false, chapterBoundary: { status: 'FROZEN', chapterCount: boundaryPlan.chapterCandidates.length }, blockCount: allBlocks.length, informationCoverage: sourceCoverage, canonicalEnrichmentCount: enrichments, enrichmentScopeViolations, newRecallTargetIntroducedByEnrichment: allEnrichments.filter(enrichment => enrichment.introducesNewRecallTarget === true).length, humanVisibleWarningCount: humanWarnings, warningSuppressedCount: ledger.machineOnly.length + ledger.omittedWithReason.length, unsupportedAdditions: { candidates: [], status: 'PASS' }, candidates: quality, humanGate: 'REQUIRED' });
   writeJson(repo, `${outputRoot}/composer-manifest.json`, { prototype: true, phase: 'B_COMPOSER_CONSOLIDATED_DLI', baselineRoot, outputRoot, candidatePaths: candidates, sidecarPaths: sidecars, sourceDetailLedger: `${outputRoot}/source-detail-ledger.json`, blockCount: allBlocks.length, sourceCoverage, canonicalEnrichmentCount: enrichments, humanVisibleWarningCount: humanWarnings, automaticRepair: 'DISABLED', productionVaultWrite: false, status: 'READY_FOR_HUMAN_REVIEW' });
   console.log(JSON.stringify({ caseId: config.caseId, status: 'READY_FOR_HUMAN_REVIEW', phase: 'B_COMPOSER_CONSOLIDATED_DLI', candidatePaths: candidates, sidecarPaths: sidecars, sourceDetailLedger: `${outputRoot}/source-detail-ledger.json`, sourceCoverage, canonicalEnrichmentCount: enrichments, humanVisibleWarningCount: humanWarnings }, null, 2));
