@@ -10,7 +10,9 @@ human-readable Obsidian notes.
 **Milestone M0 — Repository Bootstrap (active).**
 
 This repository is a skeleton and a set of internal protocols, not a working
-product. Nothing here reads, writes or understands learning material yet.
+product. The temporary pilot-safe boundary can read explicitly listed source
+materials and write isolated candidate files; the learning pipeline itself is
+not implemented.
 See [AGENTS.md](AGENTS.md) for the full development protocol and
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the intended design.
 
@@ -102,6 +104,19 @@ files parse as JSON, guards the core↔runtime dependency boundary, and **runs
 the executable contract verification**: `tsc --noEmit` plus 84 JSON Schema
 fixture assertions. See [tools/README.md](tools/README.md).
 
+## Temporary pilot-safe note trial
+
+For a real classroom-note trial, use the isolated `pilot-vault` boundary:
+
+```powershell
+npm run pilot:note -- --config <pilot-config.json>
+```
+
+The command supports `dry-run` and `commit` configs, writes only new candidate
+`.md`/`.json` files under the pilot vault, and keeps a local run manifest. It
+does not modify the production Vault or Human Note Composer semantics. See
+[docs/PILOT_SAFE_MODE.md](docs/PILOT_SAFE_MODE.md).
+
 ## Contract verification
 
 The four M1A contracts are checked as machine-readable artefacts, not only as
@@ -114,7 +129,7 @@ node tools/contract-tests.mjs        # 4 valid + 75 invalid fixtures, Ajv
 
 Evidence and honest limits: [M1A_EXECUTABLE_VERIFICATION.md](docs/reviews/M1A_EXECUTABLE_VERIFICATION.md).
 Cross-artifact reference integrity is **not** covered — JSON Schema validates
-one document at a time — and no implementation exists yet.
+one document at a time — and no product pipeline implementation exists yet.
 
 ## Safety boundaries
 

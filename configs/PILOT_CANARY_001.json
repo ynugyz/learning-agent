@@ -1,0 +1,10 @@
+{
+  "allowedPilotRoot": "D:\\ProgramData\\Learning-agent\\pilot-vault",
+  "sources": [
+    "D:\\Basical App\\Tencent\\Chat\\Wechat\\Wechat files\\xwechat_files\\wxid_nx1352qo8qgp22_58bc\\msg\\file\\2026-09\\贝叶斯网络与概率图模型讲解_实时转写.txt"
+  ],
+  "course": "人工智能导论",
+  "runName": "PILOT_CANARY_001",
+  "composerConfig": "real-case-001-human-note-consolidated.json",
+  "mode": "dry-run"
+}

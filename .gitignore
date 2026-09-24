@@ -60,6 +60,11 @@ test-vault/*
 !test-vault/.learning-agent
 !test-vault/.gitkeep
 
+# --- Temporary personal pilot vault --------------------------
+# Real classroom notes and pilot manifests are local-only and must never be
+# committed with the repository.
+pilot-vault/*
+
 # --- OS / editor noise ---------------------------------------
 .DS_Store
 Thumbs.db

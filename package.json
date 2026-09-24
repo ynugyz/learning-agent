@@ -14,6 +14,10 @@
     "test:contracts": "node tools/contract-tests.mjs",
     "test:human-note-v2": "node --experimental-strip-types tests/human-note-v2.test.mjs",
     "test:human-note-structure": "node --experimental-strip-types tests/human-note-v2.test.mjs",
+    "test:pilot-safe": "node tests/pilot-safe.test.mjs",
+    "test:pilot-adapter": "node --experimental-strip-types tests/pilot-adapter.integration.test.mjs",
+    "test": "npm run test:contracts && npm run test:human-note-v2 && npm run test:pilot-safe && npm run test:pilot-adapter",
+    "pilot:note": "node --experimental-strip-types tools/pilot-note.mjs",
     "check": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/check.ps1"
   },
   "dependencies": {},

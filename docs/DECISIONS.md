@@ -405,6 +405,24 @@ contract. Fields are expected to change; see D-0007.
 
 ---
 
+### D-0017 — Temporary pilot-safe mode is a write boundary, not a semantic layer
+- Date: 2026-09-24
+- Status: proposed
+- Decision: Add a standalone `pilot-safe` executor and `pilot:note` command for
+  dry-run and commit trials. It may read explicitly listed source materials,
+  but all candidate writes stay under the independent `pilot-vault`; existing
+  final paths are never modified. The executor does not alter SourceMap, DLI,
+  Composer or architecture semantics.
+- Rationale: Real personal classroom notes need a reversible trial boundary
+  before any production integration. A preflight plan, strict path containment,
+  byte/file limits and an abort manifest make the boundary inspectable.
+- Alternatives considered: modifying Composer write calls directly — rejected
+  because it would couple a temporary safety concern to semantic logic; allowing
+  production Vault paths — rejected by the repository safety protocol.
+- Consequences: Pilot commits create only candidate Markdown/JSON and a local
+  run manifest. The mode is temporary and must not be treated as production
+  Vault integration.
+
 ## Template for new decisions
 
 ```
