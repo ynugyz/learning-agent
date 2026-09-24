@@ -115,7 +115,7 @@ const chapters = [
     sourceIds: ['src-nobel', 'src-turing'],
     blocks: [
       { id: 'ch1-b1', title: '从智能概念到可评价任务', role: 'CORE', recallTarget: '人工智能对象与任务边界', sourceIds: ['src-turing', 'src-nobel'], terms: ['人工智能', '智能', '能力'], core: ['人工智能是以机器为载体实现某些类人或生物智能能力的工程与研究方向；课程中的“智能”必须落到具体任务、输入、输出和评价条件。', '推理、学习、感知、交流、行动与安全约束可以分别评价，流畅对话不能替代所有任务上的可靠性。'], details: ['课堂把技术思维和领域问题定义放在课程入口，金融、科学研究等应用都需要先说明目标与验证方法。'], examples: ['金融分析与科学发现是应用场景示例，不由工具能力直接推出盈利或医学结论。'], warnings: ['转写含 AI 生成声明、说话人错配和现场噪声；本章只保留可由多份课堂证据交叉支持的边界。'] },
-      { id: 'ch1-b2', title: '路线、历史与关键突破', role: 'CONCEPT', recallTarget: '符号、连接与行为路线如何组合', sourceIds: ['src-turing', 'src-nobel'], terms: ['符号', '专家系统', '神经网络', '深度学习', '2012'], core: ['符号主义强调显式知识、规则与推理；连接主义从数据中学习表示；行为主义通过环境交互和反馈学习行动。', '路线长期并行，关键突破来自表示、算法、数据与算力的组合，不能写成前一条路线被后一条路线彻底取代。'], details: ['课堂从专家系统的规则瓶颈谈到神经网络在图像任务中的突破，并把 LeNet、2012 年图像竞赛等作为“解决了什么问题”的案例线索。'], examples: ['XOR、手写数字识别和神经网络图像竞赛是表达能力与工程条件的课堂例子。'], warnings: ['人名、年份和硬件细节以转写中的线索为限；精确历史锚点保留到机器 provenance，不扩写未经本轮四份证据确认的说法。'] },
+      { id: 'ch1-b2', title: '路线、历史与关键突破', role: 'CONCEPT', recallTarget: '符号、连接与行为路线如何组合', sourceIds: ['src-turing', 'src-nobel'], terms: ['符号', '专家系统', '神经网络', '深度学习', '2012'], core: ['符号主义强调显式知识、规则与推理。', '连接主义从数据中学习表示。', '行为主义通过环境交互和反馈学习行动。'], details: ['专家系统把领域知识提炼成规则；当规则覆盖不到新知识时，知识获取和维护会成为瓶颈。', '从规则提炼转向数据表示，课堂把连接主义放在另一种知识形成路径上。', '早期神经网络能够表达某些能力，但受算力限制，复杂任务难以扩展。', '机器学习模型与神经网络在图像任务中竞争，转写以 2012 年图像竞赛作为深度学习扩张线索。'], examples: ['LeNet 与手写数字识别用于说明神经网络如何进入具体图像任务。'], compositionGroups: [{ kind: 'discourse-glue', text: '课堂先把实现方式拆成三个着力点。', dliKeys: ['core-1', 'core-2', 'core-3'] }, { kind: 'grounded-synthesis', text: '三个着力点的差别在于知识如何被写出、表示如何形成、行动如何在反馈中调整。', dliKeys: ['core-1', 'core-2', 'core-3'] }, { kind: 'grounded-synthesis', text: '规则覆盖的限制把课堂推进到从数据学习表示的路线。', dliKeys: ['detail-1', 'detail-2'] }, { kind: 'grounded-synthesis', text: '神经网络的潜力又受到计算条件影响，图像任务中的竞争构成后续转折线索。', dliKeys: ['detail-3', 'detail-4'] }, { kind: 'discourse-glue', text: '这些例子用于说明路线解决了什么问题，而不是列出模型名称。', dliKeys: ['detail-4', 'example-1'] }], warnings: ['人名、年份和硬件细节以转写中的线索为限；精确历史锚点保留到机器 provenance，不扩写未经本轮四份证据确认的说法。'] },
       { id: 'ch1-b3', title: '图灵测试及其边界', role: 'BOUNDARY', recallTarget: '交互表现不等于通用智能', sourceIds: ['src-turing'], terms: ['图灵测试', '询问者', '机器'], core: ['图灵测试把“机器能否思考”的问题转成特定条件下的可观察文字交互表现。', '测试结果不能直接证明意识、内在理解、事实正确性、伦理可靠性或所有任务上的能力。'], details: ['评价时应明确参与者、通道、时长、判定标准和统计条件；不同任务应使用对应的泛化与失败案例检查。'], examples: ['会话表现好但图像分类失败的系统，或不会聊天但在特定分类任务上可靠的系统，都说明单一测试不能覆盖全部能力。'], warnings: ['课堂中“没有任何 AI 通过”属于待核查的绝对表述，本候选不把它写成事实。'] },
       { id: 'ch1-b4', title: '应用与科学发现的验证链', role: 'EXAMPLE', recallTarget: '应用结果必须回到任务与验证', sourceIds: ['src-nobel'], terms: ['AlphaFold', '诺贝尔', '金融', '科学'], core: ['AlphaGo 的决策任务和 AlphaFold 的蛋白质结构预测任务不同；科学应用的价值要通过问题定义、可信度检查、假设提出和实验验证来判断。'], details: ['2024 年奖项讨论用于说明神经网络基础工作与蛋白质研究受到科学认可，不能写成某个产品或模型“获得诺贝尔奖”。'], examples: ['结构预测可以帮助提出可检验的研究假设，但不能直接推出药物安全有效。'], warnings: ['转写中的具体医学效果、商业叙述和奖项细节只作为来源边界记录，需按正式来源另行核查。'] }
     ]
@@ -130,7 +130,7 @@ const chapters = [
     blocks: [
       { id: 'ch2-b1', title: '从问题到表示层次', role: 'ROADMAP', recallTarget: '表示方式服务于任务', sourceIds: ['src-bayes', 'src-gradient'], terms: ['知识', '表示', '规则', 'Token'], core: ['知识表示要回答“对象、关系和不确定性如何被机器处理”，表示方式应由任务和可检验目标决定。', '命题/谓词逻辑、知识图谱、概率图模型与 Token/Embedding 处在不同表示层次，不能合并成一个概念。'], details: ['课堂用规则、图结构和向量表示串起从显式知识到学习表示的过渡。'], examples: ['“昆明是云南省会”可作为确定事实或图谱三元组；文本模型则先把输入转为 Token 和向量表示。'], warnings: ['关于某个表示一定减少 token 或一定更准确的口述不作为普遍结论。'] },
       { id: 'ch2-b2', title: '逻辑与知识图谱', role: 'CONCEPT', recallTarget: '确定关系的显式表达', sourceIds: ['src-bayes'], terms: ['命题逻辑', '谓词逻辑', '知识图谱'], core: ['命题逻辑处理真假命题；谓词逻辑增加个体、谓词和量词以表达对象之间的关系。', '知识图谱以实体—关系—实体组织显式知识，适合路径推理和关系检索。'], details: ['“所有人都会死；苏格拉底是人；所以苏格拉底会死”说明谓词和量词提供了命题逻辑缺少的关系表达能力。'], examples: ['三元组 `<实体1，关系，实体2>` 是课堂用来理解知识图谱的最小结构。'], warnings: ['图谱是否提升具体系统效果取决于数据、检索、模型和评估条件。'] },
-      { id: 'ch2-b3', title: '概率图与贝叶斯网络', role: 'CORE', recallTarget: '用条件独立拆解不确定性', sourceIds: ['src-bayes'], terms: ['概率图', '贝叶斯', '条件独立', '有向无环'], core: ['概率图模型用图表示随机变量及其依赖关系；贝叶斯网络是有向无环图形式，马尔可夫网络使用无向图。', '条件独立允许把联合概率分解为多个条件概率的乘积，从证据出发更新目标变量的概率。'], details: ['边表示依赖结构，不自动等于因果关系；作因果解释还需要额外假设、设计和数据。'], examples: ['多云、下雨、洒水车与路面湿构成最小例子：观察路面湿后可更新下雨的可能性，知道洒水车已开又会改变后验判断。'], warnings: ['本轮转写没有完整数值题和后验计算；保留“待补题”状态，不补写假数据。'] },
+      { id: 'ch2-b3', title: '概率图与贝叶斯网络', role: 'CORE', recallTarget: '用条件独立拆解不确定性', sourceIds: ['src-bayes'], terms: ['概率图', '贝叶斯', '条件独立', '有向无环'], core: ['概率图模型用图表示随机变量及其依赖关系。', '贝叶斯网络是有向无环图形式；马尔可夫网络使用无向图。'], details: ['边表示依赖结构，不自动等于因果关系。', '条件独立允许把联合概率分解为多个条件概率的乘积，并据证据更新目标变量的概率。'], examples: ['多云、下雨、洒水车与路面湿构成最小例子：观察路面湿后可以更新下雨的可能性，知道洒水车已开又会改变后验判断。'], compositionGroups: [{ kind: 'discourse-glue', text: '课堂先把图结构和不确定性放在同一个表示问题中。', dliKeys: ['core-1', 'core-2'] }, { kind: 'grounded-synthesis', text: '有向与无向结构的区别决定了课堂先如何描述依赖。', dliKeys: ['core-1', 'core-2'] }, { kind: 'grounded-synthesis', text: '在这种结构上，条件独立把复杂联合概率拆成可计算的条件概率。', dliKeys: ['detail-1', 'detail-2'] }, { kind: 'discourse-glue', text: '天气与路面的例子把这个机制落到观察证据如何改变判断。', dliKeys: ['detail-2', 'example-1'] }], warnings: ['本轮转写没有完整数值题和后验计算；保留“待补题”状态，不补写假数据。'] },
       { id: 'ch2-b4', title: '因果与概率的边界', role: 'BOUNDARY', recallTarget: '相关结构不能自动升级为因果结论', sourceIds: ['src-bayes', 'src-gradient'], terms: ['因果', '相关', '条件'], core: ['概率依赖可以支持基于证据的更新，但“有边”与“有因果作用”不是同一个命题。', '因果判断需要明确干预、混杂、时间顺序和验证方式。'], details: ['梯度课堂把因果问题与数据、模型和风险联系起来，提醒学习结果要回到可检查的任务条件。'], examples: ['同一观测结果可能由下雨或洒水车造成，不能仅凭路面湿就断定单一原因。'], warnings: ['转写中的复杂因果例子与 Simpson 悖论只保留为待复习线索。'] }
     ]
   },
@@ -144,7 +144,7 @@ const chapters = [
     blocks: [
       { id: 'ch3-b1', title: '机器学习是寻找任务函数', role: 'CORE', recallTarget: '数据、模型与任务函数', sourceIds: ['src-gradient'], terms: ['机器学习', '函数', '模型', '数据'], core: ['机器学习把输入映射到任务输出，训练过程是在假设空间中寻找满足目标的函数或模型。', '模型选择不能脱离数据、任务指标、风险和结果检查。'], details: ['课堂用“学习—考试—再验证”类比训练集、验证集和新数据上的表现。'], examples: ['预测、生成、决策与执行是不同产物，金融场景需要分别规定数据、时间基准和风险。'], warnings: ['转写末段噪声较多，未把课堂口头类比扩写成正式定理。'] },
       { id: 'ch3-b2', title: '训练、验证与测试', role: 'METHOD', recallTarget: '泛化评估与数据分工', sourceIds: ['src-gradient'], terms: ['训练', '验证', '测试', '过拟合'], core: ['训练集用于拟合，验证集用于模型选择和早停，测试集用于最终泛化评估，不能反复用测试集调参。', '只看训练表现不能说明新情境下的可靠性，需检查欠拟合、过拟合和数据泄漏。'], details: ['验证集像新的考试，性能不再改善时应停止或调整策略；最终测试应保持独立。'], examples: ['同来源或重复文本跨集合会造成泄漏，评估结果需要注明数据边界。'], warnings: ['本轮只记录课堂方法，不自动进行质量修复或重跑。'] },
-      { id: 'ch3-b3', title: '经验风险与梯度下降', role: 'METHOD', recallTarget: '在假设空间中优化风险', sourceIds: ['src-gradient'], terms: ['经验风险', '梯度', '优化', '凸'], core: ['优化算法在给定目标函数和假设空间中寻找较优模型；梯度下降利用局部变化方向迭代更新参数。', '凸函数提供较清晰的全局最优直觉，但实际模型和损失未必满足简单凸性。'], details: ['课堂把模型、评价准则和更新过程连接为循环：定义目标、计算误差、根据梯度更新、在新数据上复核。'], examples: ['学习率、初始化、批次和停止条件会影响优化轨迹；这些是方法参数，不是知识结论。'], warnings: ['不从转写口头示意图推导未出现的公式或数值。'] },
+      { id: 'ch3-b3', title: '经验风险与梯度下降', role: 'METHOD', recallTarget: '在假设空间中优化风险', sourceIds: ['src-gradient'], terms: ['经验风险', '梯度', '优化', '凸'], core: ['优化算法在给定目标函数和假设空间中寻找较优模型。', '梯度下降利用局部变化方向迭代更新参数。'], details: ['模型、评价准则和更新过程连接成循环：定义目标、计算误差、更新参数，再在新数据上复核。', '凸函数提供较清晰的全局最优直觉，但实际模型和损失未必满足简单凸性。', '学习率、初始化、批次和停止条件会影响优化轨迹。'], examples: ['训练、验证与测试的分工说明了为什么更新后还要在新的数据上复核。'], compositionGroups: [{ kind: 'discourse-glue', text: '梯度下降这一 block 先把“要找什么”与“怎样更新”分开。', dliKeys: ['core-1', 'core-2'] }, { kind: 'grounded-synthesis', text: '目标函数和假设空间规定优化对象，梯度提供参数更新方向。', dliKeys: ['core-1', 'core-2'] }, { kind: 'grounded-synthesis', text: '更新不是一次完成的，而是进入计算误差、更新参数、再检查的循环。', dliKeys: ['detail-1', 'example-1'] }, { kind: 'discourse-glue', text: '凸性与学习率等内容用于说明优化为什么可能顺利，也可能受条件影响。', dliKeys: ['detail-2', 'detail-3'] }], warnings: ['不从转写口头示意图推导未出现的公式或数值。'] },
       { id: 'ch3-b4', title: '神经网络的表示与训练', role: 'CONCEPT', recallTarget: '非线性表示与反向传播', sourceIds: ['src-turing', 'src-gradient'], terms: ['神经网络', 'XOR', '反向传播', 'LeNet'], core: ['单个线性阈值单元不能表示 XOR，不等于多层神经网络不能表达；非线性层和反向传播使表示学习成为可训练过程。', '神经网络的工程突破依赖表示、算法、数据与算力的共同作用。'], details: ['LeNet 手写数字识别、图像竞赛和残差网络作为“表达能力/训练/工程条件”的课堂线索保留。'], examples: ['XOR 是说明线性分隔限制的最小例子，不在本轮补写数学证明。'], warnings: ['人名、年份和竞赛数字只按已有来源边界保留，未核查的细节进入 machine artifact。'] }
     ]
   }
@@ -169,28 +169,31 @@ function buildUnits(sources) {
   return units;
 }
 
+function dliItemsForBlock(block) {
+  return [
+    ...(block.core ?? []).map((summary, index) => ({ key: `core-${index + 1}`, summary, contentType: 'definition', informationRole: 'CORE' })),
+    ...(block.details ?? []).map((summary, index) => ({ key: `detail-${index + 1}`, summary, contentType: 'explanation', informationRole: 'DETAIL' })),
+    ...(block.examples ?? []).map((summary, index) => ({ key: `example-${index + 1}`, summary, contentType: 'example', informationRole: 'EXAMPLE' }))
+  ];
+}
+
 function buildArtifacts(sources, contexts, mode) {
   const units = buildUnits(sources);
   const allBlocks = chapters.flatMap(chapter => chapter.blocks);
-  const dli = allBlocks.map((block, index) => {
-    const sourceUnitRefs = block.sourceIds.map(sourceId => `unit-${sourceId}-scope`);
-    return {
-      distinctInformationId: `dli-course-rebuild-${String(index + 1).padStart(3, '0')}`,
-      blockId: block.id,
-      statement: block.core[0],
-      informationRole: block.role === 'METHOD' ? 'METHOD' : block.role === 'EXAMPLE' ? 'EXAMPLE' : block.role === 'BOUNDARY' ? 'DETAIL' : 'CORE',
-      disposition: 'RETAIN',
-      renderDecision: 'RETAIN',
-      sourceUnitRefs,
-      sourceIds: block.sourceIds,
-      provenance: 'SOURCE_DERIVED',
-      mergeGroup: `merge-${block.id}`,
-      uncertainty: block.warnings.length ? ['source-boundary-recorded'] : [],
-      detailRefs: block.details,
-      exampleRefs: block.examples,
-      warningRefs: block.warnings
-    };
-  });
+  const dli = allBlocks.flatMap(block => dliItemsForBlock(block).map(item => ({
+    distinctInformationId: `dli-course-rebuild-${block.id}-${item.key}`,
+    blockId: block.id,
+    statement: item.summary,
+    informationRole: item.informationRole,
+    disposition: 'RETAIN',
+    renderDecision: 'RETAIN',
+    sourceUnitRefs: block.sourceIds.map(sourceId => `unit-${sourceId}-scope`),
+    sourceIds: block.sourceIds,
+    provenance: 'SOURCE_DERIVED',
+    mergeGroup: `merge-${block.id}`,
+    uncertainty: block.warnings.length ? ['source-boundary-recorded'] : [],
+    compositionKey: item.key
+  })));
   const sourceMap = {
     prototype: true,
     notFormalSchema: true,
@@ -314,40 +317,42 @@ function writeJsonFile(file, value) {
   fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 }
 
-function ephemeralComposerInputs(tempRoot, sources) {
+function ephemeralComposerInputs(tempRoot, sources, chapterSet = chapters) {
   const units = [];
-  const modules = chapters.map(chapter => ({
+  const modules = chapterSet.map(chapter => ({
     moduleId: chapter.id,
     kind: 'teaching',
     title: chapter.title,
     sourceUnitRefs: [],
     risk: {}
   }));
-  for (const chapter of chapters) {
+  for (const chapter of chapterSet) {
     const module = modules.find(item => item.moduleId === chapter.id);
     for (const block of chapter.blocks) {
-      const unitId = `composer-unit-${block.id}`;
-      const sourceId = block.sourceIds[0];
-      units.push({ unitId, sourceId, contentType: block.role === 'METHOD' ? 'problem-solving-tip' : block.role === 'EXAMPLE' ? 'example' : 'definition', summary: `${block.recallTarget}：${block.core[0]}`, keyTerms: block.terms, observations: [], locator: { kind: 'line-range', start: '1', end: String(sources.find(source => source.sourceId === sourceId)?.lineCount ?? 1) } });
-      module.sourceUnitRefs.push(unitId);
+      for (const item of dliItemsForBlock(block)) {
+        const unitId = `composer-unit-${block.id}-${item.key}`;
+        const sourceId = block.sourceIds[0];
+        units.push({ unitId, sourceId, contentType: item.contentType, summary: item.summary, keyTerms: block.terms, observations: [], presentationBlockId: block.id, locator: { kind: 'line-range', start: '1', end: String(sources.find(source => source.sourceId === sourceId)?.lineCount ?? 1) } });
+        module.sourceUnitRefs.push(unitId);
+      }
     }
   }
   const sourceMap = { contractVersion: 'source-map/0.1', schemaVersion: '0.1', sourcePackageId: 'pkg-course-rebuild-001-composer', sources: sources.map(source => ({ sourceId: source.sourceId, kind: 'transcript', location: source.path })), units };
   const lessonModel = { contractVersion: 'lesson-model-prototype/1.0-course-rebuild', caseId: 'COURSE_REBUILD_001', modules };
-  const boundaryPlan = { chapterCandidates: chapters.map(chapter => ({ chapterId: chapter.id, chapterTitle: chapter.title })) };
+  const boundaryPlan = { chapterCandidates: chapterSet.map(chapter => ({ chapterId: chapter.id, chapterTitle: chapter.title })) };
   const structureAudit = { prototype: true, status: 'PASS', source: 'course-rebuild-adapter' };
   writeJsonFile(path.join(tempRoot, 'source-map.json'), sourceMap);
   writeJsonFile(path.join(tempRoot, 'lesson-model.json'), lessonModel);
   writeJsonFile(path.join(tempRoot, 'note-boundary-plan.json'), boundaryPlan);
   writeJsonFile(path.join(tempRoot, 'human-note-structure-audit.json'), structureAudit);
-  for (const chapter of chapters) {
+  for (const chapter of chapterSet) {
     const blocks = chapter.blocks.map((block, index) => ({
       blockId: block.id,
       chapterId: chapter.id,
       sectionId: `section-${index + 1}`,
       title: block.title,
       moduleRefs: [chapter.id],
-      sourceRefs: [`composer-unit-${block.id}`],
+      sourceRefs: dliItemsForBlock(block).map(item => `composer-unit-${block.id}-${item.key}`),
       blockRole: ['CORE', 'CONCEPT', 'BOUNDARY', 'ROADMAP', 'METHOD', 'EXAMPLE'].includes(block.role) ? block.role : 'CONCEPT',
       recallTarget: block.recallTarget,
       coreStatements: block.core,
@@ -356,6 +361,7 @@ function ephemeralComposerInputs(tempRoot, sources) {
       warningRefs: block.warnings,
       expansionLevel: 'DEVELOPED',
       displayMode: block.role === 'METHOD' ? 'COMPACT_MIXED' : 'PARAGRAPH',
+      compositionGroups: block.compositionGroups ?? [],
       mustSeparateFrom: [],
       mergeRationale: 'course rebuild adapter keeps the source-derived recall block intact',
       flowOrder: index + 1
@@ -365,22 +371,22 @@ function ephemeralComposerInputs(tempRoot, sources) {
   return { sourceMapPath: path.join(tempRoot, 'source-map.json'), lessonModelPath: path.join(tempRoot, 'lesson-model.json'), boundaryPlanPath: path.join(tempRoot, 'note-boundary-plan.json') };
 }
 
-async function invokeExistingComposer(sources) {
+async function invokeExistingComposer(sources, chapterSet = chapters) {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'learning-agent-course-composer-'));
   try {
-    const inputs = ephemeralComposerInputs(tempRoot, sources);
+    const inputs = ephemeralComposerInputs(tempRoot, sources, chapterSet);
     const outputDir = path.join(tempRoot, 'composer-output');
     const { composeConsolidatedHumanNote } = await import('../src/human-note-v2/composer-v2-1.ts');
     const originalLog = console.log;
     console.log = () => {};
     try {
-      composeConsolidatedHumanNote({ phaseAStatus: 'FROZEN_FOR_REAL_CASE_001', baselineOutputDir: tempRoot, outputDir, lessonModelPath: inputs.lessonModelPath, sourceMapPath: inputs.sourceMapPath, presentationOverrides: { blockIds: [] } }, repoRoot);
+      composeConsolidatedHumanNote({ phaseAStatus: 'FROZEN_FOR_REAL_CASE_001', baselineOutputDir: tempRoot, outputDir, lessonModelPath: inputs.lessonModelPath, sourceMapPath: inputs.sourceMapPath, presentationOverrides: { blockIds: [] }, compositionObjective: 'COGNITIVE_PATH_RECOVERY', disableCanonicalEnrichment: true }, repoRoot);
     } finally {
       console.log = originalLog;
     }
     const chapterNotes = new Map();
     const chapterSidecars = new Map();
-    for (const chapter of chapters) {
+    for (const chapter of chapterSet) {
       const noteName = fs.readdirSync(path.join(outputDir, 'candidate')).find(file => file.startsWith(`${chapter.id}-`) && file.endsWith('.md'));
       const sidecarName = fs.readdirSync(path.join(outputDir, 'semantic')).find(file => file.startsWith(`${chapter.id}-`) && file.endsWith('.json'));
       if (!noteName || !sidecarName) throw new Error(`existing Composer did not produce ${chapter.id} candidate and sidecar`);
@@ -416,6 +422,28 @@ function safetyChecks(result, sources, contexts, outputs) {
   ];
 }
 
+function representativeChapterSet() {
+  const ids = new Set(['ch1-b2', 'ch2-b3', 'ch3-b3']);
+  return chapters.map(chapter => ({ ...chapter, blocks: chapter.blocks.filter(block => ids.has(block.id)) })).filter(chapter => chapter.blocks.length);
+}
+
+function representativeReport(composerRun, chapterSet) {
+  const results = [];
+  for (const chapter of chapterSet) {
+    const note = composerRun.chapterNotes.get(chapter.id) ?? '';
+    const sidecar = composerRun.chapterSidecars.get(chapter.id) ?? {};
+    for (const block of chapter.blocks) {
+      const blockDli = (sidecar.dli ?? []).filter(item => item.blockId === block.id);
+      const rendered = (sidecar.composition?.renderedDliIds ?? []).filter(id => blockDli.some(item => item.distinctInformationId === id));
+      const synthesis = (sidecar.composition?.groundedSynthesis ?? []).filter(item => item.dliIds?.some(id => blockDli.some(dli => dli.distinctInformationId === id)));
+      const glue = (sidecar.composition?.discourseGlue ?? []).filter(item => item.dliIds?.some(id => blockDli.some(dli => dli.distinctInformationId === id)));
+      const unsupported = sidecar.composition?.unsupportedClaims ?? [];
+      results.push({ blockId: block.id, title: block.title, inputDliCount: blockDli.length, renderedDliCoverage: { rendered: rendered.length, totalRetained: blockDli.filter(item => item.renderDecision === 'RETAIN').length, unaccounted: blockDli.filter(item => !rendered.includes(item.distinctInformationId)).map(item => item.distinctInformationId) }, groundedSynthesis: synthesis, discourseGlue: glue, unsupportedClaims: unsupported, finalMarkdown: note, recoverability: 'HUMAN_REVIEW_REQUIRED' });
+    }
+  }
+  return { status: 'REPRESENTATIVE_DRY_RUN', pipelineActuallyInvoked: composerRun.invoked, compositionObjective: 'COGNITIVE_PATH_RECOVERY', automaticRepair: 'DISABLED', productionVaultWrite: false, results };
+}
+
 async function main() {
   const configArgument = argumentValue('--config');
   if (!configArgument) throw new Error('usage: npm run pilot:course -- --config <COURSE_REBUILD_001.json> [--dry-run|--commit]');
@@ -433,7 +461,13 @@ async function main() {
   const sources = config.sources.map((value, index) => sourceRecord(resolvePath(value, configDir), sourceDefinitions[index][0], sourceDefinitions[index][1], sourceDefinitions[index][2]));
   const contexts = (config.vaultContextFiles ?? []).map(value => contextRecord(resolvePath(value, configDir), 'EXISTING_VAULT_CONTEXT'));
   const artifactModel = buildArtifacts(sources, contexts, mode);
-  const composerRun = await invokeExistingComposer(sources);
+  const representative = process.argv.includes('--representative');
+  const chapterSet = representative ? representativeChapterSet() : chapters;
+  const composerRun = await invokeExistingComposer(sources, chapterSet);
+  if (representative) {
+    console.log(JSON.stringify(representativeReport(composerRun, chapterSet), null, 2));
+    return;
+  }
   if (composerRun.ledger) artifactModel.ledger = { ...composerRun.ledger, courseRebuildSourceAccounting: true, seedPolicy: 'source-derived-only; existing Vault Markdown is context, not DLI seed' };
   if (composerRun.coverage) artifactModel.coverage = { ...artifactModel.coverage, existingComposerCoverage: composerRun.coverage };
   const candidateOutputs = [];

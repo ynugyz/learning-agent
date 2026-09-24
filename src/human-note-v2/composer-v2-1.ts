@@ -604,6 +604,8 @@ export function validateConsolidatedLedger(ledger: ConsolidatedLedger): string[]
 }
 
 function dliBlockForUnit(unit: AnyRecord, blocks: AnyRecord[]): AnyRecord | null {
+  const explicitBlockId = unit.presentationBlockId ?? unit.blockId;
+  if (explicitBlockId) return blocks.find(block => block.blockId === explicitBlockId) ?? null;
   if (blocks.length < 2) return blocks[0] ?? null;
   const summary = String(unit.summary ?? '');
   const terms = unit.keyTerms ?? [];
@@ -744,22 +746,53 @@ function consolidatedBuildLedger(config: AnyRecord, plans: readonly AnyRecord[],
   };
 }
 
-function renderConsolidatedBlock(block: AnyRecord, adviceBlockIds: readonly string[], ledger: ConsolidatedLedger): { text: string; enrichments: AnyRecord[]; visibleWarnings: string[]; suppressedWarnings: string[]; duplicateExampleLabel: boolean } {
+type CompositionResult = { text: string; enrichments: AnyRecord[]; visibleWarnings: string[]; suppressedWarnings: string[]; duplicateExampleLabel: boolean; renderedDliIds: string[]; groundedSynthesis: AnyRecord[]; discourseGlue: AnyRecord[]; unsupportedClaims: string[] };
+
+function renderCognitivePath(block: AnyRecord, sourceDli: ConsolidatedDli[], warnings: string[]): CompositionResult {
+  const dliByRef = new Map(sourceDli.flatMap(item => item.sourceUnitRefs.map(ref => [ref, item] as const)));
+  const groups = block.compositionGroups?.length ? block.compositionGroups : [{ kind: 'discourse-glue', text: '', dliKeys: sourceDli.flatMap(item => item.sourceUnitRefs) }];
+  const rendered = new Set<string>();
+  const groundedSynthesis: AnyRecord[] = [];
+  const discourseGlue: AnyRecord[] = [];
+  const unsupportedClaims: string[] = [];
+  const paragraphs: string[] = [];
+  for (const group of groups) {
+    const refs = (group.dliKeys ?? []).map((key: string) => {
+      const exact = dliByRef.get(`composer-unit-${block.blockId}-${key}`);
+      return exact ?? dliByRef.get(key);
+    }).filter(Boolean) as ConsolidatedDli[];
+    const newRefs = refs.filter(item => !rendered.has(item.distinctInformationId));
+    const statements = [...new Set(newRefs.map(item => item.statement))];
+    refs.forEach(item => rendered.add(item.distinctInformationId));
+    const text = [group.text, ...statements].filter(Boolean).join(' ');
+    if (text) paragraphs.push(text);
+    if (group.kind === 'grounded-synthesis') groundedSynthesis.push({ text: group.text, dliIds: refs.map(item => item.distinctInformationId) });
+    else if (group.kind === 'discourse-glue') discourseGlue.push({ text: group.text, dliIds: refs.map(item => item.distinctInformationId) });
+    else unsupportedClaims.push(`UNKNOWN_COMPOSITION_GROUP:${String(group.kind)}`);
+  }
+  for (const item of sourceDli) if (!rendered.has(item.distinctInformationId)) unsupportedClaims.push(`UNACCOUNTED_DLI:${item.distinctInformationId}`);
+  const warningLines = warnings.map(warning => `> 待确认：${warning}`);
+  const lines = [`### ${block.title}`, '', paragraphs.join('\n\n'), ...warningLines];
+  return { text: lines.filter((line, index) => !(line === '' && lines[index - 1] === '')).join('\n').trim(), enrichments: [], visibleWarnings: warnings, suppressedWarnings: [], duplicateExampleLabel: false, renderedDliIds: [...rendered], groundedSynthesis, discourseGlue, unsupportedClaims };
+}
+
+function renderConsolidatedBlock(block: AnyRecord, adviceBlockIds: readonly string[], ledger: ConsolidatedLedger, config: AnyRecord = {}): CompositionResult {
   const sourceDli = ledger.dli.filter(item => item.blockId === block.blockId && item.renderDecision === 'RETAIN');
   const core = sourceDli.filter(item => item.informationRole === 'CORE').map(item => item.statement);
   const supporting = sourceDli.filter(item => item.informationRole !== 'CORE').map(item => item.statement);
   // Existing prose is structural context only. Enrichment is considered after the source DLI set exists.
   const needsMinimumDefinition = core.length === 0 && sourceDli.length > 0;
-  const selected = needsMinimumDefinition
+  const selected = needsMinimumDefinition && config.disableCanonicalEnrichment !== true
     ? applyV22Enrichment({ ...block, coreStatements: core, supportingDetails: supporting, moduleRefs: [...new Set(sourceDli.flatMap(item => item.sourceUnitRefs))] })
     : { core, supporting, enrichments: [] as AnyRecord[] };
   const unresolved = ledger.dli.filter(item => item.blockId === block.blockId && item.renderDecision === 'WARNING');
   const visibleWarnings = unresolved.length ? ['本块有重要课堂信息受转写或公式风险影响，需回看原始材料。'] : [];
   const warnings = visibleWarnings.map(warning => `> 待确认：${warning}`);
+  if (config.compositionObjective === 'COGNITIVE_PATH_RECOVERY') return renderCognitivePath(block, sourceDli, visibleWarnings);
   const example = { text: '', duplicateLabel: false };
   const suppressedWarnings = ledger.dli.filter(item => item.blockId === block.blockId && item.renderDecision === 'MACHINE_ONLY').map(item => item.distinctInformationId);
   if (adviceBlockIds.includes(block.blockId)) {
-    return { text: selected.core.concat(selected.supporting).map(statement => `- ${statement}`).concat(warnings).join('\n'), enrichments: selected.enrichments, visibleWarnings, suppressedWarnings, duplicateExampleLabel: example.duplicateLabel };
+    return { text: selected.core.concat(selected.supporting).map(statement => `- ${statement}`).concat(warnings).join('\n'), enrichments: selected.enrichments, visibleWarnings, suppressedWarnings, duplicateExampleLabel: example.duplicateLabel, renderedDliIds: sourceDli.map(item => item.distinctInformationId), groundedSynthesis: [], discourseGlue: [], unsupportedClaims: [] };
   }
   const lines = [`### ${block.title}`];
   if (block.displayMode === 'BULLETS') {
@@ -770,7 +803,7 @@ function renderConsolidatedBlock(block: AnyRecord, adviceBlockIds: readonly stri
   }
   if (example.text) lines.push('', example.text);
   if (warnings.length) lines.push('', ...warnings);
-  return { text: lines.filter((line, index) => !(line === '' && lines[index - 1] === '')).join('\n').trim(), enrichments: selected.enrichments, visibleWarnings, suppressedWarnings, duplicateExampleLabel: example.duplicateLabel };
+  return { text: lines.filter((line, index) => !(line === '' && lines[index - 1] === '')).join('\n').trim(), enrichments: selected.enrichments, visibleWarnings, suppressedWarnings, duplicateExampleLabel: example.duplicateLabel, renderedDliIds: sourceDli.map(item => item.distinctInformationId), groundedSynthesis: [], discourseGlue: [], unsupportedClaims: [] };
 }
 
 /** Refresh only the bottom-up ledger and its coverage audit; candidate notes are intentionally untouched. */
@@ -836,10 +869,14 @@ export function composeConsolidatedHumanNote(config: AnyRecord, repo: string): v
       parts.push('', `## ${V22_SECTION_TITLES[section.sectionId] ?? section.title}`);
       const lead = Object.values(plan?.nonBlockPresentation ?? {}).find((item: any) => item.sectionId === section.sectionId);
       if (lead) parts.push('', `> 课堂提示：${lead.text}`);
-      for (const block of bySection.get(section.sectionId) ?? []) {
-        const rendered = renderConsolidatedBlock(block, config.presentationOverrides?.blockIds ?? [], ledger);
+      const sectionBlocks = bySection.get(section.sectionId) ?? [];
+      for (const block of sectionBlocks) {
+        const rendered = renderConsolidatedBlock(block, config.presentationOverrides?.blockIds ?? [], ledger, config);
         renderRecords.push(rendered);
-        parts.push('', rendered.text);
+        const duplicateSectionHeading = sectionBlocks.length === 1 && section.title === block.title;
+        const headingPrefix = `### ${block.title}`;
+        const renderedText = duplicateSectionHeading && rendered.text.startsWith(headingPrefix) ? rendered.text.slice(headingPrefix.length).replace(/^\n/u, '') : rendered.text;
+        parts.push('', renderedText);
       }
     }
     const note = `${parts.join('\n').replaceAll(/\n{3,}/g, '\n\n').trim()}\n`;
@@ -857,9 +894,10 @@ export function composeConsolidatedHumanNote(config: AnyRecord, repo: string): v
       blockIds,
       moduleRefs: [...new Set(blocks.flatMap((block: AnyRecord) => block.moduleRefs))],
       sourceUnitRefs: [...new Set(chapterDli.flatMap(item => item.sourceUnitRefs))],
-      dliCoverage: { produced: chapterDli.length, retained: chapterDli.filter(item => item.disposition === 'RETAIN').length, machineOnly: chapterDli.filter(item => item.disposition === 'MACHINE_ONLY').length, warnings: chapterDli.filter(item => item.disposition === 'WARNING').length },
+      dliCoverage: { produced: chapterDli.length, retained: chapterDli.filter(item => item.disposition === 'RETAIN').length, rendered: renderRecords.flatMap(record => record.renderedDliIds), unaccounted: chapterDli.filter(item => !renderRecords.flatMap(record => record.renderedDliIds).includes(item.distinctInformationId)).map(item => item.distinctInformationId), machineOnly: chapterDli.filter(item => item.disposition === 'MACHINE_ONLY').length, warnings: chapterDli.filter(item => item.disposition === 'WARNING').length },
       dli: chapterDli.map(item => ({ distinctInformationId: item.distinctInformationId, blockId: item.blockId, informationRole: item.informationRole, disposition: item.disposition, renderDecision: item.renderDecision, sourceUnitRefs: item.sourceUnitRefs, moduleRefs: item.moduleRefs, humanClaimRef: item.humanClaimRef, provenance: item.provenance, mergeGroup: item.mergeGroup, uncertainty: item.uncertainty })),
       enrichments: renderRecords.flatMap(record => record.enrichments),
+      composition: { objective: config.compositionObjective ?? 'CONCISE_DLI', groundedSynthesis: renderRecords.flatMap(record => record.groundedSynthesis), discourseGlue: renderRecords.flatMap(record => record.discourseGlue), unsupportedClaims: renderRecords.flatMap(record => record.unsupportedClaims), renderedDliIds: renderRecords.flatMap(record => record.renderedDliIds) },
       warningCount: renderRecords.reduce((sum, record) => sum + record.visibleWarnings.length, 0),
       contentFingerprint: { alg: 'sha256', value: hash(note) }
     });
