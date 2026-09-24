@@ -750,7 +750,11 @@ type CompositionResult = { text: string; enrichments: AnyRecord[]; visibleWarnin
 
 function renderCognitivePath(block: AnyRecord, sourceDli: ConsolidatedDli[], warnings: string[]): CompositionResult {
   const dliByRef = new Map(sourceDli.flatMap(item => item.sourceUnitRefs.map(ref => [ref, item] as const)));
-  const groups = block.compositionGroups?.length ? block.compositionGroups : [{ kind: 'discourse-glue', text: '', dliKeys: sourceDli.flatMap(item => item.sourceUnitRefs) }];
+  const groups = block.compositionGroups?.length ? block.compositionGroups : [
+    { kind: 'discourse-glue', text: '', dliKeys: sourceDli.filter(item => item.informationRole === 'CORE').flatMap(item => item.sourceUnitRefs) },
+    { kind: 'grounded-synthesis', text: '', dliKeys: sourceDli.filter(item => item.informationRole === 'DETAIL' || item.informationRole === 'METHOD' || item.informationRole === 'TEACHER_NOTE').flatMap(item => item.sourceUnitRefs) },
+    { kind: 'discourse-glue', text: '', dliKeys: sourceDli.filter(item => item.informationRole === 'EXAMPLE').flatMap(item => item.sourceUnitRefs) }
+  ].filter(group => group.dliKeys.length);
   const rendered = new Set<string>();
   const groundedSynthesis: AnyRecord[] = [];
   const discourseGlue: AnyRecord[] = [];
@@ -766,9 +770,11 @@ function renderCognitivePath(block: AnyRecord, sourceDli: ConsolidatedDli[], war
     refs.forEach(item => rendered.add(item.distinctInformationId));
     const text = [group.text, ...statements].filter(Boolean).join(' ');
     if (text) paragraphs.push(text);
-    if (group.kind === 'grounded-synthesis') groundedSynthesis.push({ text: group.text, dliIds: refs.map(item => item.distinctInformationId) });
-    else if (group.kind === 'discourse-glue') discourseGlue.push({ text: group.text, dliIds: refs.map(item => item.distinctInformationId) });
-    else unsupportedClaims.push(`UNKNOWN_COMPOSITION_GROUP:${String(group.kind)}`);
+    if (group.kind === 'grounded-synthesis') {
+      if (group.text) groundedSynthesis.push({ text: group.text, dliIds: refs.map(item => item.distinctInformationId) });
+    } else if (group.kind === 'discourse-glue') {
+      if (group.text) discourseGlue.push({ text: group.text, dliIds: refs.map(item => item.distinctInformationId) });
+    } else unsupportedClaims.push(`UNKNOWN_COMPOSITION_GROUP:${String(group.kind)}`);
   }
   for (const item of sourceDli) if (!rendered.has(item.distinctInformationId)) unsupportedClaims.push(`UNACCOUNTED_DLI:${item.distinctInformationId}`);
   const warningLines = warnings.map(warning => `> 待确认：${warning}`);
