@@ -380,7 +380,7 @@ async function invokeExistingComposer(sources, chapterSet = chapters, caseId = '
     const originalLog = console.log;
     console.log = () => {};
     try {
-      composeConsolidatedHumanNote({ phaseAStatus: 'FROZEN_FOR_REAL_CASE_001', baselineOutputDir: tempRoot, outputDir, lessonModelPath: inputs.lessonModelPath, sourceMapPath: inputs.sourceMapPath, presentationOverrides: { blockIds: [] }, compositionObjective: 'COGNITIVE_PATH_RECOVERY', presentationMode, disableCanonicalEnrichment: true }, repoRoot);
+      composeConsolidatedHumanNote({ phaseAStatus: 'FROZEN_FOR_REAL_CASE_001', baselineOutputDir: tempRoot, outputDir, lessonModelPath: inputs.lessonModelPath, sourceMapPath: inputs.sourceMapPath, presentationOverrides: { blockIds: [] }, compositionObjective: 'COGNITIVE_PATH_RECOVERY', presentationMode }, repoRoot);
     } finally {
       console.log = originalLog;
     }
@@ -438,7 +438,8 @@ function representativeReport(composerRun, chapterSet) {
       const synthesis = (sidecar.composition?.groundedSynthesis ?? []).filter(item => item.dliIds?.some(id => blockDli.some(dli => dli.distinctInformationId === id)));
       const glue = (sidecar.composition?.discourseGlue ?? []).filter(item => item.dliIds?.some(id => blockDli.some(dli => dli.distinctInformationId === id)));
       const unsupported = sidecar.composition?.unsupportedClaims ?? [];
-      results.push({ blockId: block.id, title: block.title, inputDliCount: blockDli.length, renderedDliCoverage: { rendered: rendered.length, totalRetained: blockDli.filter(item => item.renderDecision === 'RETAIN').length, unaccounted: blockDli.filter(item => !rendered.includes(item.distinctInformationId)).map(item => item.distinctInformationId) }, groundedSynthesis: synthesis, discourseGlue: glue, unsupportedClaims: unsupported, finalMarkdown: note, recoverability: 'HUMAN_REVIEW_REQUIRED' });
+      const conservation = (sidecar.composition?.semanticConservation ?? []).find(item => item.blockId === block.id) ?? null;
+      results.push({ blockId: block.id, title: block.title, semanticBefore: { dli: conservation?.atomicDliBefore ?? blockDli.length, synthesis: conservation?.groundedSynthesisBefore ?? 0, enrichment: conservation?.canonicalEnrichmentBefore ?? 0 }, presentationAfter: { dli: conservation?.atomicDliAfter ?? rendered.length, synthesis: conservation?.groundedSynthesisAfter ?? synthesis.length, enrichment: conservation?.canonicalEnrichmentAfter ?? (sidecar.enrichments ?? []).filter(item => item.targetBlockId === block.id).length }, semanticLossAfterPresentation: conservation?.semanticLossAfterPresentation ?? null, renderedDliCoverage: { rendered: rendered.length, totalRetained: blockDli.filter(item => item.renderDecision === 'RETAIN').length, unaccounted: blockDli.filter(item => !rendered.includes(item.distinctInformationId)).map(item => item.distinctInformationId) }, groundedSynthesis: synthesis, discourseGlue: glue, unsupportedClaims: unsupported, finalMarkdown: note, recoverability: 'HUMAN_REVIEW_REQUIRED' });
     }
   }
   return { status: 'REPRESENTATIVE_DRY_RUN', pipelineActuallyInvoked: composerRun.invoked, compositionObjective: 'COGNITIVE_PATH_RECOVERY', automaticRepair: 'DISABLED', productionVaultWrite: false, results };
