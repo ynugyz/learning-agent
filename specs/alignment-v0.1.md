@@ -1,6 +1,10 @@
 # Alignment v0.1
 
-> **Status: DRAFT — NOT IMPLEMENTATION-STABLE.**
+> **Status: HISTORICAL COMPATIBILITY — NOT FOR NEW ARTIFACTS.**
+
+New artifacts use [`Alignment v0.2`](alignment-v0.2.md), which keeps the
+relation vocabulary and adds the orthogonal `resolutionState` field. Existing
+v0.1 fixtures remain readable for compatibility tests.
 
 ## Question
 

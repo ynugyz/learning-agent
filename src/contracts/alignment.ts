@@ -1,9 +1,9 @@
-/** Alignment v0.1 — DRAFT — NOT IMPLEMENTATION-STABLE.
+/** Alignment v0.2 — DRAFT — NOT IMPLEMENTATION-STABLE.
  *
  * This is a draft knowledge-compilation contract.
  */
 
-import type { ReviewStatus, SchemaVersion } from './common';
+import type { ReviewStatus } from './common';
 
 export type AlignmentRelation =
   | 'NEW'
@@ -17,6 +17,9 @@ export type AlignmentRelation =
 
 export type AlignmentConfidence = 'low' | 'medium' | 'high' | 'unknown';
 
+/** Whether the relation is settled enough for ChangePlan consumption. */
+export type AlignmentResolutionState = 'resolved' | 'deferred';
+
 export interface AlignmentCandidate {
   readonly alignmentId: string;
   readonly lessonItemRefs: readonly string[];
@@ -24,6 +27,7 @@ export interface AlignmentCandidate {
   readonly existingKnowledgeRefs?: readonly string[];
   readonly existingNoteRefs?: readonly string[];
   readonly relation: AlignmentRelation;
+  readonly resolutionState: AlignmentResolutionState;
   readonly rationale: string;
   readonly confidence: AlignmentConfidence;
   readonly scopeNote?: string;
@@ -31,8 +35,8 @@ export interface AlignmentCandidate {
 }
 
 export interface Alignment {
-  readonly contractVersion: 'alignment/0.1';
-  readonly schemaVersion: SchemaVersion;
+  readonly contractVersion: 'alignment/0.2';
+  readonly schemaVersion: '0.2';
   readonly status: ReviewStatus;
   readonly alignmentId: string;
   readonly lessonModelRef: string;

@@ -96,6 +96,44 @@ practice guidance; it does not expose machine bookkeeping in its body.
 For every alignment other than `NEW`, the machine record names the existing
 semantic identity, Human note, or both, so the two layers retain a stable join.
 
+## Alignment relation and resolution state
+
+Alignment v0.2 keeps the semantic relation separate from the status of the
+judgement. `relation` answers what relationship the LessonModel item has to the
+current Knowledge State. `resolutionState` answers whether that judgement is
+settled enough for ChangePlan.
+
+```text
+NO_CHANGE + resolved
+    Existing Knowledge State covers the classroom meaning.
+
+NO_CHANGE + deferred
+    Evidence is insufficient or the judgement is unfinished. This is not a
+    coverage claim and must not drive a Knowledge State mutation.
+```
+
+When a low-cost model cannot safely determine a relation, the default is
+`NO_CHANGE + deferred`. `EXPAND + deferred` and `CONFLICT + deferred` remain
+possible only when the provisional relation itself has a clear basis. A
+deferred candidate remains visible in the audit and can be reconsidered when
+new evidence arrives.
+
+Only resolved candidates may drive ChangePlan mutation operations. ChangePlan
+does not re-interpret evidence uncertainty; it enforces this Alignment
+precondition before proposing a mutation.
+
+## Existing-note reference validation
+
+Note references are checked in three separate layers:
+
+1. syntax validation checks the relative path and optional anchor shape;
+2. resolution-context validation checks the declared canonical root/index;
+3. targeted preflight checks only the referenced file and, when present, its
+   heading or block anchor.
+
+An invalid resolution context is reported as `context_invalid`, not as a
+missing note. The preflight never scans the entire Vault.
+
 ## Auditable but non-prescriptive checks
 
 Every run should be able to answer:

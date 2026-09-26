@@ -24,7 +24,8 @@ Note page taxonomy or renderer:
 | Contract | Spec | JSON Schema | Type draft |
 | --- | --- | --- | --- |
 | LessonModel v0.1 | [`specs/lesson-model-v0.1.md`](../../specs/lesson-model-v0.1.md) | [`schemas/lesson-model.v0.1.schema.json`](../../schemas/lesson-model.v0.1.schema.json) | [`lesson-model.ts`](lesson-model.ts) |
-| Alignment v0.1 | [`specs/alignment-v0.1.md`](../../specs/alignment-v0.1.md) | [`schemas/alignment.v0.1.schema.json`](../../schemas/alignment.v0.1.schema.json) | [`alignment.ts`](alignment.ts) |
+| Alignment v0.2 | [`specs/alignment-v0.2.md`](../../specs/alignment-v0.2.md) | [`schemas/alignment.v0.2.schema.json`](../../schemas/alignment.v0.2.schema.json) | [`alignment.ts`](alignment.ts) |
+| Alignment v0.1 (historical) | [`specs/alignment-v0.1.md`](../../specs/alignment-v0.1.md) | [`schemas/alignment.v0.1.schema.json`](../../schemas/alignment.v0.1.schema.json) | [`alignment.ts`](alignment.ts) |
 | ChangePlan v0.1 | [`specs/change-plan-v0.1.md`](../../specs/change-plan-v0.1.md) | [`schemas/change-plan.v0.1.schema.json`](../../schemas/change-plan.v0.1.schema.json) | [`change-plan.ts`](change-plan.ts) |
 
 `SourceMap` remains the evidence-understanding contract. The workflow and

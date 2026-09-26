@@ -26,7 +26,8 @@ minimal and remain implementation-unstable:
 | File | Responsibility | Spec |
 | --- | --- | --- |
 | `lesson-model.v0.1.schema.json` | Lesson meaning and teaching flow | [`specs/lesson-model-v0.1.md`](../specs/lesson-model-v0.1.md) |
-| `alignment.v0.1.schema.json` | Relation to existing knowledge | [`specs/alignment-v0.1.md`](../specs/alignment-v0.1.md) |
+| `alignment.v0.2.schema.json` | Relation and resolution state against existing knowledge | [`specs/alignment-v0.2.md`](../specs/alignment-v0.2.md) |
+| `alignment.v0.1.schema.json` | Historical alignment compatibility | [`specs/alignment-v0.1.md`](../specs/alignment-v0.1.md) |
 | `change-plan.v0.1.schema.json` | Reversible candidate growth operations | [`specs/change-plan-v0.1.md`](../specs/change-plan-v0.1.md) |
 
 The existing SourceMap draft remains the source-evidence contract. The new
@@ -46,9 +47,10 @@ draft, not a promotion of the archived M0 schema.
 
 ## Naming and versioning
 
-- Live schemas use the `<artifact>.v<major>.<minor>.schema.json` pattern. A new
-  major version is a new file; the old one moves to `archive/`, so no reader can
-  silently pick up a changed contract under an unchanged name.
+- Live schemas use the `<artifact>.v<major>.<minor>.schema.json` pattern. A
+  contract change gets a new file; the old one remains available when
+  historical compatibility is required, so no reader silently picks up a
+  changed contract under an unchanged name.
 - Every schema is marked in `$comment` with the exact status string so an
   automated check (`tools/check.ps1`) can verify it has not been quietly
   promoted to stable.

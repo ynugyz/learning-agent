@@ -123,6 +123,7 @@ export type {
 export type {
   AlignmentRelation,
   AlignmentConfidence,
+  AlignmentResolutionState,
   AlignmentCandidate,
   Alignment,
 } from './alignment';

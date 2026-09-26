@@ -8,10 +8,11 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import {parseNoteReference, preflightNoteReferences} from './reference-preflight.mjs';
 
-const [sourceMapPath, lessonModelPath, alignmentPath, changePlanPath] = process.argv.slice(2);
+const [sourceMapPath, lessonModelPath, alignmentPath, changePlanPath, referenceContextPath] = process.argv.slice(2);
 if (![sourceMapPath, lessonModelPath, alignmentPath, changePlanPath].every(Boolean)) {
-  console.error('usage: node tools/validate-knowledge-compilation.mjs <source-map.json> <lesson-model.json> <alignment.json> <change-plan.json>');
+  console.error('usage: node tools/validate-knowledge-compilation.mjs <source-map.json> <lesson-model.json> <alignment.json> <change-plan.json> [reference-context.json]');
   process.exit(2);
 }
 
@@ -20,6 +21,15 @@ const sourceMap = read(sourceMapPath);
 const lessonModel = read(lessonModelPath);
 const alignment = read(alignmentPath);
 const changePlan = read(changePlanPath);
+let referenceContext;
+let referenceContextError;
+if (referenceContextPath) {
+  try {
+    referenceContext = read(referenceContextPath);
+  } catch (error) {
+    referenceContextError = error instanceof Error ? error.message : String(error);
+  }
+}
 const errors = [];
 const unique = (values, label) => {
   const seen = new Set();
@@ -51,12 +61,50 @@ for (const flow of lessonModel.teachingFlow ?? []) {
 }
 
 const alignmentIds = unique((alignment.candidates ?? []).map(candidate => candidate.alignmentId), 'alignment candidates');
+const alignmentById = new Map((alignment.candidates ?? []).map(candidate => [candidate.alignmentId, candidate]));
+const isV02 = alignment.contractVersion === 'alignment/0.2';
+const deferredAlignmentIds = [];
+const legacyResolutionAlignmentIds = [];
 if (alignment.lessonModelRef !== lessonModel.lessonModelId) errors.push('alignment: lessonModelRef does not match lesson model');
 for (const candidate of alignment.candidates ?? []) {
   for (const ref of candidate.lessonItemRefs ?? []) if (!itemIds.has(ref)) errors.push(`alignment ${candidate.alignmentId}: unknown lesson item ${ref}`);
+  if (isV02 && !candidate.resolutionState) {
+    errors.push(`alignment ${candidate.alignmentId}: v0.2 requires resolutionState`);
+  }
+  if (candidate.resolutionState !== undefined && !['resolved', 'deferred'].includes(candidate.resolutionState)) {
+    errors.push(`alignment ${candidate.alignmentId}: invalid resolutionState ${candidate.resolutionState}`);
+  }
+  if (candidate.resolutionState === 'deferred') {
+    deferredAlignmentIds.push(candidate.alignmentId);
+    if (candidate.confidence === 'high') errors.push(`alignment ${candidate.alignmentId}: deferred cannot have high confidence`);
+  }
+  if (!isV02 && candidate.resolutionState === undefined) legacyResolutionAlignmentIds.push(candidate.alignmentId);
   const needsExistingTarget = candidate.relation !== 'NEW';
   if (needsExistingTarget && !(candidate.existingKnowledgeRefs ?? []).length && !(candidate.existingNoteRefs ?? []).length) {
     errors.push(`alignment ${candidate.alignmentId}: ${candidate.relation} must identify an existing knowledge or note target`);
+  }
+  for (const reference of candidate.existingNoteRefs ?? []) {
+    const syntax = parseNoteReference(reference);
+    if (syntax.status !== 'valid') errors.push(`alignment ${candidate.alignmentId}: existingNoteRef ${reference} is ${syntax.status}`);
+  }
+}
+
+const noteReferences = (alignment.candidates ?? []).flatMap(candidate => candidate.existingNoteRefs ?? []);
+let referenceValidation;
+if (referenceContextPath) {
+  if (referenceContextError) {
+    referenceValidation = {
+      status: 'FAIL',
+      contextStatus: 'context_invalid',
+      contextError: referenceContextError,
+      results: noteReferences.map(reference => ({reference, status: 'context_invalid'}))
+    };
+    errors.push(`reference context: context_invalid (${referenceContextError})`);
+  } else {
+    referenceValidation = preflightNoteReferences(noteReferences, referenceContext);
+    for (const result of referenceValidation.results) {
+      if (result.status !== 'resolved') errors.push(`reference ${result.reference}: ${result.status}`);
+    }
   }
 }
 
@@ -73,6 +121,20 @@ for (const operation of changePlan.operations ?? []) {
   if (operation.kind === 'merge_candidate' && (operation.targetRefs ?? []).length < 2) {
     errors.push(`operation ${operation.operationId}: merge_candidate needs at least two targets`);
   }
+  for (const ref of operation.alignmentRefs ?? []) {
+    const candidate = alignmentById.get(ref);
+    if (!candidate) continue;
+    const state = candidate.resolutionState;
+    if (state === 'deferred' && operation.kind !== 'no_change') {
+      errors.push(`operation ${operation.operationId}: deferred alignment ${ref} cannot drive ${operation.kind}`);
+    }
+    if (candidate.relation === 'NO_CHANGE' && state === 'resolved' && operation.kind !== 'no_change') {
+      errors.push(`operation ${operation.operationId}: resolved NO_CHANGE alignment ${ref} cannot drive ${operation.kind}`);
+    }
+    if (candidate.relation === 'NO_CHANGE' && state === undefined && operation.kind !== 'no_change') {
+      errors.push(`operation ${operation.operationId}: legacy NO_CHANGE alignment ${ref} requires v0.2 migration before mutation`);
+    }
+  }
 }
 
 const report = {
@@ -86,8 +148,12 @@ const report = {
     sourceUnits: unitIds.size,
     lessonItems: itemIds.size,
     alignmentCandidates: alignmentIds.size,
-    changeOperations: (changePlan.operations ?? []).length
+    changeOperations: (changePlan.operations ?? []).length,
+    deferredAlignments: deferredAlignmentIds.length,
+    legacyAlignmentsWithoutResolutionState: legacyResolutionAlignmentIds.length
   },
+  deferredAlignmentIds,
+  referenceValidation,
   errors
 };
 console.log(JSON.stringify(report, null, 2));

@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import Ajv2020 from 'ajv/dist/2020.js';
+import {parseNoteReference, preflightNoteReferences} from '../tools/reference-preflight.mjs';
 
 const repo = process.cwd();
 const fixture = name => path.join(repo, 'tests', 'knowledge-compilation', 'bayes-example', name);
@@ -42,6 +43,120 @@ assert.ok(plan.operations.every(operation => (operation.preserveContentRefs ?? [
 
 const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'learning-agent-kc-'));
 try {
+  const v02Schema = readJson(path.join(repo, 'schemas', 'alignment.v0.2.schema.json'));
+  const v02Alignment = {
+    ...readJson(fixture('alignment.json')),
+    contractVersion: 'alignment/0.2',
+    schemaVersion: '0.2',
+    candidates: [
+      {
+        ...readJson(fixture('alignment.json')).candidates[0],
+        relation: 'EXPAND',
+        resolutionState: 'resolved'
+      },
+      {
+        ...readJson(fixture('alignment.json')).candidates[1],
+        resolutionState: 'resolved'
+      },
+      {
+        alignmentId: 'al-deferred',
+        lessonItemRefs: ['li-joint-probability-example'],
+        existingNoteRefs: ['notes/概率图模型与贝叶斯网络.md#联合概率'],
+        relation: 'NO_CHANGE',
+        resolutionState: 'deferred',
+        rationale: '完整公式缺失，暂不安全吸收。',
+        confidence: 'low'
+      },
+      {
+        alignmentId: 'al-resolved-no-change',
+        lessonItemRefs: ['li-probability-causality-boundary'],
+        existingNoteRefs: ['notes/因果推理.md#概率边界'],
+        relation: 'NO_CHANGE',
+        resolutionState: 'resolved',
+        rationale: '已有知识已经覆盖本项语义。',
+        confidence: 'high'
+      }
+    ]
+  };
+  assert.equal(ajv.compile(v02Schema)(v02Alignment), true, 'v0.2 fixture should validate');
+  assert.equal(v02Alignment.candidates[0].relation, 'EXPAND');
+  assert.equal(v02Alignment.candidates[0].resolutionState, 'resolved');
+  assert.equal(v02Alignment.candidates[2].relation, 'NO_CHANGE');
+  assert.equal(v02Alignment.candidates[2].resolutionState, 'deferred');
+  assert.equal(v02Alignment.candidates[3].resolutionState, 'resolved');
+
+  const invalidV02MissingState = structuredClone(v02Alignment);
+  delete invalidV02MissingState.candidates[0].resolutionState;
+  assert.equal(ajv.compile(v02Schema)(invalidV02MissingState), false, 'v0.2 resolutionState is required');
+
+  const v02AlignmentPath = path.join(temporaryRoot, 'alignment.v0.2.json');
+  fs.writeFileSync(v02AlignmentPath, JSON.stringify(v02Alignment));
+  const validV02Check = spawnSync(process.execPath, [
+    'tools/validate-knowledge-compilation.mjs',
+    fixture('source-map.json'),
+    fixture('lesson-model.json'),
+    v02AlignmentPath,
+    fixture('change-plan.json')
+  ], { encoding: 'utf8' });
+  assert.equal(validV02Check.status, 0, validV02Check.stderr || validV02Check.stdout);
+
+  const deferredMutationPlan = structuredClone(plan);
+  deferredMutationPlan.operations = [{
+    operationId: 'op-deferred-mutation',
+    kind: 'expand',
+    targetRefs: ['notes/概率图模型与贝叶斯网络.md'],
+    alignmentRefs: ['al-deferred'],
+    lessonItemRefs: ['li-joint-probability-example'],
+    preserveContentRefs: ['human-note:existing'],
+    rationale: 'must be rejected',
+    status: 'proposed'
+  }];
+  const deferredMutationPath = path.join(temporaryRoot, 'deferred-mutation-plan.json');
+  fs.writeFileSync(deferredMutationPath, JSON.stringify(deferredMutationPlan));
+  const deferredMutationCheck = spawnSync(process.execPath, [
+    'tools/validate-knowledge-compilation.mjs',
+    fixture('source-map.json'),
+    fixture('lesson-model.json'),
+    v02AlignmentPath,
+    deferredMutationPath
+  ], { encoding: 'utf8' });
+  assert.notEqual(deferredMutationCheck.status, 0, 'deferred alignment mutation must fail');
+  assert.match(deferredMutationCheck.stdout, /deferred alignment/);
+
+  const resolvedNoChangePlan = structuredClone(plan);
+  resolvedNoChangePlan.operations = [{
+    operationId: 'op-resolved-no-change-mutation',
+    kind: 'expand',
+    targetRefs: ['notes/因果推理.md'],
+    alignmentRefs: ['al-resolved-no-change'],
+    lessonItemRefs: ['li-probability-causality-boundary'],
+    preserveContentRefs: ['human-note:existing'],
+    rationale: 'must be rejected',
+    status: 'proposed'
+  }];
+  const resolvedNoChangePath = path.join(temporaryRoot, 'resolved-no-change-plan.json');
+  fs.writeFileSync(resolvedNoChangePath, JSON.stringify(resolvedNoChangePlan));
+  const resolvedNoChangeCheck = spawnSync(process.execPath, [
+    'tools/validate-knowledge-compilation.mjs',
+    fixture('source-map.json'),
+    fixture('lesson-model.json'),
+    v02AlignmentPath,
+    resolvedNoChangePath
+  ], { encoding: 'utf8' });
+  assert.notEqual(resolvedNoChangeCheck.status, 0, 'resolved NO_CHANGE mutation must fail');
+  assert.match(resolvedNoChangeCheck.stdout, /resolved NO_CHANGE/);
+
+  const vaultRoot = path.join(temporaryRoot, 'vault');
+  fs.mkdirSync(vaultRoot);
+  fs.writeFileSync(path.join(vaultRoot, 'good.md'), '# Good heading\n\n^block-one\n');
+  assert.equal(parseNoteReference('good.md#Good heading').status, 'valid');
+  assert.equal(parseNoteReference('../escape.md').status, 'syntax_invalid');
+  assert.equal(parseNoteReference('C:\\absolute.md').status, 'syntax_invalid');
+  assert.equal(preflightNoteReferences(['missing.md#Missing'], {root: vaultRoot, indexId: 'test-index'}).results[0].status, 'target_missing');
+  assert.equal(preflightNoteReferences(['good.md#Missing'], {root: vaultRoot, indexId: 'test-index'}).results[0].status, 'anchor_missing');
+  assert.equal(preflightNoteReferences(['good.md#Good heading', 'good.md#^block-one'], {root: vaultRoot, indexId: 'test-index'}).status, 'PASS');
+  assert.equal(preflightNoteReferences(['good.md#Good heading'], {root: path.join(temporaryRoot, 'missing-root'), indexId: 'bad-index'}).results[0].status, 'context_invalid');
+
   const invalidPlan = structuredClone(plan);
   invalidPlan.operations[0].kind = 'preserve_both';
   delete invalidPlan.operations[0].preserveContentRefs;
