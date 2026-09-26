@@ -1,6 +1,8 @@
 # Distinct Learning Information and Coverage
 
-**Status:** internal representation rule for LessonModel and Human Note Generator; not a fifth form, Agent, stage, schema or separate LLM call.
+**Status:** historical internal representation experiment. It remains useful
+as background on coverage, but DLI is not a required ledger or architectural
+unit in the current [Learning Knowledge Compilation Workflow](KNOWLEDGE_COMPILATION_WORKFLOW.md).
 
 ## Definition
 

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://learning-agent.local/schemas/change-plan.v0.1.schema.json",
+  "$comment": "DRAFT — NOT IMPLEMENTATION-STABLE.",
+  "title": "ChangePlan v0.1",
+  "type": "object",
+  "required": ["contractVersion", "schemaVersion", "status", "planId", "lessonModelRef", "alignmentRef", "candidateOnly", "operations"],
+  "properties": {
+    "contractVersion": {"const": "change-plan/0.1"},
+    "schemaVersion": {"const": "0.1"},
+    "status": {"enum": ["draft", "NEEDS_REVIEW", "reviewed"]},
+    "planId": {"type": "string", "minLength": 1},
+    "lessonModelRef": {"type": "string", "minLength": 1},
+    "alignmentRef": {"type": "string", "minLength": 1},
+    "candidateOnly": {"const": true},
+    "operations": {"type": "array", "items": {"$ref": "#/$defs/operation"}}
+  },
+  "$defs": {
+    "operation": {
+      "type": "object",
+      "required": ["operationId", "kind", "targetRefs", "rationale", "status"],
+      "properties": {
+        "operationId": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["create", "expand", "link", "add_relation", "add_source", "annotate_scope", "merge_candidate", "preserve_both", "no_change"]},
+        "targetRefs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "alignmentRefs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "lessonItemRefs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "sourceUnitRefs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "preserveContentRefs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "rationale": {"type": "string", "minLength": 1},
+        "proposedText": {"type": "string"},
+        "suggestedLinks": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "risks": {"type": "array", "items": {"type": "string"}},
+        "status": {"enum": ["proposed", "accepted", "rejected", "applied"]}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

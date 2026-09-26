@@ -30,14 +30,17 @@ plus a **reconciliation with the previous revision** table. Requirement IDs are
 stable and must not be renumbered: the challenger review, the adjudication
 record and future experiments cite them.
 
-## Not yet specified (deliberately)
+## Drafts not implementation-stable
 
 | Spec | Describes | Why not now |
 | --- | --- | --- |
-| `lesson-model.md` | How a lesson's content is modelled | Out of scope for M1A; no successor to the archived M0 draft. |
-| `alignment.md` | `NEW`/`EXPAND`/`REFINE`/… vocabulary | Layer D; depends on the card and lesson model. |
-| `change-plan.md` | Proposed-change format | Layer E. |
+| `lesson-model-v0.1.md` | How a lesson's content is modelled | Draft design; not implementation-stable. |
+| `alignment-v0.1.md` | `NEW`/`EXPAND`/`REFINE`/… vocabulary | Draft design; not implementation-stable. |
+| `change-plan-v0.1.md` | Proposed-change format | Draft design; not implementation-stable. |
 | `error-taxonomy.md` | Application of `docs/ERROR_TAXONOMY.md` | Vocabulary exists; application rules need real runs. |
+
+The knowledge-compilation drafts are intentionally small. They describe the
+four responsibilities without freezing a Human Note page taxonomy or renderer.
 
 ## Rules
 

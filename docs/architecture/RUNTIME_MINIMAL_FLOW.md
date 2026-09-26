@@ -1,6 +1,8 @@
 # Runtime Minimal Flow
 
-**Status:** target operating model, not a measured cost result or a new Agent implementation.
+**Status:** historical runtime experiment, not a current call-count or Agent
+contract. The current workflow leaves decomposition and model-call counts
+open until experiments justify them; see [Learning Knowledge Compilation Workflow](KNOWLEDGE_COMPILATION_WORKFLOW.md).
 
 ```text
 Raw lesson package

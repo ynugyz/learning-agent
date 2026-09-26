@@ -6,7 +6,7 @@
 > Milestone M0 itself is still awaiting final human approval.
 > TypeScript declaration files only — **no behaviour, no implementation.**
 
-## The four contracts
+## Core runtime and evidence contracts
 
 | Contract | Spec | JSON Schema | Type draft |
 | --- | --- | --- | --- |
@@ -14,6 +14,22 @@
 | SourceMap v0.1 | [`specs/source-map-v0.1.md`](../../specs/source-map-v0.1.md) | [`schemas/source-map.v0.1.schema.json`](../../schemas/source-map.v0.1.schema.json) | [`source-map.ts`](source-map.ts) |
 | AgentRuntime Boundary v0.1 | [`specs/agent-runtime-v0.1.md`](../../specs/agent-runtime-v0.1.md) | [`schemas/agent-runtime.v0.1.schema.json`](../../schemas/agent-runtime.v0.1.schema.json) | [`agent-runtime.ts`](agent-runtime.ts) |
 | RunManifest v0.1 | [`specs/run-manifest-v0.1.md`](../../specs/run-manifest-v0.1.md) | [`schemas/run-manifest.v0.1.schema.json`](../../schemas/run-manifest.v0.1.schema.json) | [`run-manifest.ts`](run-manifest.ts) |
+
+## Knowledge-compilation drafts
+
+These three declarations are the current draft handoff after `SourceMap`.
+They keep the four required responsibilities explicit without freezing a Human
+Note page taxonomy or renderer:
+
+| Contract | Spec | JSON Schema | Type draft |
+| --- | --- | --- | --- |
+| LessonModel v0.1 | [`specs/lesson-model-v0.1.md`](../../specs/lesson-model-v0.1.md) | [`schemas/lesson-model.v0.1.schema.json`](../../schemas/lesson-model.v0.1.schema.json) | [`lesson-model.ts`](lesson-model.ts) |
+| Alignment v0.1 | [`specs/alignment-v0.1.md`](../../specs/alignment-v0.1.md) | [`schemas/alignment.v0.1.schema.json`](../../schemas/alignment.v0.1.schema.json) | [`alignment.ts`](alignment.ts) |
+| ChangePlan v0.1 | [`specs/change-plan-v0.1.md`](../../specs/change-plan-v0.1.md) | [`schemas/change-plan.v0.1.schema.json`](../../schemas/change-plan.v0.1.schema.json) | [`change-plan.ts`](change-plan.ts) |
+
+`SourceMap` remains the evidence-understanding contract. The workflow and
+cross-artifact validator live outside this directory because declarations
+carry no behaviour.
 
 Why `src/contracts/` and not `src/core/` or `src/runtime/`: the contracts are
 shared by `core`, `pipeline`, `modules` and `runtime`. Putting them in `core`
@@ -91,11 +107,14 @@ and these are the language-level mirror.
 
 ## Not yet done (deliberately)
 
-- no `typescript` dependency and no lockfile — `package.json` declares none;
-- **no type-checking has been run**, so these files are unverified by a compiler;
+- no runtime dependency or contract loader; TypeScript and Ajv remain
+  dev-only tooling with a committed lockfile;
+- `tsc --noEmit` is run by the repository checks; this verifies declaration
+  syntax but does not prove semantic correctness;
 - no schema-to-type consistency check exists — divergence is currently possible
   and undetected. A `CH-*` finding of this class was fixed by hand at REV1 and
   can regress;
-- no cross-artifact reference validator (see `CH-11`: JSON Schema validates one
-  artifact at a time);
+- cross-artifact reference validation is limited to the knowledge-compilation
+  drafts in `tools/validate-knowledge-compilation.mjs`; the older four core
+  contracts still have no full cross-artifact validator;
 - no runtime implementation.

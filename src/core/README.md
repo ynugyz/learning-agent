@@ -14,9 +14,10 @@ Since M1A, the **type and shape declarations** for the core artifacts live in
 | --- | --- | --- |
 | `Evidence` | A | not yet specified |
 | `SourceMap` | B | [`src/contracts/source-map.ts`](../contracts/source-map.ts) |
-| `LessonModel` | B | **not designed** — out of scope for M1A |
+| `LessonModel` | B | [`src/contracts/lesson-model.ts`](../contracts/lesson-model.ts) |
 | `SemanticCard` | C | [`src/contracts/semantic-card.ts`](../contracts/semantic-card.ts) |
-| `ChangePlan` | E | not yet specified |
+| `Alignment` | D | [`src/contracts/alignment.ts`](../contracts/alignment.ts) |
+| `ChangePlan` | E | [`src/contracts/change-plan.ts`](../contracts/change-plan.ts) |
 
 `src/core` will hold the **logic** that operates on those shapes: construction,
 invariant checking, id stability rules, fingerprinting. None of it exists yet.
@@ -36,5 +37,6 @@ invariant checking, id stability rules, fingerprinting. None of it exists yet.
 ## Status
 
 `TODO` — no logic exists. The implementation language is now decided
-(TypeScript, `docs/DECISIONS.md` D-0005), so this directory is unblocked, but
-M1A deliberately produces contracts only.
+TypeScript (`docs/DECISIONS.md` D-0005), so this directory is unblocked. The
+knowledge-compilation contracts are drafts; logic should be added only after
+their invariants are tested against real cases.

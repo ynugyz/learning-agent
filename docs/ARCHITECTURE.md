@@ -1,9 +1,10 @@
 # Architecture
 
-**Status:** historical M0/M1 layer sketch. The current Human Note and knowledge
-update branch point is specified in
-[Architecture Consolidation v0.2](architecture/ARCHITECTURE_CONSOLIDATION_V0_2.md).
-The linear layers below must not be read as a serial Human Note pipeline.
+**Status:** repository-wide layer sketch. The current source-first Human Note
+and knowledge-update design is specified in
+[Learning Knowledge Compilation Workflow](architecture/KNOWLEDGE_COMPILATION_WORKFLOW.md).
+The older linear layers below describe boundaries, not a serial Human Note
+pipeline.
 Implementation milestones and decisions are recorded in [DECISIONS.md](DECISIONS.md).
 
 ## 1. Separation of concerns
@@ -49,8 +50,9 @@ Owned by `src/core/` (concepts) and `src/modules/` (ingestion).
 
 Model what the lesson contains **before** consulting the existing knowledge
 network too heavily, so that incoming material is not distorted by prior
-beliefs. Candidate artifacts: **SourceMap** (where a claim came from in the
-source) and **LessonModel** (what the lesson teaches).
+beliefs. The two artifacts are **SourceMap** (what the source contains and
+where it came from) and **LessonModel** (what the lesson teaches and how its
+parts relate).
 
 ### Layer C — Machine semantic knowledge
 
@@ -82,10 +84,11 @@ closed vocabulary: `NEW`, `EXPAND`, `REFINE`, `CORRECT`, `EXAMPLE`,
 
 ### Layer E — Change planning
 
-Agents propose structured changes before writing knowledge. A **ChangePlan**
-describes what will be created, what will be modified, why, the supporting
-evidence, confidence, risks, and items requiring human review. Direct
-unplanned modification is discouraged.
+Agents propose structured changes before writing knowledge. An **Alignment**
+relates lesson items to existing notes or semantic identities; a
+**ChangePlan** describes candidate operations, preservation references,
+supporting evidence, confidence, risks and status. Direct unplanned
+modification is discouraged.
 
 ### Layer F — Candidate writing
 

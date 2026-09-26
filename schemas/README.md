@@ -18,6 +18,21 @@ human-readable counterpart in `specs/` and a TypeScript mirror in
 | `agent-runtime.v0.1.schema.json` | Runtime boundary shapes | — | [`specs/agent-runtime-v0.1.md`](../specs/agent-runtime-v0.1.md) |
 | `run-manifest.v0.1.schema.json` | Run reproducibility record | — | [`specs/run-manifest-v0.1.md`](../specs/run-manifest-v0.1.md) |
 
+## Knowledge compilation drafts
+
+These drafts define the new source-first handoff after SourceMap. They are
+minimal and remain implementation-unstable:
+
+| File | Responsibility | Spec |
+| --- | --- | --- |
+| `lesson-model.v0.1.schema.json` | Lesson meaning and teaching flow | [`specs/lesson-model-v0.1.md`](../specs/lesson-model-v0.1.md) |
+| `alignment.v0.1.schema.json` | Relation to existing knowledge | [`specs/alignment-v0.1.md`](../specs/alignment-v0.1.md) |
+| `change-plan.v0.1.schema.json` | Reversible candidate growth operations | [`specs/change-plan-v0.1.md`](../specs/change-plan-v0.1.md) |
+
+The existing SourceMap draft remains the source-evidence contract. The new
+workflow document explains how it hands off to these three artifacts and to the
+Human layer.
+
 ## Archived M0 drafts — superseded, do not implement against them
 
 `archive/m0-draft/` holds the three M0 seed schemas
@@ -26,8 +41,8 @@ design principles were stated** and are retained for historical comparison only.
 
 The M1A `semantic-card` and `source-map` contracts were **rederived from the
 design principles** recorded in their specs, not extended from these drafts.
-`lesson-model` has **no** successor: `LessonModel` is deliberately out of scope
-for M1A.
+The current `lesson-model.v0.1.schema.json` is a new knowledge-compilation
+draft, not a promotion of the archived M0 schema.
 
 ## Naming and versioning
 

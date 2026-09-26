@@ -1,6 +1,10 @@
 # Learning Agent — Architecture Consolidation v0.2
 
-**Status:** `READY_FOR_HUMAN_REVIEW`. This is the smallest reusable design distilled from REAL_CASE_001 prototypes. It is not Architecture v1 freeze, M1B schema freeze, a Composer v2.3 specification or production Vault authorization.
+**Status:** historical consolidation candidate, retained for comparison. This
+is not Architecture v1 freeze, M1B schema freeze, a Composer v2.3
+specification or production Vault authorization. The current design point is
+[Learning Knowledge Compilation Workflow](KNOWLEDGE_COMPILATION_WORKFLOW.md),
+which supersedes its fixed page and branch constraints.
 
 ## Minimal architecture
 

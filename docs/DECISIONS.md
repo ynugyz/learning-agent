@@ -423,6 +423,46 @@ contract. Fields are expected to change; see D-0007.
   run manifest. The mode is temporary and must not be treated as production
   Vault integration.
 
+### D-0018 — Knowledge compilation is source-first, link-first and additive
+- Date: 2026-09-25
+- Status: accepted — supersedes the stronger Human Note assumptions in D-0015
+  and D-0016 for the new design branch
+- Decision:
+  - Keep exactly four knowledge-compilation responsibilities: SourceMap,
+    LessonModel, Alignment and ChangePlan.
+  - Keep two output layers: an AI-facing semantic layer and a Human-facing note
+    layer.
+  - Treat existing Human notes as durable seed knowledge whose learning content
+    cannot be silently removed.
+  - Prefer an Obsidian wikilink for related concepts. Propose a merge only when
+    two pages clearly represent the same knowledge object and all useful
+    content can be preserved.
+  - Lead Human notes with the classroom explanation and add a concise general
+    boundary when the classroom uses a simplification.
+  - Treat transcript filenames as opaque labels; infer content identity from
+    the material itself.
+  - Use transcript-first ingestion and inspect photographs or PPT pages only
+    when a missing visual object affects understanding.
+- Rationale: The user's existing notes are already human-processed knowledge,
+  not disposable summaries. The intended system must make those notes grow
+  incrementally, in the spirit of a linked persistent wiki, while retaining
+  classroom context and source provenance. The new branch therefore removes
+  fixed page roles, block budgets, mandatory DLI ledgers, default human conflict
+  gates and model-call targets from the architecture.
+- Alternatives considered:
+  - Regenerate each note from the newest lesson — rejected because it can lose
+    accumulated human understanding.
+  - Merge every related concept — rejected because related concepts often need
+    separate learning pages.
+  - Require human review for every discrepancy — rejected because contextualized
+    parallel explanations are usually sufficient.
+  - Require visual capture for every lesson — rejected because the cost is not
+    justified when transcript evidence is enough.
+- Consequences: The earlier Human Note v2 prototypes remain historical
+  experiments. The new draft protocol is intentionally small and leaves page
+  organization, internal DLI use and rendering strategy open for real-case
+  evidence.
+
 ## Template for new decisions
 
 ```

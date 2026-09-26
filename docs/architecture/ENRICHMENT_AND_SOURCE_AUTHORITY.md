@@ -1,6 +1,8 @@
 # Bounded Enrichment and Source Authority
 
-**Status:** content policy for the Human Note branch; no new research pipeline or schema.
+**Status:** historical content-policy draft. Its bounded-completion intuition
+may inform future experiments, but it is not a mandatory schema or fixed gate
+in the current [Learning Knowledge Compilation Workflow](KNOWLEDGE_COMPILATION_WORKFLOW.md).
 
 ## Bounded pedagogical enrichment
 

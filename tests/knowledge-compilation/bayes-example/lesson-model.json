@@ -1,0 +1,51 @@
+{
+  "contractVersion": "lesson-model/0.1",
+  "schemaVersion": "0.1",
+  "status": "draft",
+  "lessonModelId": "lesson-probability-graph-01",
+  "sourceMapRef": "classroom-ai-20260922",
+  "contentIdentity": "概率图模型与因果边界",
+  "items": [
+    {
+      "itemId": "li-joint-probability-example",
+      "kind": "example",
+      "title": "路面湿的概率例子",
+      "statement": "多云、下雨、洒水车和路面湿的组合用于说明联合概率难以直接统计，需要通过条件关系拆解。",
+      "sourceUnitRefs": ["su-bayes-example-01"],
+      "context": "classroom"
+    },
+    {
+      "itemId": "li-probability-causality-boundary",
+      "kind": "boundary",
+      "title": "概率关系不等于因果关系",
+      "statement": "观察到两个现象有关联，不能仅凭这条概率关系断定其中一个造成了另一个。",
+      "sourceUnitRefs": ["su-bayes-boundary-01"],
+      "context": "classroom",
+      "scope": "本课对概率图和因果推理的区分"
+    }
+  ],
+  "relations": [
+    {
+      "relationId": "lr-example-qualifies-boundary",
+      "fromItemId": "li-joint-probability-example",
+      "toItemId": "li-probability-causality-boundary",
+      "type": "qualifies",
+      "rationale": "The same classroom example motivates both probability decomposition and the causal boundary."
+    }
+  ],
+  "teachingFlow": [
+    {
+      "order": 1,
+      "itemRefs": ["li-joint-probability-example"],
+      "sourceUnitRefs": ["su-bayes-example-01"],
+      "teachingPurpose": "用直觉例子引入联合概率"
+    },
+    {
+      "order": 2,
+      "itemRefs": ["li-probability-causality-boundary"],
+      "sourceUnitRefs": ["su-bayes-boundary-01"],
+      "teachingPurpose": "补充概率与因果的边界"
+    }
+  ],
+  "visualGaps": ["完整公式未出现在转写中"]
+}

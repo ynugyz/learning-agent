@@ -1,7 +1,9 @@
 # Learning Agent Architecture v2 — Human Learning Note branch
 
-**Status:** prototype, READY_FOR_HUMAN_REVIEW. This document does not freeze
-an M1B schema and does not authorize production Vault writes.
+**Status:** historical prototype, retained for comparison. It does not freeze
+an M1B schema and does not authorize production Vault writes. The current
+design point is [Learning Knowledge Compilation Workflow](architecture/KNOWLEDGE_COMPILATION_WORKFLOW.md),
+which supersedes its fixed Human Note v2 assumptions.
 
 For the current consolidated branch point, information preservation and bounded
 enrichment rules, see

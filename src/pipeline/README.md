@@ -3,7 +3,7 @@
 Coordinates the layers. Orchestration only: it decides **what runs, in what
 order, with what recorded**, and nothing about **how** a step works.
 
-## Expected contents (none exist yet)
+## Expected contents (orchestration remains unimplemented)
 
 | Unit | Purpose |
 | --- | --- |
@@ -32,5 +32,8 @@ order, with what recorded**, and nothing about **how** a step works.
 
 ## Status
 
-`TODO` — empty. The `AgentRuntime` interface must be defined first
+`TODO` — no orchestration implementation exists. The four knowledge-
+compilation contracts now define the handoff shapes, but the runtime-neutral
+pipeline must still be designed and tested against real cases before it is
+implemented. The `AgentRuntime` interface remains the runtime boundary
 (`src/runtime/README.md`).

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://learning-agent.local/schemas/alignment.v0.1.schema.json",
+  "$comment": "DRAFT — NOT IMPLEMENTATION-STABLE.",
+  "title": "Alignment v0.1",
+  "type": "object",
+  "required": ["contractVersion", "schemaVersion", "status", "alignmentId", "lessonModelRef", "candidates"],
+  "properties": {
+    "contractVersion": {"const": "alignment/0.1"},
+    "schemaVersion": {"const": "0.1"},
+    "status": {"enum": ["draft", "NEEDS_REVIEW", "reviewed"]},
+    "alignmentId": {"type": "string", "minLength": 1},
+    "lessonModelRef": {"type": "string", "minLength": 1},
+    "candidates": {"type": "array", "items": {"$ref": "#/$defs/candidate"}},
+    "openQuestions": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "candidate": {
+      "type": "object",
+      "required": ["alignmentId", "lessonItemRefs", "relation", "rationale", "confidence"],
+      "properties": {
+        "alignmentId": {"type": "string", "minLength": 1},
+        "lessonItemRefs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "existingKnowledgeRefs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "existingNoteRefs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "relation": {"enum": ["NEW", "EXPAND", "REFINE", "CORRECT", "EXAMPLE", "RELATION", "CONFLICT", "NO_CHANGE"]},
+        "rationale": {"type": "string", "minLength": 1},
+        "confidence": {"enum": ["low", "medium", "high", "unknown"]},
+        "scopeNote": {"type": "string"},
+        "suggestedLinks": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {"relation": {"const": "NEW"}},
+            "required": ["relation"]
+          },
+          "then": {},
+          "else": {
+            "anyOf": [
+              {
+                "required": ["existingKnowledgeRefs"],
+                "properties": {"existingKnowledgeRefs": {}}
+              },
+              {
+                "required": ["existingNoteRefs"],
+                "properties": {"existingNoteRefs": {}}
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

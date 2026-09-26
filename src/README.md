@@ -5,8 +5,8 @@ The implementation language is **TypeScript** for every directory below
 
 | Directory | Responsibility | May reference DSH? |
 | --- | --- | --- |
-| `contracts/` | Shared type/shape declarations for the four core contracts. Types only, no behaviour. | No |
-| `core/` | Runtime-independent concepts and logic: Evidence, SourceMap, SemanticCard, ChangePlan. | No |
+| `contracts/` | Shared type/shape declarations for evidence, runtime and knowledge-compilation contracts. Types only, no behaviour. | No |
+| `core/` | Runtime-independent concepts and logic: Evidence, SourceMap, LessonModel, Alignment, SemanticCard and ChangePlan. | No |
 | `pipeline/` | Orchestrates Layer A → G. Pure coordination; no DSH specifics. | Only via the `AgentRuntime` contract |
 | `modules/` | Small deterministic units with structured input/output. | No |
 | `runtime/` | The runtime boundary. Implementations live under it. | Implementations yes |
@@ -32,6 +32,7 @@ an adapter in; that file does not exist yet.
 
 ## Status
 
-M1A delivered `contracts/` as declaration-only drafts. `core/`, `pipeline/`,
-`modules/` and `runtime/dsh/` contain **no** implementation
-(`TODO` — deferred to later milestones).
+M1A delivered `contracts/` as declaration-only drafts. The new knowledge-
+compilation contracts and cross-artifact validator are still drafts; `core/`,
+`pipeline/`, `modules/` and `runtime/dsh/` contain **no** production
+implementation (`TODO` — deferred to later milestones).

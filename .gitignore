@@ -45,6 +45,9 @@ build/
 coverage/
 # npm cache redirected into the repo by .npmrc (see that file for why).
 .npm-cache/
+
+# Codex-provided remote attachments are task-local inputs, not project files.
+.codex-remote-attachments/
 .eslintcache
 
 # --- Obsidian plugin build output ----------------------------

@@ -3,9 +3,10 @@
  *
  * DRAFT — NOT IMPLEMENTATION-STABLE.
  *
- * Four contracts, rederived from design principles and revised under human
- * adjudication. None has passed human review as a finished design, and
- * milestone M0 itself is still awaiting final human approval.
+ * Four core contracts were rederived from design principles and revised under
+ * human adjudication. LessonModel, Alignment and ChangePlan are additional
+ * knowledge-compilation drafts; none has passed human review as a finished
+ * design, and milestone M0 itself is still awaiting final human approval.
  *
  * | Contract | Question it answers |
  * | --- | --- |
@@ -13,6 +14,9 @@
  * | `SourceMap` | What is actually present in this source package, and what is missing? |
  * | `AgentRuntime` | What may the pipeline ask of a runtime, and what comes back? |
  * | `RunManifest` | Is comparing this run with another valid? |
+ * | `LessonModel` | What did the lesson teach and how do its parts relate? |
+ * | `Alignment` | How does the lesson relate to existing knowledge? |
+ * | `ChangePlan` | What reversible candidate changes should be proposed? |
  *
  * Nothing here orchestrates, validates, reads files or calls a model: these are
  * type and shape declarations only.
@@ -105,3 +109,27 @@ export type {
   ManifestOmission,
   RunManifest,
 } from './run-manifest';
+
+export type {
+  LessonItemKind,
+  LessonEpistemicContext,
+  LessonRelationType,
+  LessonItem,
+  LessonRelation,
+  TeachingFlowEntry,
+  LessonModel,
+} from './lesson-model';
+
+export type {
+  AlignmentRelation,
+  AlignmentConfidence,
+  AlignmentCandidate,
+  Alignment,
+} from './alignment';
+
+export type {
+  ChangeOperationKind,
+  ChangeOperationStatus,
+  ChangeOperation,
+  ChangePlan,
+} from './change-plan';

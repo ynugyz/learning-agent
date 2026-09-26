@@ -1,6 +1,9 @@
 # Human Chapter Note — Product Spec v0.2
 
-**Status:** architecture consolidation candidate; not a frozen schema or production-write authorization. See [consolidation](ARCHITECTURE_CONSOLIDATION_V0_2.md).
+**Status:** historical Human Note v2 product-spec experiment; not a frozen
+schema or production-write authorization. It is retained as a source of
+useful examples, but its chapter/block/recall-target constraints are not the
+current contract. See [Learning Knowledge Compilation Workflow](KNOWLEDGE_COMPILATION_WORKFLOW.md).
 
 ## Purpose and boundary
 
