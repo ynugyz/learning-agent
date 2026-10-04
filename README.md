@@ -5,35 +5,53 @@ A personal AI learning system that turns heterogeneous learning sources
 auditable, incrementally-updated knowledge network that stays aligned with
 human-readable Obsidian notes.
 
-## Status
+## What it does
 
-**Milestone M0 — Repository Bootstrap (active).**
+The repository now includes a portable Codex Skill for turning learning
+materials into a growing two-layer knowledge base:
 
-This repository is a skeleton and a set of internal protocols, not a working
-product. The temporary pilot-safe boundary can read explicitly listed source
-materials and write isolated candidate files; the learning pipeline itself is
-not implemented.
-See [AGENTS.md](AGENTS.md) for the full development protocol and
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the intended design.
+- Add a transcript, PDF, slide deck, image, or project file to a Codex chat.
+- Choose the Human Note folder and the separate AI knowledge folder on first use.
+- Generate formal, readable Markdown notes for study and review.
+- Generate a compact AI index and knowledge cards for later retrieval and updates.
+- Reuse existing notes, preserve useful content, and add meaningful Obsidian
+  wikilinks instead of creating isolated summaries.
+- Keep formulas in valid Obsidian LaTeX syntax, including inline `$...$` and
+  display `$$...$$` expressions.
+- Continue growing the same course or subject when new source material is added.
 
-Explicitly **not** implemented at M0:
+The Skill is designed for Codex and does not require DSH, DeepSeek, Jev, or a
+separate local service for its normal workflow. Intermediate run files stay in
+the working area; durable Human and AI outputs are written to the two folders
+you select.
 
-- a production Obsidian plugin;
-- OpenMAIC integration;
-- production Vault editing;
-- autonomous knowledge rewriting;
-- a complete multi-agent architecture;
-- learner-state modeling;
-- large benchmark suites.
+This repository also contains versioned prompts, contracts, tests, routing
+utilities, and a portable `.skill.zip` package for installation.
 
-## Intended design in one paragraph
+## Quick start
 
-A lesson passes through layers: raw **Evidence** (A), **Lesson understanding**
-producing a SourceMap/LessonModel (B), a compact machine **SemanticCard** layer
-mirroring human notes (C), **Knowledge alignment** against existing knowledge
-(D), a proposed **ChangePlan** (E), **Candidate writing** into a sandbox state
-(F), and **Auditing** (G). Humans own architecture approval, semantic judgment,
-Gold data and final acceptance; the agent does the mechanical work.
+Install the Skill into the current Codex profile:
+
+```powershell
+npm install
+npm run skill:install
+```
+
+Then invoke `learning-knowledge-growth` in a Codex chat and attach the learning
+material. On the first run, provide two output folders:
+
+```text
+Human Note root: the Obsidian Markdown folder you read and review
+AI knowledge root: a separate folder for index.json and knowledge cards
+```
+
+For later runs, attach new material and identify the same course or subject.
+The Skill reads the existing index and relevant cards first, then updates the
+corresponding notes and links. It does not require copying a complete existing
+course into this repository.
+
+For a ready-to-install package, use
+`dist/learning-knowledge-growth.skill.zip`.
 
 ## Repository layout
 
