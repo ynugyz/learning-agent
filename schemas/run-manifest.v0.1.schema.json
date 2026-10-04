@@ -226,6 +226,22 @@
     "git": { "$ref": "#/$defs/gitState" },
     "runtime": { "$ref": "#/$defs/runtimeInfo" },
     "model": { "$ref": "#/$defs/modelInfo" },
+    "requestedStages": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["SourceMap", "LessonModel", "Alignment"] }
+    },
+    "executedStages": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["SourceMap", "LessonModel", "Alignment"] }
+    },
+    "skippedStages": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["SourceMap", "LessonModel", "Alignment"] }
+    },
     "reasoning": {
       "type": "object",
       "properties": {

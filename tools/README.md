@@ -10,6 +10,14 @@ dev-only; there is still no build system and no runtime dependency.
 | `contract-tests.mjs` | Node ESM | Validates `tests/contracts/**` against the four JSON Schemas with Ajv, asserting each invalid fixture is rejected for an allowed reason. |
 | `generate-contract-fixtures.mjs` | Node ESM | Regenerates the 75 invalid fixtures from the canonical valid ones, one named mutation each. Run only when a mutation or a valid fixture changes. |
 | `validate-knowledge-compilation.mjs` | Node ESM | Checks references and preservation invariants across one SourceMap, LessonModel, Alignment and ChangePlan draft bundle. |
+| `run-dsh-low-model.ps1` | Windows PowerShell | Runs one read-only DSH headless task with `gpt-6-luna` by default, using a temporary model patch. |
+| `canary-run.ps1` + `knowledge-compilation-canary.mjs` | PowerShell + Node ESM | Creates isolated scratch runs; mock/fixture replays fixtures, while real mode sends a single `.txt` source through DSH. `-Stages` selects a contiguous prefix of SourceMap, LessonModel and Alignment; omitted means all three. Real stage timeout defaults to 15 minutes and can be overridden with `LEARNING_AGENT_STAGE_TIMEOUT_MS`. |
+| `knowledge-router-canary.mjs` | Node ESM | Produces a high-recall Router sidecar and deterministic Human Note quality report; `--live` optionally sends batched typed decisions to TypeSafe/Jev. |
+| `note-quality-gate.mjs` | Node ESM | Runs deterministic note preflight and applies at most two bounded section patches into a new scratch candidate. It never writes production notes. |
+| `run-learning-session.ps1` | Windows PowerShell | One-input session wrapper: reads a bounded Vault snapshot, runs SourceMap → LessonModel → Alignment → ChangePlan → Human Note candidate, then audits the result without writing the Production Vault. |
+| `apply-candidate.ps1` | Windows PowerShell | Explicitly writes one reviewed candidate to a chosen note path, backing up an existing file first; requires `-ConfirmWrite`. |
+| `run-learning-session.cmd` | Windows command wrapper | Drag a transcript `.txt` file onto it to start the one-input session (defaults to 人工智能导论; pass a second profile argument for another course). |
+| `feed-*.cmd` | Windows course wrappers | Drag a transcript onto `feed-ai.cmd`, `feed-macro.cmd`, `feed-java-oop.cmd` or `feed-accounting.cmd` to select a bounded course profile without typing commands. |
 
 ## Usage
 
@@ -18,6 +26,14 @@ npm install                                          # installs the pinned dev t
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\check.ps1   # everything
 node tools/contract-tests.mjs                        # fixture verification alone
 node tools/validate-knowledge-compilation.mjs <source-map> <lesson-model> <alignment> <change-plan>
+node --experimental-strip-types tools/knowledge-router-canary.mjs <source-map.json> --mode shadow
+node --experimental-strip-types tools/note-quality-gate.mjs <note.md> <source-map.json>
+.\tools\run-learning-session.ps1 -Transcript <transcript.txt> -Model gpt-6-luna -Reasoning low
+.\tools\run-learning-session.ps1 -Transcript <transcript.txt> -Profile 宏观经济学 -Model gpt-6-luna -Reasoning low
+.\tools\canary-run.ps1 -Name bayes-mock -Source .\tests\knowledge-compilation\bayes-example -Mode mock
+.\tools\canary-run.ps1 -Name bayes-source-only -Source .\tests\knowledge-compilation\bayes-example -Mode mock -Stages SourceMap
+.\tools\canary-run.ps1 -Name bayes-understand -Source .\tests\knowledge-compilation\bayes-example -Mode mock -Stages SourceMap,LessonModel
+.\tools\canary-run.ps1 -Name lesson-real -Source .\scratch\lesson.txt -Mode real -Model gpt-6-luna -Reasoning low
 npx --no-install tsc --noEmit                        # contract types alone
 ```
 

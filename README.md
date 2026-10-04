@@ -66,7 +66,23 @@ test-vault/          Disposable sandbox vault; never a production Vault
 runs/                Generated run artifacts (git-ignored)
 obsidian-plugin/     Future Obsidian integration (not started)
 tools/               Repository checks and contract verification
+skill/learning-knowledge-growth/  Portable Codex Skill source bundle
 ```
+
+## Codex Skill bundle
+
+The portable Skill source is under
+`skill/learning-knowledge-growth/`. Install or copy that directory into the
+target Codex skills directory. It contains the Skill instructions, UI metadata,
+AI index protocol and repository integration reference. The Skill uses Codex
+only; DSH-related scripts in this repository are legacy experiment tools and
+are not part of the normal Skill workflow.
+
+The Skill still needs two user-selected roots at first use: a Human Note root
+and an AI knowledge root. Those roots contain the user's growing knowledge
+state and are intentionally kept outside this repository. Intermediate run
+artifacts are disposable; the durable AI layer is the course index plus
+knowledge-object cards.
 
 ## Environment
 

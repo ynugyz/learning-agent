@@ -150,6 +150,9 @@ convention.
 | `runtime.resolution` | M (cond.) | enum | `matched` / `substituted` / `unknown`. |
 | `runtime.reason` | M (cond.) | string (non-empty) | Required when `unavailable`. |
 | `model` | M | object | Model identity (`RM-9`). |
+| `requestedStages` | O | array | Public canary stages requested, as a non-empty prefix of `SourceMap`, `LessonModel`, `Alignment`. |
+| `executedStages` | O | array | Public canary stages that completed in this run. |
+| `skippedStages` | O | array | Public canary stages omitted by the request or not reached after a failed earlier stage. |
 | `model.requested` | O | string (non-empty) | |
 | `model.resolved` | M | tagged union | Required; value or reason (`RM-12`). |
 | `model.provider` | O | string (non-empty) | |
@@ -195,6 +198,11 @@ convention.
   the value itself must never appear.
 - **`finishedAt`:** optional so a crashed run can still emit a valid manifest
   (`RM-18`).
+- **Canary stage fields:** `requestedStages`, `executedStages` and
+  `skippedStages` are optional for compatibility with older manifests. Canary
+  runs write all three. `requestedStages` is a contiguous prefix beginning at
+  `SourceMap`; the other two fields describe what completed and what was not
+  run.
 
 ---
 

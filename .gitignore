@@ -39,7 +39,8 @@ htmlcov/
 
 # --- Node / TypeScript --------------------------------------
 node_modules/
-dist/
+dist/*
+!dist/learning-knowledge-growth.skill.zip
 build/
 *.tsbuildinfo
 coverage/
@@ -80,4 +81,26 @@ desktop.ini
 # --- Local scratch -------------------------------------------
 tmp/
 scratch/
+workspace/*
+!workspace/README.md
+ynuagent.pdf
 *.local
+
+# --- Personal experiment configurations ----------------------
+# Keep portable examples such as course-profiles.json, but do not publish
+# case files containing machine-specific Vault and transcript paths.
+configs/COURSE_REBUILD_*.json
+configs/PRESENTATION_*.json
+configs/PILOT_*.json
+configs/real-case-*.json
+configs/course-profiles.json
+configs/cloud-rebuild-v0.1.json
+configs/jev-teamorouter.json
+feed-*.cmd
+open-learning-agent-ui.cmd
+run-learning-inbox.cmd
+run-learning-session.cmd
+tools/learning-agent-ui.ps1
+tools/run-learning-inbox.ps1
+tools/run-learning-session.ps1
+tools/run-dsh-low-model.ps1

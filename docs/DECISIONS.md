@@ -463,6 +463,49 @@ contract. Fields are expected to change; see D-0007.
   organization, internal DLI use and rendering strategy open for real-case
   evidence.
 
+### D-0019 — Knowledge Router and Jev quality gate stay outside the four core contracts
+- Date: 2026-09-28
+- Status: accepted for scratch experiments; production integration deferred
+- Decision: Add a high-recall Knowledge Router and an optional TypeSafe/Jev
+  decision adapter as run-local sidecars. Keep SourceMap, LessonModel,
+  Alignment and ChangePlan as separate semantic responsibilities. Run a
+  deterministic Human Note preflight before optional Jev quality scoring, and
+  limit local section repair to at most two scratch-only rounds with rescore.
+- Rationale: Routing and quality judgments are control-plane decisions, not
+  durable knowledge. Keeping them outside the four contracts prevents SourceMap
+  from acquiring final dispositions, keeps DSH/TypeSafe replaceable, and lets
+  the system test recall before enabling active filtering.
+- Alternatives considered: replacing the four contracts with one decision
+  table — rejected because provenance and mutation planning have different
+  lifecycles; putting route fields in SourceMap — rejected because SourceMap is
+  an evidence layer; allowing whole-note automatic regeneration — rejected
+  because existing Human Notes are durable seed knowledge.
+- Consequences: The first Jev run may be unavailable when no API key exists;
+  deterministic fallback reports that fact rather than fabricating a Jev
+  result. Router shadow mode does not change LessonModel input. Production
+  Vault writing and the existing pilot-safe commit gate remain unchanged.
+
+### D-0020 — AI knowledge state uses progressive index and object-card retrieval
+- Date: 2026-10-03
+- Status: accepted for the Codex-only skill workflow
+- Decision: Keep a small course-level `index.json` as the L0 router and add
+  bounded knowledge-object cards as L1 retrieval state. Use the index to select
+  pages and cards, then open only the required Human Note sections and evidence.
+  Do not treat a full Markdown backup or a page-level mirror as the AI layer.
+- Rationale: The finance rebuild backup showed that copying Human Notes into an
+  AI directory preserves content but does not reduce context, identify stable
+  objects, or support precise incremental updates. Stable cards with aliases,
+  claims, section anchors, relations and provenance provide the missing routing
+  layer while leaving Human Notes optimized for learning.
+- Alternatives considered: loading the entire course Vault each run — rejected
+  because it wastes tokens and makes updates page-level; replacing Human Notes
+  with compressed cards — rejected because it loses learning detail; adding all
+  metadata to Markdown — rejected because it pollutes the human layer.
+- Consequences: The skill must maintain index/cards together with note updates,
+  validate relation and section targets, and retain old cards until a migration
+  is verified. Existing backups remain rollback material and are not treated as
+  the canonical AI retrieval state.
+
 ## Template for new decisions
 
 ```

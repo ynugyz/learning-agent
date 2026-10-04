@@ -119,6 +119,9 @@ export interface ManifestSourceBundle {
   readonly digest?: Fingerprint;
 }
 
+/** Public canary stage names recorded by the run manifest. */
+export type CompilationStageName = 'SourceMap' | 'LessonModel' | 'Alignment';
+
 /** Environment reference. A pointer only, so no host-specific data enters (RM-21). */
 export interface ManifestPlatform {
   readonly environmentRef?: string;
@@ -184,6 +187,10 @@ export interface RunManifest {
   readonly git: ManifestGitState;
   readonly runtime: ManifestRuntime;
   readonly model: ManifestModel;
+  /** Requested/executed/skipped stages are optional for backwards compatibility with older manifests. */
+  readonly requestedStages?: readonly CompilationStageName[];
+  readonly executedStages?: readonly CompilationStageName[];
+  readonly skippedStages?: readonly CompilationStageName[];
   readonly reasoning?: ManifestReasoning;
   readonly versions: ManifestVersions;
   readonly sourceBundle?: ManifestSourceBundle;
