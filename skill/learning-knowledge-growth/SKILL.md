@@ -56,9 +56,9 @@ Build the surrounding knowledge network while writing the note. Reuse resolvable
 The AI layer must be a retrieval layer, not a second copy of Human Markdown. Maintain two progressively loaded levels:
 
 - **Course index (L0)**: one small `index.json` per course. It maps sources to note records, stable `knowledgeId`s, aliases, note paths, maintenance state, open items, hashes and page-level relations. It answers “which pages and objects are relevant?” without opening full notes.
-- **Knowledge object cards (L1)**: compact records under `cards/` for concepts, mechanisms, formulas, methods, examples, boundaries and unresolved objects. Each card has a stable identity, canonical term, aliases, role, bounded semantic core, key claims, section anchors, human-note reference, source references, relations and update state. It answers “which object and section should change?”
+- **Knowledge object cards (L1)**: compact records under `cards/` for concepts, mechanisms, formulas, methods, examples, boundaries and unresolved objects. Each card has a stable identity, canonical term, aliases, role, bounded semantic core, only the key claims needed for retrieval, section anchors, human-note reference, source references, relations and update state. Card size and claim count follow object complexity; do not force unrelated evidence gaps into a fixed template or one catch-all card. It answers “which object and section should change?”
 
-Only after L0/L1 routing may the run open the relevant Human Note sections (L2) and original evidence (L3). Never recreate L1 by copying a whole Human Note. Human Markdown must not be polluted with machine IDs or JSON metadata. Read [references/ai-index-protocol.md](references/ai-index-protocol.md) when creating or updating the AI layer.
+Only after L0/L1 routing may the run open the relevant Human Note sections (L2) and original evidence (L3). Never recreate L1 by copying a whole Human Note. Human Markdown must not be polluted with machine IDs or JSON metadata. Before marking a run successful, resolve every card relation target, note path and section anchor and write the final validation status and counts. Read [references/ai-index-protocol.md](references/ai-index-protocol.md) when creating or updating the AI layer.
 
 ## Output placement
 

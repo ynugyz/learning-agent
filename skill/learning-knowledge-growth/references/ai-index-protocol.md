@@ -51,13 +51,13 @@ Cards are compact and bounded. A card normally contains:
 }
 ```
 
-`keyClaims` are short retrieval claims, not a replacement for the Human Note. `sectionRefs` must point to real headings or stable anchors. `relations` must name a target `knowledgeId` and a meaningful type such as `prerequisite-to`, `part-of`, `contrasts-with`, `applies-to`, `exemplifies`, `causes` or `related-to`. Do not invent a relation because two pages happen to share a chapter.
+`keyClaims` are short retrieval claims, not a replacement for the Human Note. Their count is proportional to the object: keep only the claims needed to retrieve and distinguish it; do not force every card into a fixed number of claims. `sectionRefs` must point to real headings or stable anchors. `relations` must name a target `knowledgeId` and a meaningful type such as `prerequisite-to`, `part-of`, `contrasts-with`, `applies-to`, `exemplifies`, `causes` or `related-to`. Do not invent a relation because two pages happen to share a chapter.
 
 ## Incremental update rules
 
 - Match by `knowledgeId`, canonical term, aliases and claim similarity before creating a new object.
 - If the object exists, update its card and the referenced Human Note section; do not create a duplicate page merely because the lesson came from a new session.
-- If evidence is insufficient, keep the card with `maintenanceState: "deferred"` and preserve the evidence gap.
+- If evidence is insufficient, keep the card with `maintenanceState: "deferred"` and preserve the evidence gap. Split unrelated evidence gaps into separate cards when they require different future evidence or point to different sections; do not put every unresolved item into one catch-all card.
 - If two objects may be the same but cannot be safely merged, keep separate cards and add a bounded relation or unresolved note.
 - Update `sourceRefs`, `sectionRefs`, hashes and relations together with the note change.
 - Never delete a card or human section solely because the latest source omitted it.
@@ -68,4 +68,4 @@ Cards are compact and bounded. A card normally contains:
 - Keep each card focused on one learning object; split cards when unrelated claims cannot share a section anchor.
 - Do not put full transcript excerpts, full note bodies, or long teaching narratives in cards.
 - Every card claim must retain source references or an explicit uncertainty marker.
-- Reject broken note paths and unresolved relation targets during preflight; record them for repair instead of silently presenting them as valid links.
+- Reject broken note paths and unresolved relation targets during preflight; record them for repair instead of silently presenting them as valid links. A successful run may report `PASS` only after all relation targets, note paths and section anchors resolve. If a repair removes or splits a card, update the run counts and validation report together.
