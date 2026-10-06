@@ -53,6 +53,8 @@ course into this repository.
 For a ready-to-install package, use
 `dist/learning-knowledge-growth.skill.zip`.
 
+如果这个项目对你的学习整理有帮助，欢迎在 GitHub 上点一个 Star，支持项目继续改进。
+
 ## Repository layout
 
 ```
