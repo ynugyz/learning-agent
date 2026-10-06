@@ -14,9 +14,9 @@ status: active
 
 ## 输入与边界
 
-先读取当前目录的 `input/index.json`（如果存在）和与本次内容匹配的 `input/cards/*.json`，再读取 `input/existing-note.md`、`input/lesson-model.json`、`input/source-map.json`、`input/alignment.v0.2.json` 和 `input/change-plan.v0.1.json`。索引和知识卡片用于定位已有知识对象及其章节；不能用整篇 Human Note 代替知识卡片，也不能因为只找到页面级匹配就新建重复页面。
+先读取当前目录的 `input/index.json`（如果存在）和与本次内容匹配的 `input/cards/*.json`，再读取 `input/existing-note.md`、`input/lesson-model.json`、`input/source-map.json`、`input/alignment.v0.2.json` 和 `input/change-plan.v0.1.json`。索引和知识卡片用于定位已有知识对象及其章节；不能用整篇 Human Note 代替知识卡片，也不能因为只找到页面级匹配就新建重复页面。默认按单一主题完成一篇完整知识页；多个输入只有在确实属于不同主题时才拆分，不能把整门课程的所有课堂页混入当前主题。
 
-- 已有笔记是 Human Layer 的种子知识，任何已有的有效定义、机制、公式、代码、例子、比较、限制、复习提示、PDF 嵌入和 wikilink 都必须保留；只能重排、合并重复表达或修正明显的版式问题。
+- 已有笔记是 Human Layer 的种子知识，任何已有的有效定义、机制、公式、代码、例子、比较、限制、复习提示、PDF 嵌入和 wikilink 都必须保留。保留已有有效内容不等于受旧页面的篇幅、章节数量或稀疏程度限制；允许围绕本次主题补齐缺失的定义、机制、公式、例子、边界、方法和易错点，也允许重组重复表达，但不得静默删除有效内容。
 - SourceMap 只提供证据边界；LessonModel 提供知识对象；Alignment/ChangePlan 决定本轮可安全吸收的增量。
 - 对每个新增或修改对象，先确定 canonical term、别名、知识角色、目标知识卡片和 Human Note 章节。已有对象优先在原页面对应章节中扩展；只有没有稳定匹配时才创建新页面。
 - deferred、uncertain、冲突或缺失公式的内容不能被补成确定事实，也不能凭模型常识扩写。可以保留为简短的“待核对/待补”项。
