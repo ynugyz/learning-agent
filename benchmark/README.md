@@ -30,7 +30,8 @@ corrections to old knowledge.
 
 ## Status
 
-已有一个 `ey-campus-demo-v0.1` 开发合成 fixture，用于验证增量生长、来源覆盖和双链检查；
-它不是赛事提供的模拟数据，不能直接作为正式比赛输入。对应 Gold 仍是
-`NEEDS_HUMAN_AUTHORING` 占位文件，当前没有可提交的 Gold 或已审核结果。
+已有一个 `ey-campus-demo-v0.1` 开发合成 fixture，包含三个待人工标注的子案例，并提供
+initial/follow-up 增量运行骨架，用于验证增量生长、来源覆盖和双链检查；它不是赛事提供的模拟数据，
+不能直接作为正式比赛输入。对应 Gold 仍是 `NEEDS_HUMAN_AUTHORING` 占位文件，当前没有可提交的
+Gold 或已审核结果。
 大型 benchmark suite 仍不在当前里程碑范围内。

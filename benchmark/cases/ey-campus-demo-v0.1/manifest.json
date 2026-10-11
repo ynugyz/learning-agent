@@ -14,7 +14,28 @@
     "existing-page extension",
     "formula and boundary preservation",
     "bounded wikilink resolution",
-    "second-input incremental growth"
+    "second-input incremental growth",
+    "three-case internal evidence gate"
+  ],
+  "subcases": [
+    {
+      "caseId": "case-01-noisy-transcript",
+      "path": "case-01-noisy-transcript",
+      "gold": "../../gold/ey-campus-demo-v0.1.case-01.json",
+      "status": "NEEDS_HUMAN_AUTHORING"
+    },
+    {
+      "caseId": "case-02-existing-note-growth",
+      "path": "case-02-existing-note-growth",
+      "gold": "../../gold/ey-campus-demo-v0.1.case-02.json",
+      "status": "NEEDS_HUMAN_AUTHORING"
+    },
+    {
+      "caseId": "case-03-repeat-example-and-link",
+      "path": "case-03-repeat-example-and-link",
+      "gold": "../../gold/ey-campus-demo-v0.1.case-03.json",
+      "status": "NEEDS_HUMAN_AUTHORING"
+    }
   ],
   "runs": [
     {
