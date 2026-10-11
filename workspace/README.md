@@ -1,22 +1,39 @@
-# Learning Agent 统一投喂工作区
+# Learning Agent 可编辑工作区
 
-把课堂转写拖到仓库根目录的 `run-learning-inbox.cmd`，系统会：
+这里是日常优化内容的工作区，不是审计报告目录。把需要整理的资料、已有成果和修改意见放在这里，
+直接编辑 Markdown 即可。
 
-1. 把原始文件保存到 `inbox/`；
-2. 根据文件名尝试选择课程 profile；
-3. 使用该课程的旧笔记白名单运行完整编译；
-4. 把本次结果保存到 `runs/<run-id>/`。
+## 建议用法
 
-文件名包含“宏观经济学”“Java”“会计”“人工智能”等课程名时会自动选择对应 profile。
-新科目可以在命令行直接把 Vault 中的科目文件夹传入：
-
-```powershell
-.\tools\run-learning-inbox.ps1 -Transcript "D:\课堂转写\第一讲.txt" `
-  -CourseFolder "D:\path\to\your\vault\Mine\learn\新科目"
+```text
+workspace/
+├─ inbox/       原始转写、PPT、PDF 或其它资料
+├─ references/  想保留的已有笔记、示例和风格参考
+├─ drafts/      正在修改的工作稿
+├─ output/      觉得可以交付的人类笔记
+└─ ai/          给后续检索使用的机器层资料
 ```
 
-系统会从这个明确指定的文件夹中自动挑选少量 Markdown 笔记作为本次快照，并立即开始处理。
-无法判断科目时会停止并提示补充课程名，避免把笔记写入错误课程。
+本目录中的文件可以随时手工编辑、替换或重新组织。需要优化时，在聊天中调用
+`$learning-knowledge-growth`，并说明：
 
-这个目录可以整体放进同步盘，在另一台电脑上继续使用。生产 Obsidian Vault 仍然只读，
-候选笔记需要确认后再复制回 Vault。
+```text
+请读取 workspace/inbox/ 和 workspace/references/。
+以 workspace/drafts/ 中的内容为工作稿，按已有优秀笔记的结构优化。
+把最终人类笔记放入 workspace/output/，机器层放入 workspace/ai/。
+保留已有有效内容，只根据提供的材料补充和重组。
+```
+
+如果某次结果满意，再由你手动复制到 Obsidian Vault；如果还需要调整，就继续编辑
+`drafts/`，不必重新建立整个项目。
+
+## 当前可编辑入口
+
+- [EDITABLE_WORKSPACE.md](EDITABLE_WORKSPACE.md)：记录本次想优化的内容和目标。
+- `inbox/`：投放资料。
+- `references/`：放参考笔记。
+- `drafts/`：修改工作稿。
+- `output/`：保存最终人类笔记。
+- `ai/`：保存机器层索引和知识卡片。
+
+临时文件可以留在这里，不需要为了每一次修改建立新的课程目录。
