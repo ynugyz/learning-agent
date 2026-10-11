@@ -26,7 +26,7 @@ ZIP 当前只包含 Skill 运行所需的 `SKILL.md`、`agents/openai.yaml` 和�
 | 项目 | 当前结果 | 发布判断 |
 | --- | --- | --- |
 | README | 已有中文/英文使用说明、安装、双层产物、边界和反馈方式 | 可作为用户入口；发布分支仍需确认 |
-| Skill ZIP | 已跟踪，内容范围小，结构可安装 | 可发布；发布时保留哈希 |
+| Skill ZIP | 已跟踪，内容范围小，结构可安装；已在 `runs/clean-skill-install-20261011/` 做隔离安装烟测 | 可发布；发布时保留哈希 |
 | 测试与检查 | `npm run check`、类型检查和现有测试在最近变更后通过 | 每次发布前重跑 |
 | 凭据 | 追踪文件未发现真实 API key；`.env.example` 只有空值或变量名 | 继续禁止提交真实密钥 |
 | 生产 Vault | 仓库未打包生产 Markdown 或 AI 索引 | 保持此边界 |
@@ -76,7 +76,7 @@ Skill，但若要把仓库作为真正的开源项目供他人复用，维护者
 3. 确认公开分支/tag，并检查 README 中的安装链接和命令。
 4. 运行 `npm ci`、`npm run check`、`npm test` 和 `git diff --check`。
 5. 重新生成或确认 Skill ZIP，计算 SHA-256，检查 ZIP 内容清单。
-6. 用全新临时目录安装 Skill，使用仓库内 `development_synthetic_fixture` 完成一次可复演的开发运行；它不代表 PDF 允许的正式竞赛输入。
+6. 用全新临时目录安装 Skill（隔离安装烟测已完成），再使用仓库内 `development_synthetic_fixture` 完成一次可复演的开发运行；它不代表 PDF 允许的正式竞赛输入。
 7. 确认演示只展示正式 Human Note、AI 索引、来源和验证结果；不展示候选历史文件或个人实验路径。
 8. 人工完成报名表、视频/幻灯片上传、原创声明与数据授权确认。
 
