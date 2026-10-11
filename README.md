@@ -85,10 +85,10 @@ AI 知识目录：<单独存放 AI 索引的概率论文件夹>
 | 位置 | 产物 |
 | --- | --- |
 | 人类笔记目录 | 可直接在 Obsidian 或 Markdown 编辑器阅读的正式 `.md` 笔记；标题和正文不带“候选”“草稿”等流程标签。 |
-| AI 知识目录 | 课程 `index.json`、`cards/` 知识卡片，以及紧凑的来源、变更和验证记录。用于后续检索，不是人类笔记的完整复制。 |
+| AI 知识目录 | 课程 `index.json` 与 `cards/` 知识卡片。来源、哈希、维护状态、未决项和关系直接保存在这一层，用于后续检索，不是人类笔记的完整复制。 |
 | 对话中的结果报告 | 本次输入、课程、写入路径、更新页面、增加的链接和待补问题。 |
 
-临时工作文件留在 AI 目录或单独工作区，成功后按 Skill 规则清理；失败时保留诊断现场。原始资料保持不变。已有笔记不会因为新资料没再次提到某个知识点就被删除。
+临时工作文件放在 AI 目录外的独立工作区，成功后整目录清理；失败时默认只保留一份简短错误说明。运行清单和累计变更日志不是长期必需品；本次变化会在对话中说明，必要的来源与维护信息已经进入 AI 层。原始资料保持不变。已有笔记不会因为新资料没再次提到某个知识点就被删除。
 
 ### 换电脑与更新 Skill
 
@@ -131,7 +131,7 @@ The current user interface is a Codex Skill, not an Obsidian plugin or a standal
 | Mathematics | Inline `$...$` and display math with `$$` delimiters on separate lines, with delimiter checks. |
 | Separate outputs | Human study notes and AI retrieval records stored in independently selected folders. |
 | Incremental updates | New material is matched against existing topics and objects before extending pages, adding links, or creating new pages. |
-| Traceable results | Output paths, changes, validation results, unresolved issues, and compact provenance records. |
+| Traceable results | Source references, maintenance state, unresolved issues, and validation status are kept in the AI layer; the conversation reports the current change. |
 
 The default scope is the current topic. Multiple files can be grouped by topic; selecting a course folder does not automatically trigger a whole-course rebuild.
 
@@ -191,10 +191,10 @@ Growth happens when you invoke the Skill. It is not a background folder watcher;
 | Location | Contents |
 | --- | --- |
 | Human note folder | Formal `.md` study notes readable in Obsidian or another Markdown editor, without candidate or draft labels in titles and prose. |
-| AI knowledge folder | A course `index.json`, knowledge cards in `cards/`, and compact provenance, change, and validation records. These support retrieval rather than duplicating entire Human notes. |
+| AI knowledge folder | A course `index.json` and knowledge cards in `cards/`; provenance, hashes, maintenance state, unresolved items, and relations are embedded there. These support retrieval rather than duplicating entire Human notes. |
 | Conversation report | Inputs, course, output paths, updated pages, added links, and unresolved evidence gaps. |
 
-Temporary files stay in the AI folder or a separate workspace. Successful runs clean up working files according to the Skill instructions; failed runs retain diagnostics. Original sources remain unchanged. Existing knowledge is not deleted merely because the latest source omits it.
+Temporary files stay in a separate workspace and are deleted after a successful run. Failed runs normally keep one compact error note, not a growing archive of raw intermediates. Original sources remain unchanged. Existing knowledge is not deleted merely because the latest source omits it.
 
 ### Moving to another computer and updating
 

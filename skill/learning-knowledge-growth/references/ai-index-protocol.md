@@ -27,7 +27,12 @@ The course `index.json` should contain:
 }
 ```
 
-Each record should identify a Human Note, stable `knowledgeId`, title, aliases when known, maintenance state, source references, open items, note hash and last run. Page relations are routing hints; they do not replace object relations.
+Each record should identify a Human Note, stable `knowledgeId`, title, aliases when known, maintenance state, source references, open items and the current note hash. A last-update timestamp is optional; do not append a run-history entry for every invocation. Page relations are routing hints; they do not replace object relations.
+
+The optional `sync` object is the compact place for current integrity state,
+for example `lastValidatedAt`, `validationStatus`, `sourceHash` and a small
+count summary. It is overwritten on the next successful update. Do not create
+a separate manifest or validation log merely to preserve these values.
 
 ## Knowledge card minimum
 
@@ -65,6 +70,9 @@ Cards are compact and bounded. A card normally contains:
 ## Token and integrity rules
 
 - Keep the L0 index small enough to load for every run.
+- Keep the AI layer bounded: update the current index and affected cards in
+  place instead of creating timestamped copies. Provenance is retained as
+  source references and hashes, not as duplicated source files.
 - Keep each card focused on one learning object; split cards when unrelated claims cannot share a section anchor.
 - Do not put full transcript excerpts, full note bodies, or long teaching narratives in cards.
 - Every card claim must retain source references or an explicit uncertainty marker.
