@@ -104,5 +104,6 @@ Get-FileHash dist/learning-knowledge-growth.skill.zip -Algorithm SHA256
 - 开发合成案例：已建立三个子案例骨架；Gold 仍为 `NEEDS_HUMAN_AUTHORING`。
 - 赛事正式模拟数据：尚未放入仓库，也不能由 Agent 代替提供。
 - 两次正式演示结果、人工审阅、视频和上传凭证：尚未完成。
+- 仓库中的 Skill 是供 Codex 执行的说明与参考包，不是可以由 `node` 离线生成 Human/AI 笔记的本地 runner；本地检查只能验证输入、协议和安装，不替代 Codex 端到端运行。
 
 因此当前项目是“比赛准备中、可复演材料已就位”，尚不能声称“已完成正式提交”。
