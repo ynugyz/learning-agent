@@ -1,6 +1,6 @@
 ---
 name: learning-knowledge-growth
-description: Use Codex to turn attached transcripts, slides, documents, or project files into linked, incrementally growing Human and AI knowledge notes.
+description: Use Codex to turn transcripts, slides, PDFs, documents, images, or project files into linked, incrementally growing Human and AI knowledge notes.
 ---
 
 # Learning Knowledge Growth
@@ -18,6 +18,15 @@ If the user already provided both paths in the current conversation, use them. O
 
 On later runs, reuse the saved paths unless the user explicitly changes them. Treat the two roots as independent; do not place machine JSON beside the human Markdown unless the user deliberately chose the same directory.
 
+## Intake questions
+
+At the beginning of a new course or a new kind of material, ask the user for two small preferences before deep processing, unless the user has already answered them in the current conversation:
+
+1. **Material type** — choose one or more: `课堂转写`, `课件/PPT`, `PDF/教材/文档`, `图片/扫描资料`, `项目/代码/ZIP`, or `混合资料`.
+2. **Information density** — choose one: `完整保留` (keep all source-supported learning value and remove only verbal or administrative repetition), `平衡整理` (keep useful detail while compressing repetition), or `AI 自行取舍` (let Codex choose the amount based on future review value).
+
+If several files have different types, record a type for each file and use `混合资料` for the batch. If the user has not selected a density, do not silently choose aggressive compression: ask once, then record the choice in the run manifest or provenance. The density preference applies to newly compiled material; it never authorizes deletion of valid existing note content. If the user says “完整” or “让 AI 自己判断”, map it directly to the corresponding option without asking the same question again.
+
 ## Inputs and routing
 
 Accept files attached to the conversation or paths supplied by the user. Classify every input before compiling:
@@ -28,6 +37,17 @@ Accept files attached to the conversation or paths supplied by the user. Classif
 - Existing Markdown notes: seed Knowledge State, not new source material. Preserve useful definitions, formulas, examples, comparisons, methods, boundaries, study guidance, and links.
 
 Infer the course or subject from an explicit user label, selected folder, existing profile, or the material itself. If two subjects are plausible, ask before writing. For a new subject, use a bounded snapshot of the selected course folder and create a new profile candidate rather than scanning the Vault.
+
+Use the input type to choose the reading tool before compiling. Read [references/input-modes.md](references/input-modes.md) when the batch contains anything beyond plain text. The tool is for extraction and evidence navigation; it must not turn the source into an unsupported textbook summary:
+
+- `课堂转写` / `.txt` / pasted text: read the source directly and preserve source spans, repetitions that carry teaching value, examples, formulas, and uncertainty.
+- `课件/PPT` / `.pptx` / `.ppt`: use the presentation-reading capability to inspect slide text, speaker notes, tables, formulas, diagrams, and slide order; keep slide numbers as provenance.
+- `PDF/教材/文档`: use the PDF or document-reading capability appropriate to the file. Render pages when layout, formulas, tables, or diagrams affect meaning; keep page numbers and extraction limits.
+- `图片/扫描资料`: use image understanding or image viewing to read visible text, handwriting, formulas, and diagrams; mark unreadable regions as deferred instead of guessing.
+- `项目/代码/ZIP`: inspect the manifest and the smallest relevant set of README, source, examples, and diagrams; do not ingest dependencies or build output.
+- `混合资料`: route each file with its own tool, then reconcile them as one bounded lesson only when their topic and scope match.
+
+Preserve the original files as evidence. If a tool can extract only part of a file, record what was read and what was unavailable; do not silently treat a partial extraction as complete.
 
 ## Compilation behavior
 

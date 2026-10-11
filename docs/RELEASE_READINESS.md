@@ -14,10 +14,10 @@
 
 ```text
 dist/learning-knowledge-growth.skill.zip
-SHA-256: 1C199BD3D7F89F8AFB319E5F2BE80B3B1023EF5698F2B5C2509B183D2CA744F6
+SHA-256: DEA3E1864B8247C180EE9DF0EA78E5F3AAA4F9034233519463258695DA7F31AD
 ```
 
-ZIP 当前只包含 Skill 运行所需的 `SKILL.md`、`agents/openai.yaml` 和两个
+ZIP 当前只包含 Skill 运行所需的 `SKILL.md`、`agents/openai.yaml` 和三个
 `references/` 文件。发布前下载后应重新计算哈希，并确认压缩包内没有运行日志、课程笔记、
 生产 Vault 文件或凭据。
 

@@ -55,6 +55,8 @@ npm run skill:install
 3. 指定课程或主题，以及两个独立的输出位置。
 4. 说明已有笔记在哪里，并明确是否允许更新它们。
 
+首次处理一批新资料时，Skill 还会确认两项偏好：原始资料类型（课堂转写、课件/PPT、PDF/教材/文档、图片/扫描资料、项目/代码/ZIP 或混合资料），以及信息密度（完整保留、平衡整理或 AI 自行取舍）。PPT、PDF、文档和图片会先使用对应的读取能力保留页码、幻灯片号和图表/公式来源，再进入知识整理；无法读取的部分会标记出来，不凭空补齐。
+
 可以直接使用下面的提示，替换其中的路径：
 
 ```text
@@ -157,6 +159,8 @@ The installer replaces the same-named Skill in your current Codex configuration;
 2. Invoke `$learning-knowledge-growth` and attach materials, or supply accessible local paths.
 3. Specify the course or topic and two separate output folders.
 4. Identify existing notes and explicitly state whether they may be updated.
+
+For a new batch, the Skill also confirms the material type (lecture transcript, slides/PPT, PDF/textbook/document, image/scan, project/code/ZIP, or mixed) and the information density (preserve completely, balanced, or let Codex choose). Slides, PDFs, documents, and images are read with the appropriate tool first so page, slide, diagram, and formula provenance is retained; unreadable parts are marked rather than invented.
 
 Replace the placeholders in this example:
 

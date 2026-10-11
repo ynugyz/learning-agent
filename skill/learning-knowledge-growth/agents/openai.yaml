@@ -1,5 +1,5 @@
 
 interface:
   display_name: "Learning Knowledge Growth"
-  short_description: "Turn learning materials into linked, incrementally growing Human and AI notes"
-  default_prompt: "Use $learning-knowledge-growth to compile the supplied learning materials into source-grounded Human and AI knowledge notes, preserving useful existing content and links."
+  short_description: "Turn transcripts, slides, PDFs, and projects into linked Human and AI notes"
+  default_prompt: "Use $learning-knowledge-growth to classify the supplied learning materials, ask for the desired information density when needed, and compile source-grounded Human and AI knowledge notes with meaningful links."
