@@ -14,7 +14,7 @@
 
 ```text
 dist/learning-knowledge-growth.skill.zip
-SHA-256: DD19FAFB7C379A4A7AD51CE013613ACC394940CE54BE5BEE60A49D926C7DEFD7
+SHA-256: 1C199BD3D7F89F8AFB319E5F2BE80B3B1023EF5698F2B5C2509B183D2CA744F6
 ```
 
 ZIP 当前只包含 Skill 运行所需的 `SKILL.md`、`agents/openai.yaml` 和两个
@@ -63,7 +63,7 @@ Skill，但若要把仓库作为真正的开源项目供他人复用，维护者
 
 ## 安永 PDF 对应的发布边界
 
-根据 PDF，个人赛适合以“用 AI 解决真实学习/生活痛点”的效率工具参赛；Learning Agent
+参赛者已确认报名个人赛并具备参赛资格。根据 PDF，个人赛适合以“用 AI 解决真实学习/生活痛点”的效率工具参赛；Learning Agent
 可以展示资料整理、知识连接和增量更新。提交演示应只使用赛事提供的模拟数据；不要把真实课堂录音、
 生产 Vault、个人路径和密钥放入提交包。其它数据类型不能从本 PDF 推出获准使用。作品应由报名主体独立完成，不应
 使用外部商业付费成品直接参赛。最终报名赛道、资格、原创声明、数据授权和提交方式需要参赛者
