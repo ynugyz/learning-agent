@@ -30,5 +30,5 @@ Until real Gold data exists, per-case placeholders use this shape:
 
 ## Status
 
-已有 `ey-campus-demo-v0.1.json` 占位文件，状态为 `NEEDS_HUMAN_AUTHORING`。
-它只登记案例与人工责任，不包含 Agent 生成的参考答案。
+`ey-campus-demo-v0.1.json` 以及三个子案例的占位文件均为
+`NEEDS_HUMAN_AUTHORING`。它们只登记案例与人工责任，不包含 Agent 生成的参考答案。
