@@ -66,7 +66,7 @@ history is **not** a record.
   experiment. Committing the project to a pinning policy before the adapter
   exists would settle a dependency-management question on no evidence
   (`AGENTS.md` §18: add complexity only when experiments justify it). DSH also
-  lives outside this repository (`D:\Enviroment\nodejs\node_modules\@deepseek-ai\dsh`).
+  lives outside this repository (`<node-install-root>\\node_modules\\@deepseek-ai\\dsh`).
 - Alternatives considered: (a) project-pin `@deepseek-ai/dsh` now for
   reproducibility — attractive, but it fixes a dependency-management strategy
   before the adapter reveals what actually needs pinning (the package, the CLI

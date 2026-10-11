@@ -1,0 +1,81 @@
+{
+  "caseId": "ey-campus-demo-v0.1",
+  "version": "0.1.0",
+  "status": "DEVELOPMENT_SYNTHETIC_FIXTURE",
+  "title": "增量知识生长：现值与折现因子",
+  "provenance": {
+    "type": "development_synthetic_fixture",
+    "createdFor": "EY campus AI challenge demonstration",
+    "containsPersonalData": false,
+    "containsEnterpriseData": false,
+    "containsProductionVaultData": false
+  },
+  "purpose": [
+    "existing-page extension",
+    "formula and boundary preservation",
+    "bounded wikilink resolution",
+    "second-input incremental growth"
+  ],
+  "runs": [
+    {
+      "runId": "initial",
+      "inputSources": ["sources/lesson-01-transcript.txt"],
+      "existingKnowledge": [
+        "sources/knowledge-snapshot/01-present-value.md",
+        "sources/knowledge-snapshot/02-opportunity-cost.md",
+        "sources/knowledge-snapshot/03-finance-basics-moc.md"
+      ],
+      "expectedHumanReview": "REQUIRED"
+    },
+    {
+      "runId": "follow-up",
+      "inputSources": ["sources/lesson-02-follow-up.txt"],
+      "existingKnowledge": [
+        "sources/knowledge-snapshot/01-present-value.md",
+        "sources/knowledge-snapshot/02-opportunity-cost.md",
+        "sources/knowledge-snapshot/03-finance-basics-moc.md"
+      ],
+      "previousRunId": "initial",
+      "expectedHumanReview": "REQUIRED"
+    }
+  ],
+  "sources": [
+    {
+      "sourceId": "lesson-01",
+      "path": "sources/lesson-01-transcript.txt",
+      "role": "synthetic-lesson-transcript"
+    },
+    {
+      "sourceId": "lesson-02",
+      "path": "sources/lesson-02-follow-up.txt",
+      "role": "synthetic-follow-up-transcript"
+    }
+  ],
+  "knowledgeSnapshot": [
+    {
+      "noteId": "note-present-value",
+      "path": "sources/knowledge-snapshot/01-present-value.md",
+      "role": "existing-human-note"
+    },
+    {
+      "noteId": "note-opportunity-cost",
+      "path": "sources/knowledge-snapshot/02-opportunity-cost.md",
+      "role": "related-existing-note"
+    },
+    {
+      "noteId": "moc-finance-basics",
+      "path": "sources/knowledge-snapshot/03-finance-basics-moc.md",
+      "role": "course-index"
+    }
+  ],
+  "gold": {
+    "path": "../../gold/ey-campus-demo-v0.1.json",
+    "status": "NEEDS_HUMAN_AUTHORING",
+    "agentMayFill": false
+  },
+  "publication": {
+    "safeToPublishAsInputFixture": false,
+    "safeToPublishOutputs": "only after human review",
+    "doNotAdd": ["personal Vault files", "real recordings", "API keys", "unreviewed generated output"]
+  }
+}

@@ -24,5 +24,5 @@ cases/<case-id>/
 
 ## Status
 
-`TODO` — no cases exist. The first cases should be tiny and target specific
-error categories rather than approximating a full curriculum.
+已有 `ey-campus-demo-v0.1`，是仅用于开发验证的最小合成案例，覆盖两次输入、已有页面扩展、
+公式/边界保留和有限 wikilink。它不包含人工 Gold，也不代表赛事正式数据。

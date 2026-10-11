@@ -19,10 +19,10 @@ Facts captured during M0 bootstrap so later experiments can detect drift
 
 | Tool | Version | Path |
 | --- | --- | --- |
-| Git | 2.55.0.windows.2 | `D:\Enviroment\Git\cmd\git.exe` |
-| Node.js | v22.23.2 | `D:\Enviroment\nodejs\node.exe` |
-| npm | 10.9.8 | `D:\Enviroment\nodejs\npm.ps1` |
-| pnpm | 11.7.0 | `D:\Enviroment\pnpm\pnpm.ps1` |
+| Git | 2.55.0.windows.2 | `<git-install-root>\cmd\git.exe` |
+| Node.js | v22.23.2 | `<node-install-root>\node.exe` |
+| npm | 10.9.8 | `<node-install-root>\npm.ps1` |
+| pnpm | 11.7.0 | `<pnpm-install-root>\pnpm.ps1` |
 | Python | 3.14.7 (MSC v.1944, 64-bit) | `%LOCALAPPDATA%\Programs\Python\Python314\python.exe` |
 | uv | 0.12.10 (3c979abda, 2026-09-04) | `...\WinGet\Packages\astral-sh.uv_...\uv.exe` |
 | PowerShell | `pwsh` is **not** on `PATH`; Windows PowerShell 5.1 is the available shell | — |
@@ -36,7 +36,7 @@ Facts captured during M0 bootstrap so later experiments can detect drift
 | Package | `@deepseek-ai/dsh` |
 | Version | **0.1.6-alpha.2** |
 | Install mode | Global npm install |
-| Location | `D:\Enviroment\nodejs\node_modules\@deepseek-ai\dsh\` |
+| Location | `<node-install-root>\node_modules\@deepseek-ai\dsh\` |
 | Entry point | `lib/bin.js` (bin name `dsh`) |
 | Verified by | `dsh --version`, `npm ls -g --depth=0`, `package.json` |
 | `DSH_HOME` | `%USERPROFILE%\.dsh` (from the active runtime environment; exact user path omitted deliberately) |

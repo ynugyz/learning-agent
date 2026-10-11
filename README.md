@@ -224,6 +224,14 @@ If this project helps you organize your learning, a GitHub Star is welcome and s
 | [tools](tools/) | 安装工具与检查命令 / Installation and validation tools |
 | [tests](tests/) | 测试 / Tests |
 
+参赛准备 / Competition preparation：
+
+- [安永校园 AI 创新挑战赛参赛计划](docs/COMPETITION_PLAN_EY_CSDC_CAMPUS_AI.md)
+- [参赛行动清单](docs/COMPETITION_ACTION_TRACKER.md)
+- [演示 Runbook](docs/COMPETITION_DEMO_RUNBOOK.md)
+- [指标记录模板](docs/COMPETITION_METRICS_TEMPLATE.md)
+- [公开发布审查](docs/RELEASE_READINESS.md)
+
 开发检查 / Development checks（Windows PowerShell）：
 
 ```powershell

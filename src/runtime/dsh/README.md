@@ -9,7 +9,7 @@ The **only** place in this repository where DSH-specific code may exist
 | --- | --- |
 | Package | `@deepseek-ai/dsh` |
 | Version at M0 | `0.1.6-alpha.2` |
-| Location | `D:\Enviroment\nodejs\node_modules\@deepseek-ai\dsh\` |
+| Location | `<node-install-root>\node_modules\@deepseek-ai\dsh\` |
 | Entry point | `lib/bin.js` |
 
 Recorded in `docs/ENVIRONMENT.md`. Detected read-only; DSH is not vendored,

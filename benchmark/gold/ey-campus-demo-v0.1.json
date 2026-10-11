@@ -1,0 +1,33 @@
+{
+  "caseId": "ey-campus-demo-v0.1",
+  "status": "NEEDS_HUMAN_AUTHORING",
+  "authoredBy": null,
+  "authoredAt": null,
+  "schemaVersions": {
+    "sourceMap": null,
+    "lessonModel": null,
+    "alignment": null,
+    "changePlan": null,
+    "humanNote": null,
+    "aiIndex": null
+  },
+  "note": "This is a placeholder only. The agent must not fill in expected answers or scores.",
+  "humanTasks": [
+    "List the source-grounded knowledge units that must be preserved in the Human layer.",
+    "Mark which existing-note statements must survive unchanged or with equivalent meaning.",
+    "Decide whether lesson-02 should expand the same stable knowledge object.",
+    "Mark acceptable page-level links and relation semantics.",
+    "Record any source ambiguity that should remain deferred.",
+    "Review generated outputs before promoting this case to benchmark/gold."
+  ],
+  "coverage": {
+    "definitions": "TODO",
+    "mechanisms": "TODO",
+    "formulas": "TODO",
+    "examples": "TODO",
+    "boundaries": "TODO",
+    "existingContentPreservation": "TODO",
+    "relations": "TODO",
+    "provenance": "TODO"
+  }
+}

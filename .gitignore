@@ -41,6 +41,7 @@ htmlcov/
 node_modules/
 dist/*
 !dist/learning-knowledge-growth.skill.zip
+!dist/learning-knowledge-growth.skill.zip.sha256
 build/
 *.tsbuildinfo
 coverage/

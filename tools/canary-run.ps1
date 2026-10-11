@@ -165,7 +165,7 @@ if ($Mode -eq 'real') {
     if (-not $dshCmd) {
         $dshCommand = Get-Command dsh.cmd -ErrorAction SilentlyContinue
         if ($dshCommand) { $dshCmd = $dshCommand.Source }
-        else { $dshCmd = 'D:\Enviroment\nodejs\dsh.cmd' }
+        else { throw 'DSH executable was not found. Set DSH_PATH or add dsh.cmd to PATH.' }
     }
     $nodeRoot = Split-Path -Parent $dshCmd
     $env:CANARY_DSH_CLI = Join-Path $nodeRoot 'node_modules\@deepseek-ai\dsh\lib\bin.js'

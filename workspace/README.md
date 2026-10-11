@@ -12,7 +12,7 @@
 
 ```powershell
 .\tools\run-learning-inbox.ps1 -Transcript "D:\课堂转写\第一讲.txt" `
-  -CourseFolder "D:\Basical App\Work App\Obsidian\Obsidian Vault\Mine\learn\新科目"
+  -CourseFolder "D:\path\to\your\vault\Mine\learn\新科目"
 ```
 
 系统会从这个明确指定的文件夹中自动挑选少量 Markdown 笔记作为本次快照，并立即开始处理。

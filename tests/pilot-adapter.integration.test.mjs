@@ -6,7 +6,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const sourcePath = 'D:\\Basical App\\Tencent\\Chat\\Wechat\\Wechat files\\xwechat_files\\wxid_nx1352qo8qgp22_58bc\\msg\\file\\2026-09\\贝叶斯网络与概率图模型讲解_实时转写.txt';
+const sourcePath = path.join(repoRoot, 'benchmark', 'cases', 'ey-campus-demo-v0.1', 'sources', 'lesson-01-transcript.txt');
+const legacyComposerConfig = path.join(repoRoot, 'configs', 'real-case-001-human-note-consolidated.json');
+if (process.env.RUN_PRIVATE_LEGACY_PILOT_TEST !== '1' || !fs.existsSync(legacyComposerConfig)) {
+  console.log('pilot-adapter integration test skipped: private legacy composer fixture is not part of the public repository');
+  process.exit(0);
+}
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'learning-agent-pilot-adapter-'));
 const pilotRoot = path.join(tempRoot, 'pilot-vault');
 const productionRoot = path.join(tempRoot, 'production-vault');
@@ -21,7 +26,7 @@ fs.writeFileSync(configPath, JSON.stringify({
   sources: [sourcePath],
   course: '人工智能导论',
   runName: 'PILOT_CANARY_001_TEST',
-  composerConfig: path.join(repoRoot, 'configs', 'real-case-001-human-note-consolidated.json'),
+  composerConfig: legacyComposerConfig,
   mode: 'dry-run'
 }, null, 2), 'utf8');
 
