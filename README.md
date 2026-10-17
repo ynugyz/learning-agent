@@ -24,6 +24,7 @@ Learning Agent 提供一个可安装的 Codex Skill：`learning-knowledge-growth
 | 已有笔记生长 | 保留已有有效内容，允许重新组织和充分展开；旧页面的长度不限制新内容的完整度。 |
 | Obsidian 连接 | 为相关且可解析的已有页面添加 `[[双链]]`，包括课程范围、目录和知识地图中的已有主题。 |
 | 数学公式 | 使用行内 `$...$` 和独立成行的 `$$` 公式块，检查定界符是否配对。 |
+| 标题编号 | 二级标题统一按 `## 1. 标题` 连续编号；三级标题按内容需要使用 `### 1.1 标题`，同步维护受影响的标题链接和 AI 索引。正文列表按内容关系选择。 |
 | 分离两套产物 | 人类笔记和 AI 知识索引分别存放；AI 层帮助后续定位已有对象、相关章节和来源。 |
 | 后续增量更新 | 新材料优先匹配已有主题和知识对象，再决定扩展页面、增加连接或新建页面。 |
 | 可追溯结果 | 报告产物路径、更新内容、验证结果与未解决问题，保留紧凑的来源和变更记录。 |
@@ -129,6 +130,7 @@ The current user interface is a Codex Skill, not an Obsidian plugin or a standal
 | Growing existing notes | Valid content is preserved while pages can be reorganized and expanded. The length of an old page does not limit the completeness of an update. |
 | Obsidian links | Meaningful `[[wikilinks]]` to resolvable existing pages, including topics listed in course outlines, contents, and knowledge maps. |
 | Mathematics | Inline `$...$` and display math with `$$` delimiters on separate lines, with delimiter checks. |
+| Heading numbering | Consecutive H2 numbers (`## 1. Title`); H3 numbers when useful (`### 1.1 Title`), with affected heading links and AI section references kept in sync. Body lists follow the content relationships. |
 | Separate outputs | Human study notes and AI retrieval records stored in independently selected folders. |
 | Incremental updates | New material is matched against existing topics and objects before extending pages, adding links, or creating new pages. |
 | Traceable results | Source references, maintenance state, unresolved issues, and validation status are kept in the AI layer; the conversation reports the current change. |

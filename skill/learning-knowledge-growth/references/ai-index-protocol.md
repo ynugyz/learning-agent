@@ -65,6 +65,7 @@ Cards are compact and bounded. A card normally contains:
 - If evidence is insufficient, keep the card with `maintenanceState: "deferred"` and preserve the evidence gap. Split unrelated evidence gaps into separate cards when they require different future evidence or point to different sections; do not put every unresolved item into one catch-all card.
 - If two objects may be the same but cannot be safely merged, keep separate cards and add a bounded relation or unresolved note.
 - Update `sourceRefs`, `sectionRefs`, hashes and relations together with the note change.
+- Heading numbers are presentation, not identity: when Human Note headings are numbered or renumbered, update affected `sectionRefs` and authorized note links to their actual final targets. Preserve `knowledgeId`; never derive it from a heading's sequence number. Report known incoming links outside the authorized edit scope that still need repair without expanding to a full-Vault scan.
 - Never delete a card or human section solely because the latest source omitted it.
 
 ## Token and integrity rules
