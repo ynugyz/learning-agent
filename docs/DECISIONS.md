@@ -506,6 +506,33 @@ contract. Fields are expected to change; see D-0007.
   is verified. Existing backups remain rollback material and are not treated as
   the canonical AI retrieval state.
 
+### D-0021 — Evidence selection and original figures in the Codex Skill
+- Date: 2026-10-18
+- Status: accepted for the Codex-only skill workflow
+- Decision: Understand the complete selected input scope first, then reuse bounded
+  evidence for each knowledge update. Treat 3–5 retrieved units as a possible
+  starting point, never a coverage limit. Keep original locators and distinguish
+  additions, corrections, scope differences and uncertainty. Keep scenario cues
+  short without dropping necessary assumptions or reasoning.
+- Decision: Select useful original PDF/slide figures, preserve original page/slide
+  locations, and store only used images with Human Notes using relative links.
+  Deduplicate image bytes; keep compact attachment metadata in existing AI source
+  records. No new knowledge layer, model provider, core schema or durable run log.
+- Rationale: The user's research brief suggests relevance-based loading and source
+  attribution; the user's reading feedback calls for source figures and less
+  classroom narration. The [selection study](https://arxiv.org/abs/2609.34227)
+  and [attribution study](https://arxiv.org/abs/2609.14245) motivate these choices,
+  but their retrieval benchmarks do not establish note quality or savings here.
+- Alternatives considered: hard evidence caps risk missing later conditions;
+  whole-deck screenshots reduce searchability and grow storage; copied image
+  bytes in the AI layer duplicate the Human assets; a new router/model adds
+  deployment work. None is needed for this change.
+- Consequences: The existing two-layer output remains. The optional standard-library
+  attachment helper saves already rendered images; PDF/PPT rendering still depends
+  on tools available in the executing Codex environment. Original sources and
+  pre-existing attachments are not cleaned with temporary files. No numerical
+  performance gain is claimed before a separate controlled measurement.
+
 ## Template for new decisions
 
 ```

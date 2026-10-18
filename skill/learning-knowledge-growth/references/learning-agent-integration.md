@@ -15,9 +15,12 @@ references. For a new subject, use a bounded user-selected folder or explicit
 note list; never scan an entire Vault to infer a profile.
 
 The Skill creates temporary evidence and machine artifacts in a disposable run
-workspace, then writes the formal Human Note and AI index/cards to the two
+workspace, then writes formal Human Notes, selected source-image attachments and AI index/cards to the two
 configured output roots. Keep the original source immutable. Existing notes are
 updated additively. Provenance, hashes, maintenance state and open items live
 in the AI index/cards; a per-run manifest or change-log file is not required.
-After a successful run, delete the temporary workspace. A compact error note is
+Source-image attachments stay with the Human Notes using relative links; the
+AI layer records their source locators without storing another image copy.
+After a successful run, verify image links point to final attachments, then
+delete the temporary workspace and unused page renders. A compact error note is
 kept only when a run fails and diagnosis needs it.

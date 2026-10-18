@@ -19,7 +19,9 @@ Learning Agent 提供一个可安装的 Codex Skill：`learning-knowledge-growth
 | 功能 | 使用效果 |
 | --- | --- |
 | 多种资料输入 | 接收 TXT 转写、Markdown、粘贴文本、PPT/PPTX、PDF、图片、文档，以及项目文件或 ZIP；非文本资料的读取能力取决于当前 Codex 环境中的工具。 |
+| 原资料配图 | 按需要将 PDF/PPT 中有助理解的图表、流程图等插入对应小节，标明页码或幻灯片号；选用的图片随笔记保存，相同图片复用，不整本截图。 |
 | 正式学习笔记 | 按主题整理定义、机制、公式、代码、例子、比较、边界、方法和易错点，不把正文写成课堂流水账。 |
+| 简短情境引入 | 可用“例：一年期存款”这样的短语代替完整的课堂过程描述；必要题设、条件、数字和推理步骤仍保留。 |
 | 基于材料整理 | 新增知识必须来自原始材料或已有有效笔记；缺失题面、公式和不确定内容标记为待补或待核对，不凭模型常识扩写。 |
 | 已有笔记生长 | 保留已有有效内容，允许重新组织和充分展开；旧页面的长度不限制新内容的完整度。 |
 | Obsidian 连接 | 为相关且可解析的已有页面添加 `[[双链]]`，包括课程范围、目录和知识地图中的已有主题。 |
@@ -27,6 +29,7 @@ Learning Agent 提供一个可安装的 Codex Skill：`learning-knowledge-growth
 | 标题编号 | 二级标题统一按 `## 1. 标题` 连续编号；三级标题按内容需要使用 `### 1.1 标题`，同步维护受影响的标题链接和 AI 索引。正文列表按内容关系选择。 |
 | 分离两套产物 | 人类笔记和 AI 知识索引分别存放；AI 层帮助后续定位已有对象、相关章节和来源。 |
 | 后续增量更新 | 新材料优先匹配已有主题和知识对象，再决定扩展页面、增加连接或新建页面。 |
+| 按需读取 | 先理解本批资料，再按对象读取相关旧笔记和必要原始证据；发现条件、公式或例子不全时扩大范围，不用固定条数限制知识完整性。 |
 | 可追溯结果 | 报告产物路径、更新内容、验证结果与未解决问题，保留紧凑的来源和变更记录。 |
 
 默认围绕当前主题完成知识页。多份资料可以一起提交，按实际主题归组；不会因为选择了课程目录就默认重建整门课。
@@ -37,7 +40,7 @@ Learning Agent 提供一个可安装的 Codex Skill：`learning-knowledge-growth
 
 从当前分支下载仓库，将完整的 `skill/learning-knowledge-growth/` 文件夹复制到 Codex 的 `skills` 目录。默认位置为 `~/.codex/skills/learning-knowledge-growth/`；Windows 通常为 `%USERPROFILE%\.codex\skills\learning-knowledge-growth\`。如果设置了 `CODEX_HOME`，使用它下面的 `skills` 目录。
 
-也可以下载 [Skill ZIP 安装包](dist/learning-knowledge-growth.skill.zip)，解压到上述 `learning-knowledge-growth` 文件夹，确认文件夹内直接包含 `SKILL.md`、`agents/` 和 `references/`。
+也可以下载 [Skill ZIP 安装包](dist/learning-knowledge-growth.skill.zip)，解压到上述 `learning-knowledge-growth` 文件夹，确认文件夹内直接包含 `SKILL.md`、`agents/`、`references/` 和 `scripts/`。
 
 **方式二：使用仓库安装命令。** 需要 Git、Node.js 22 或更高版本，以及 npm：
 
@@ -57,6 +60,8 @@ npm run skill:install
 4. 说明已有笔记在哪里，并明确是否允许更新它们。
 
 首次处理一批新资料时，Skill 还会确认两项偏好：原始资料类型（课堂转写、课件/PPT、PDF/教材/文档、图片/扫描资料、项目/代码/ZIP 或混合资料），以及信息密度（完整保留、平衡整理或 AI 自行取舍）。PPT、PDF、文档和图片会先使用对应的读取能力保留页码、幻灯片号和图表/公式来源，再进入知识整理；无法读取的部分会标记出来，不凭空补齐。
+
+提供 PDF/PPT 时，Skill 会自行判断哪些原图值得保留。你也可以说“保留重要结构图”或“这次只要文字”。配图依赖当前环境能可靠渲染原资料；无法渲染时会说明缺口并继续整理可读内容。自带的可选图片保存工具使用 Python 3.10+ 标准库，不需要 API Key；它负责附件复用和相对链接，文档渲染仍由当前可用工具完成。
 
 可以直接使用下面的提示，替换其中的路径：
 
@@ -85,7 +90,7 @@ AI 知识目录：<单独存放 AI 索引的概率论文件夹>
 
 | 位置 | 产物 |
 | --- | --- |
-| 人类笔记目录 | 可直接在 Obsidian 或 Markdown 编辑器阅读的正式 `.md` 笔记；标题和正文不带“候选”“草稿”等流程标签。 |
+| 人类笔记目录 | 正式 `.md` 笔记，以及实际用到的 `_assets/learning/` 原图附件；标题和正文不带“候选”“草稿”等流程标签。 |
 | AI 知识目录 | 课程 `index.json` 与 `cards/` 知识卡片。来源、哈希、维护状态、未决项和关系直接保存在这一层，用于后续检索，不是人类笔记的完整复制。 |
 | 对话中的结果报告 | 本次输入、课程、写入路径、更新页面、增加的链接和待补问题。 |
 
@@ -93,7 +98,7 @@ AI 知识目录：<单独存放 AI 索引的概率论文件夹>
 
 ### 换电脑与更新 Skill
 
-换电脑后安装同一 Skill，并同步人类笔记、AI 索引和需要继续追溯的原始资料。告知 Codex 新机器上的目录路径；仅安装 Skill 不会带来旧知识库，也不能访问另一台电脑的本地文件。
+换电脑后安装同一 Skill，并同步人类笔记及其 `_assets/learning/` 附件、AI 索引和需要继续追溯的原始资料。保持笔记与附件的相对位置，图片无需依赖旧电脑的盘符。告知 Codex 新机器上的目录路径；仅安装 Skill 不会带来旧知识库，也不能访问另一台电脑的本地文件。
 
 使用仓库安装方式时，在原克隆目录执行：
 
@@ -125,7 +130,9 @@ The current user interface is a Codex Skill, not an Obsidian plugin or a standal
 | Feature | What you get |
 | --- | --- |
 | Multiple input formats | TXT transcripts, Markdown, pasted text, PPT/PPTX, PDFs, images, documents, and project files or ZIP archives. Reading non-text formats depends on tools available in your Codex environment. |
+| Original source figures | Relevant PDF/slide charts and diagrams beside the corresponding explanation, with page or slide references. Selected images travel with the notes and identical files are reused; entire decks are not dumped as screenshots. |
 | Formal study notes | Definitions, mechanisms, formulas, code, examples, comparisons, boundaries, methods, and common mistakes organized by topic rather than as a lecture diary. |
+| Concise scenario cues | Short phrases such as “Example: one-year deposit” replace long classroom narratives. Necessary assumptions, quantities and reasoning steps remain. |
 | Source-grounded content | New knowledge must come from supplied materials or valid existing notes. Missing formulas, incomplete questions, and uncertainty are recorded rather than filled in from model memory. |
 | Growing existing notes | Valid content is preserved while pages can be reorganized and expanded. The length of an old page does not limit the completeness of an update. |
 | Obsidian links | Meaningful `[[wikilinks]]` to resolvable existing pages, including topics listed in course outlines, contents, and knowledge maps. |
@@ -133,6 +140,7 @@ The current user interface is a Codex Skill, not an Obsidian plugin or a standal
 | Heading numbering | Consecutive H2 numbers (`## 1. Title`); H3 numbers when useful (`### 1.1 Title`), with affected heading links and AI section references kept in sync. Body lists follow the content relationships. |
 | Separate outputs | Human study notes and AI retrieval records stored in independently selected folders. |
 | Incremental updates | New material is matched against existing topics and objects before extending pages, adding links, or creating new pages. |
+| On-demand reading | Understand the current material first, then load relevant existing sections and original evidence for each object. Expand retrieval when conditions, formulas or examples are missing; no fixed evidence count limits completeness. |
 | Traceable results | Source references, maintenance state, unresolved issues, and validation status are kept in the AI layer; the conversation reports the current change. |
 
 The default scope is the current topic. Multiple files can be grouped by topic; selecting a course folder does not automatically trigger a whole-course rebuild.
@@ -143,7 +151,7 @@ The default scope is the current topic. Multiple files can be grouped by topic; 
 
 Download this branch and copy the complete `skill/learning-knowledge-growth/` directory into your Codex skills directory. The default location is `~/.codex/skills/learning-knowledge-growth/`, typically `%USERPROFILE%\.codex\skills\learning-knowledge-growth\` on Windows. If `CODEX_HOME` is set, use its `skills` directory.
 
-Alternatively, download the [Skill ZIP bundle](dist/learning-knowledge-growth.skill.zip) and extract it into that directory. Ensure `SKILL.md`, `agents/`, and `references/` are directly inside `learning-knowledge-growth/`.
+Alternatively, download the [Skill ZIP bundle](dist/learning-knowledge-growth.skill.zip) and extract it into that directory. Ensure `SKILL.md`, `agents/`, `references/`, and `scripts/` are directly inside `learning-knowledge-growth/`.
 
 **Option 2: Install from the repository.** Requires Git, Node.js 22 or later, and npm:
 
@@ -163,6 +171,8 @@ The installer replaces the same-named Skill in your current Codex configuration;
 4. Identify existing notes and explicitly state whether they may be updated.
 
 For a new batch, the Skill also confirms the material type (lecture transcript, slides/PPT, PDF/textbook/document, image/scan, project/code/ZIP, or mixed) and the information density (preserve completely, balanced, or let Codex choose). Slides, PDFs, documents, and images are read with the appropriate tool first so page, slide, diagram, and formula provenance is retained; unreadable parts are marked rather than invented.
+
+For PDFs and slides, the Skill selects useful source figures automatically. You can also ask to “keep important diagrams” or request text only. Figure extraction depends on reliable document rendering in the current environment; missing rendering is reported while readable content can still be compiled. The optional bundled attachment helper uses Python 3.10+ with only its standard library and no API key. It handles image reuse and relative links; available document tools handle rendering.
 
 Replace the placeholders in this example:
 
@@ -192,7 +202,7 @@ Growth happens when you invoke the Skill. It is not a background folder watcher;
 
 | Location | Contents |
 | --- | --- |
-| Human note folder | Formal `.md` study notes readable in Obsidian or another Markdown editor, without candidate or draft labels in titles and prose. |
+| Human note folder | Formal `.md` study notes and only the source-image attachments used in `_assets/learning/`, without candidate or draft labels in titles and prose. |
 | AI knowledge folder | A course `index.json` and knowledge cards in `cards/`; provenance, hashes, maintenance state, unresolved items, and relations are embedded there. These support retrieval rather than duplicating entire Human notes. |
 | Conversation report | Inputs, course, output paths, updated pages, added links, and unresolved evidence gaps. |
 
@@ -200,7 +210,7 @@ Temporary files stay in a separate workspace and are deleted after a successful 
 
 ### Moving to another computer and updating
 
-Install the Skill on the new computer and synchronize your Human notes, AI index, and original materials needed for provenance. Tell Codex the new local paths. Installing the Skill alone does not transfer an existing knowledge base or grant access to files on another computer.
+Install the Skill on the new computer and synchronize your Human notes, their `_assets/learning/` attachments, the AI index, and original materials needed for provenance. Keep the relative layout of notes and attachments so images do not depend on old drive paths. Tell Codex the new local paths. Installing the Skill alone does not transfer an existing knowledge base or grant access to files on another computer.
 
 For a repository installation, run in the original clone:
 
@@ -248,5 +258,7 @@ npm run check
 ```
 
 开发约定见 [AGENTS.md](AGENTS.md)。仓库不附带个人课程笔记、用户知识库或 API 密钥。
+
+可选附件工具回归检查 / Optional attachment-helper checks（Python 3.10+）：`python -B tests/source-image-attachment.test.py`。
 
 Development conventions are in [AGENTS.md](AGENTS.md). Personal course notes, user knowledge bases, and API keys are not bundled with the repository.
