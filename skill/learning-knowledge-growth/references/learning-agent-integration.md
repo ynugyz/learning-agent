@@ -17,7 +17,10 @@ note list; never scan an entire Vault to infer a profile.
 The Skill creates temporary evidence and machine artifacts in a disposable run
 workspace, then writes formal Human Notes, selected source-image attachments and AI index/cards to the two
 configured output roots. Keep the original source immutable. Existing notes are
-updated additively. Provenance, hashes, maintenance state and open items live
+updated by integrating new meaning while preserving valid content, not by
+appending a paraphrase for every new source. The Skill's selected explanation
+depth takes precedence over a legacy prompt that asks for exhaustive detail.
+Provenance, hashes, maintenance state and open items live
 in the AI index/cards; a per-run manifest or change-log file is not required.
 Source-image attachments stay with the Human Notes using relative links; the
 AI layer records their source locators without storing another image copy.

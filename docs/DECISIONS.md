@@ -533,6 +533,36 @@ contract. Fields are expected to change; see D-0007.
   pre-existing attachments are not cleaned with temporary files. No numerical
   performance gain is claimed before a separate controlled measurement.
 
+### D-0022 — Separate topic coverage from explanation depth
+- Date: 2026-10-18
+- Status: accepted for the Codex-only skill workflow
+- Decision: Recommend concise topic cues and brief meanings. Keep correctness-critical
+  conditions; expand selected difficult points or explicitly requested detail.
+  Replace the all-roles-complete writing goal with a conditional toolbox. Distinguish
+  understanding a source from reproducing its detail in Human Notes. Current user
+  preferences override saved ones; explicit requests for detailed output remain valid.
+- Rationale: The user reported textbook-like output after density selection. The old
+  defaults combined completeness, unlimited expansion and mandatory-sounding content
+  lists. Brief framing alone could not remove that pressure.
+- References: [Cornell's note-taking guide](https://lsc.cornell.edu/notes.html) uses
+  telegraphic recording and recall cues; [Mayer and Moreno (2003)](https://carpentries.github.io/instructor-training/files/papers/mayer-reduce-cognitive-load-2003.pdf)
+  discusses selecting essential material and signaling; [Sundararajan and Adesope (2020)](https://link.springer.com/article/10.1007/s10648-020-09522-4)
+  finds that interesting but irrelevant detail can hinder learning. These studies
+  do not prove that every shorter AI note is better or that necessary conditions
+  should be removed. [Kepano's vault](https://github.com/kepano/kepano-obsidian) and
+  [Andy Matuschak's atomic-note discussion](https://notes.andymatuschak.org/Evergreen_notes_should_be_atomic)
+  inform focused notes and navigation, without adopting their folder layout or
+  requiring one tiny page per term. The [LLM Wiki template](https://github.com/marcchend/Obsidian-LLM-Wiki-Template)
+  was also reviewed; its per-concept pages and cumulative logs are not requirements here.
+- Alternatives considered: rigid word limits can damage meaning; hiding long prose
+  in collapsed blocks or copying it into AI cards only relocates bloat; automatically
+  shortening old notes risks losing valid manual work. None is the default.
+- Consequences: No core schema or runtime changes. Existing source preservation,
+  numbered headings, math, links and source images remain. Multi-source writing
+  follows the task's topic, not the union of every supplied chapter. Same-meaning
+  updates reuse existing prose. Unexpanded detail is retrievable, not automatically
+  deferred or treated as already fully absorbed. Existing notes are not batch-rewritten.
+
 ## Template for new decisions
 
 ```

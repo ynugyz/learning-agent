@@ -13,6 +13,8 @@ These levels govern retrieval from **existing knowledge**, not the first reading
 
 Do not jump from L0 to the entire Vault. Do not rebuild a card by copying a whole Markdown page.
 
+Source understanding may be richer than the selected Human Note explanation depth. The AI layer remains a retrieval aid: preserve compact topic/object cues and original locators for later reading, not all prose omitted from a concise note. Deliberately unexpanded, source-supported detail is not `deferred`, and a short mention does not prove that all of its details are already covered by the current note. Do not create a separate card or page for every passing keyword.
+
 ## Selecting evidence for a knowledge object
 
 - After understanding the selected new material, assemble only the context needed for the current object or proposed update. Match stable IDs, canonical terms, aliases and source locations before using broader keyword matches. Three to five candidate units can be a starting point, never a hard cap or a completeness guarantee.
@@ -75,7 +77,7 @@ Cards are compact and bounded. A card normally contains:
 
 - Match by `knowledgeId`, canonical term, aliases and claim similarity before creating a new object.
 - If the object exists, update its card and the referenced Human Note section; do not create a duplicate page merely because the lesson came from a new session.
-- Distinguish a supported addition, a correction, a difference in scope or assumptions, and unresolved evidence before writing. Add useful detail to the relevant section; correct only the claim the evidence actually overturns; preserve compatible formulations with their conditions; defer uncertain differences instead of silently choosing one. A new session or different wording alone is not a correction.
+- Distinguish a supported addition, a correction, a difference in scope or assumptions, and unresolved evidence before writing. Integrate genuinely new meaning at the selected explanation depth; do not append another explanation merely because it is source-supported. Correct only the claim the evidence actually overturns; preserve compatible formulations with their conditions; defer uncertain differences instead of silently choosing one. A new session or different wording alone is not a correction.
 - If evidence is insufficient, keep the card with `maintenanceState: "deferred"` and preserve the evidence gap. Split unrelated evidence gaps into separate cards when they require different future evidence or point to different sections; do not put every unresolved item into one catch-all card.
 - If two objects may be the same but cannot be safely merged, keep separate cards and add a bounded relation or unresolved note.
 - Update `sourceRefs`, `sectionRefs`, hashes and relations together with the note change.

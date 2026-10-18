@@ -20,10 +20,10 @@ Learning Agent 提供一个可安装的 Codex Skill：`learning-knowledge-growth
 | --- | --- |
 | 多种资料输入 | 接收 TXT 转写、Markdown、粘贴文本、PPT/PPTX、PDF、图片、文档，以及项目文件或 ZIP；非文本资料的读取能力取决于当前 Codex 环境中的工具。 |
 | 原资料配图 | 按需要将 PDF/PPT 中有助理解的图表、流程图等插入对应小节，标明页码或幻灯片号；选用的图片随笔记保存，相同图片复用，不整本截图。 |
-| 正式学习笔记 | 按主题整理定义、机制、公式、代码、例子、比较、边界、方法和易错点，不把正文写成课堂流水账。 |
+| 简明学习笔记 | 默认推荐“术语＋一句大意”，必要时补关键条件、公式或区别；不强制每个点都补定义、原理、例子和易错点。 |
 | 简短情境引入 | 可用“例：一年期存款”这样的短语代替完整的课堂过程描述；必要题设、条件、数字和推理步骤仍保留。 |
 | 基于材料整理 | 新增知识必须来自原始材料或已有有效笔记；缺失题面、公式和不确定内容标记为待补或待核对，不凭模型常识扩写。 |
-| 已有笔记生长 | 保留已有有效内容，允许重新组织和充分展开；旧页面的长度不限制新内容的完整度。 |
+| 已有笔记生长 | 保留已有有效内容，有新含义才补充；不同资料重复说明同一件事时合并来源，不反复追加同义段落。 |
 | Obsidian 连接 | 为相关且可解析的已有页面添加 `[[双链]]`，包括课程范围、目录和知识地图中的已有主题。 |
 | 数学公式 | 使用行内 `$...$` 和独立成行的 `$$` 公式块，检查定界符是否配对。 |
 | 标题编号 | 二级标题统一按 `## 1. 标题` 连续编号；三级标题按内容需要使用 `### 1.1 标题`，同步维护受影响的标题链接和 AI 索引。正文列表按内容关系选择。 |
@@ -59,7 +59,9 @@ npm run skill:install
 3. 指定课程或主题，以及两个独立的输出位置。
 4. 说明已有笔记在哪里，并明确是否允许更新它们。
 
-首次处理一批新资料时，Skill 还会确认两项偏好：原始资料类型（课堂转写、课件/PPT、PDF/教材/文档、图片/扫描资料、项目/代码/ZIP 或混合资料），以及信息密度（完整保留、平衡整理或 AI 自行取舍）。PPT、PDF、文档和图片会先使用对应的读取能力保留页码、幻灯片号和图表/公式来源，再进入知识整理；无法读取的部分会标记出来，不凭空补齐。
+首次处理一批新资料时，Skill 会确认资料类型和笔记展开程度。已说明的偏好不重复询问。推荐 **简明提要**：知道有哪些知识点、理解大意、保留继续查阅的入口；也可选择 **重点解释** 或 **详细整理**。“AI 自行取舍”从简明开始，只在不补充就会误解时展开。旧的“完整保留”“平衡整理”设置仍可识别，当前明确要求优先于旧设置。
+
+完整读懂资料不等于把细节全写进笔记。课堂资料附带教材时，默认围绕本次主题使用教材，不自动把整章内容并入正文。未展开的细节留在原始资料中，AI 层保存紧凑的定位信息。PPT、PDF、文档和图片会使用对应读取能力保留原始位置；无法读取的部分会标明，不凭空补齐。
 
 提供 PDF/PPT 时，Skill 会自行判断哪些原图值得保留。你也可以说“保留重要结构图”或“这次只要文字”。配图依赖当前环境能可靠渲染原资料；无法渲染时会说明缺口并继续整理可读内容。自带的可选图片保存工具使用 Python 3.10+ 标准库，不需要 API Key；它负责附件复用和相对链接，文档渲染仍由当前可用工具完成。
 
@@ -68,6 +70,7 @@ npm run skill:install
 ```text
 $learning-knowledge-growth
 请整理附件中的概率论资料。
+采用简明提要：术语加简短大意，关键条件保留，不懂的我自己查。
 人类笔记目录：<我的 Obsidian Vault 中的概率论文件夹>
 AI 知识目录：<单独存放 AI 索引的概率论文件夹>
 已有笔记就在上述人类笔记目录中，允许更新相关页面。
@@ -131,10 +134,10 @@ The current user interface is a Codex Skill, not an Obsidian plugin or a standal
 | --- | --- |
 | Multiple input formats | TXT transcripts, Markdown, pasted text, PPT/PPTX, PDFs, images, documents, and project files or ZIP archives. Reading non-text formats depends on tools available in your Codex environment. |
 | Original source figures | Relevant PDF/slide charts and diagrams beside the corresponding explanation, with page or slide references. Selected images travel with the notes and identical files are reused; entire decks are not dumped as screenshots. |
-| Formal study notes | Definitions, mechanisms, formulas, code, examples, comparisons, boundaries, methods, and common mistakes organized by topic rather than as a lecture diary. |
+| Concise study notes | The recommended style is a recognizable term plus a brief meaning, adding essential conditions, formulas or distinctions as needed. No mandatory definition–mechanism–example checklist for every point. |
 | Concise scenario cues | Short phrases such as “Example: one-year deposit” replace long classroom narratives. Necessary assumptions, quantities and reasoning steps remain. |
 | Source-grounded content | New knowledge must come from supplied materials or valid existing notes. Missing formulas, incomplete questions, and uncertainty are recorded rather than filled in from model memory. |
-| Growing existing notes | Valid content is preserved while pages can be reorganized and expanded. The length of an old page does not limit the completeness of an update. |
+| Growing existing notes | Preserve valid content and integrate genuinely new meaning. Repeated explanations add source references rather than another synonymous paragraph. |
 | Obsidian links | Meaningful `[[wikilinks]]` to resolvable existing pages, including topics listed in course outlines, contents, and knowledge maps. |
 | Mathematics | Inline `$...$` and display math with `$$` delimiters on separate lines, with delimiter checks. |
 | Heading numbering | Consecutive H2 numbers (`## 1. Title`); H3 numbers when useful (`### 1.1 Title`), with affected heading links and AI section references kept in sync. Body lists follow the content relationships. |
@@ -170,7 +173,9 @@ The installer replaces the same-named Skill in your current Codex configuration;
 3. Specify the course or topic and two separate output folders.
 4. Identify existing notes and explicitly state whether they may be updated.
 
-For a new batch, the Skill also confirms the material type (lecture transcript, slides/PPT, PDF/textbook/document, image/scan, project/code/ZIP, or mixed) and the information density (preserve completely, balanced, or let Codex choose). Slides, PDFs, documents, and images are read with the appropriate tool first so page, slide, diagram, and formula provenance is retained; unreadable parts are marked rather than invented.
+For a new batch, the Skill confirms the material type and explanation depth without repeating preferences already provided. **Concise overview** is recommended: recognize the topics, understand their gist, and find where to read more. **Selective explanation** and **Detailed notes** are also available. “Let Codex choose” starts concise and expands only to prevent misunderstanding. Legacy density settings remain recognized; the current explicit request takes precedence.
+
+Understanding the source fully does not require printing every detail. A textbook supplied alongside lecture material supports the current topic instead of automatically expanding the note to the whole chapter. Unexpanded detail stays in the original material, with compact retrieval locations in the AI layer. Slides, PDFs, documents and images retain their original locations through the appropriate reading tools; unreadable content is marked rather than invented.
 
 For PDFs and slides, the Skill selects useful source figures automatically. You can also ask to “keep important diagrams” or request text only. Figure extraction depends on reliable document rendering in the current environment; missing rendering is reported while readable content can still be compiled. The optional bundled attachment helper uses Python 3.10+ with only its standard library and no API key. It handles image reuse and relative links; available document tools handle rendering.
 
@@ -179,6 +184,7 @@ Replace the placeholders in this example:
 ```text
 $learning-knowledge-growth
 Compile the attached probability materials.
+Use a concise overview: brief meanings and essential conditions, with terms I can look up later.
 Human note folder: <my probability folder inside an Obsidian Vault>
 AI knowledge folder: <a separate probability index folder>
 Existing notes are in the Human note folder. You may update relevant pages.
