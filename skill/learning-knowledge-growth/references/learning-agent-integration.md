@@ -27,3 +27,10 @@ AI layer records their source locators without storing another image copy.
 After a successful run, verify image links point to final attachments, then
 delete the temporary workspace and unused page renders. A compact error note is
 kept only when a run fails and diagnosis needs it.
+
+For future workflow experiments, compare the current path with a simplified
+path and, where context size changes, a token-matched irrelevant-context control.
+Keep the same source scope, model and requested depth across the comparison. A
+retrieval score, a shorter prompt, or a more elaborate memory structure is not
+evidence of a learning-quality improvement by itself. Promote a shortcut only
+when it does not skip a necessary update or a source-supported condition.

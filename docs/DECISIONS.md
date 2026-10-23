@@ -563,6 +563,35 @@ contract. Fields are expected to change; see D-0007.
   updates reuse existing prose. Unexpanded detail is retrievable, not automatically
   deferred or treated as already fully absorbed. Existing notes are not batch-rewritten.
 
+### D-0023 — Reuse unchanged knowledge only after deterministic freshness checks
+- Date: 2026-10-23
+- Status: accepted for the Codex-only skill workflow
+- Decision: Before Alignment or ChangePlan, compare stable object identity,
+  relevant source/note/dependency hashes, selected explanation depth and scope.
+  Reuse an unchanged object only when all required values match. Similarity and
+  retrieval scores may find candidates but cannot establish support or authorize
+  `NO_CHANGE`. Verify original spans selectively for formulas, conditions,
+  numbers, teacher examples generalized into rules, corrections and conflicts.
+  Keep ambiguous differences in the existing deferred state until evidence is
+  sufficient; correct only when evidence overturns the old claim.
+- Rationale: The 2026-10-23 research brief recommends testing when memory is
+  injected and when updates can be skipped. REM reports lifecycle-gated recall
+  in a coding benchmark, but its gains do not transfer automatically to notes.
+  The citation-verification study shows that an existing source identifier can
+  still be irrelevant to a claim. PreCoMem motivates a waiting state for
+  ambiguous changes, while the geometry study cautions that similarity does not
+  prove coverage. These are engineering cues, not a license to add another
+  model or schema.
+- References: [REM](https://arxiv.org/abs/2610.27377),
+  [Real PMIDs, Wrong Papers](https://arxiv.org/abs/2610.29812),
+  [PreCoMem](https://arxiv.org/abs/2610.29467),
+  [The Geometry of Agent Memory](https://arxiv.org/abs/2610.26433), and
+  [When Does Experience Memory Help](https://arxiv.org/abs/2610.27714).
+- Consequences: The existing four responsibilities, two output layers and
+  concise Human Note policy remain. The unchanged check is deterministic and
+  reversible; unknown or stale inputs continue through normal processing. No
+  permanent run manifest, new enum or large memory system is added.
+
 ## Template for new decisions
 
 ```

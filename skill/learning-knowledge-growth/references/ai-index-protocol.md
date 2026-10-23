@@ -22,6 +22,10 @@ Source understanding may be richer than the selected Human Note explanation dept
 - Keep the source locator attached to each selected excerpt: source identity, original file, page/slide or line/span, and source hash where available. Extracted text must retain a mapping to those original locations. A model summary or card can route retrieval, but cannot be the sole evidence for adding, correcting or resolving a claim. Open the referenced original material, or the actual valid existing note when it is the supplied seed knowledge; if neither is available, retain the gap explicitly.
 - Reuse already loaded evidence within the run instead of repeatedly reading or summarizing it. Deduplicate identical spans, not distinct examples or qualifications. This is a Codex context-selection practice, not another model call, required stage, permanent evidence packet or new index format.
 
+Retrieval ranking is a candidate selector only. A high similarity score does not prove that the selected source supports the claim. For formulas and conditions, numbers or historical claims, teacher examples being generalized, corrections/conflicts, and uncertain source units, return to the original span before writing or resolving the object. A simple existence check for a source ID is insufficient; the wording of the claim must be supported by the located content. If support is weaker than the proposed wording, shorten the claim, retain an uncertainty/deferred state, or leave it out.
+
+When a later run proposes an update, run a cheap unchanged gate before semantic judgment. Reuse the existing object only if its stable ID, relevant source and note hashes, selected depth, and dependent relation/source hashes match. Any unknown or stale dependency goes through Alignment/ChangePlan. This gate saves repeated decisions; it never turns similarity into `NO_CHANGE` and does not certify factual truth.
+
 ## Course index minimum
 
 The course `index.json` should contain:
@@ -78,6 +82,7 @@ Cards are compact and bounded. A card normally contains:
 - Match by `knowledgeId`, canonical term, aliases and claim similarity before creating a new object.
 - If the object exists, update its card and the referenced Human Note section; do not create a duplicate page merely because the lesson came from a new session.
 - Distinguish a supported addition, a correction, a difference in scope or assumptions, and unresolved evidence before writing. Integrate genuinely new meaning at the selected explanation depth; do not append another explanation merely because it is source-supported. Correct only the claim the evidence actually overturns; preserve compatible formulations with their conditions; defer uncertain differences instead of silently choosing one. A new session or different wording alone is not a correction.
+- Treat update state as three meanings even though no new enum is needed: maintain a supported object; hold/profile an ambiguous difference with `maintenanceState: "deferred"` and the existing deferred resolution semantics; correct only when evidence overturns the old claim. A deferred object remains discoverable and reactivatable, and must not overwrite a settled Human Note claim.
 - If evidence is insufficient, keep the card with `maintenanceState: "deferred"` and preserve the evidence gap. Split unrelated evidence gaps into separate cards when they require different future evidence or point to different sections; do not put every unresolved item into one catch-all card.
 - If two objects may be the same but cannot be safely merged, keep separate cards and add a bounded relation or unresolved note.
 - Update `sourceRefs`, `sectionRefs`, hashes and relations together with the note change.

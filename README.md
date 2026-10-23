@@ -30,6 +30,8 @@ Learning Agent 提供一个可安装的 Codex Skill：`learning-knowledge-growth
 | 分离两套产物 | 人类笔记和 AI 知识索引分别存放；AI 层帮助后续定位已有对象、相关章节和来源。 |
 | 后续增量更新 | 新材料优先匹配已有主题和知识对象，再决定扩展页面、增加连接或新建页面。 |
 | 按需读取 | 先理解本批资料，再按对象读取相关旧笔记和必要原始证据；发现条件、公式或例子不全时扩大范围，不用固定条数限制知识完整性。 |
+| 重复处理筛选 | 只有来源、笔记、依赖和当前范围的哈希都确认未变化时，才复用已有结果；相似度不能单独跳过更新。 |
+| 证据对应 | 检索结果只负责找候选；公式、条件、数字、教师例子和纠正内容会回到原始位置核对。 |
 | 可追溯结果 | 报告产物路径、更新内容、验证结果与未解决问题，保留紧凑的来源和变更记录。 |
 
 默认围绕当前主题完成知识页。多份资料可以一起提交，按实际主题归组；不会因为选择了课程目录就默认重建整门课。
@@ -144,6 +146,8 @@ The current user interface is a Codex Skill, not an Obsidian plugin or a standal
 | Separate outputs | Human study notes and AI retrieval records stored in independently selected folders. |
 | Incremental updates | New material is matched against existing topics and objects before extending pages, adding links, or creating new pages. |
 | On-demand reading | Understand the current material first, then load relevant existing sections and original evidence for each object. Expand retrieval when conditions, formulas or examples are missing; no fixed evidence count limits completeness. |
+| Safe reuse | Reuse an existing result only when source, note, dependency and current-scope hashes all match; similarity alone cannot skip an update. |
+| Evidence support | Retrieval finds candidates; formulas, conditions, numbers, generalized teacher examples and corrections are checked against their original locations. |
 | Traceable results | Source references, maintenance state, unresolved issues, and validation status are kept in the AI layer; the conversation reports the current change. |
 
 The default scope is the current topic. Multiple files can be grouped by topic; selecting a course folder does not automatically trigger a whole-course rebuild.
