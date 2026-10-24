@@ -29,7 +29,6 @@ learning-experiment/
 
 如果想减少配置，可以只授权一个工作区并明确同意默认结构：`inbox/`、`human-notes/`、`ai-knowledge/`。这只是快捷约定；如果用户给出了两个已有输出目录，必须沿用原目录。
 
-如果使用 `ima 知识库`、腾讯乐享知识库、腾讯文档或腾讯网盘，先在 WorkBuddy 连接器面板完成授权，再在当前任务中只启用需要的连接器。连接器是可选输入/输出通道，不改变 Skill 的两层产物结构；写回知识库前要明确目标库、目标文档和写入范围。详见 `@references/connector-integration.md`。
 
 ## 3. 模型怎么运行
 

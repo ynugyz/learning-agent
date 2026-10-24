@@ -13,11 +13,11 @@ for (const field of ['name:', 'description:', 'description_zh:', 'description_en
   assert.match(frontmatter, new RegExp(`^${field.replace(':', '\\:')}`, 'm'), `missing WorkBuddy field ${field}`);
 }
 assert.match(frontmatter, /^user-invocable:\s*true$/m);
-assert.match(frontmatter, /^version:\s*0\.2\.0$/m);
+assert.match(frontmatter, /^version:\s*0\.2\.1$/m);
 assert.doesNotMatch(skill, /Codex|openai\.yaml/u);
 assert.match(skill, /@references\/input-modes\.md/u);
 assert.match(skill, /@references\/workbuddy-harness\.md/u);
-assert.match(skill, /@references\/connector-integration\.md/u);
+assert.doesNotMatch(skill, /connector|连接器|ima 知识库|腾讯乐享/u);
 
 for (const relative of [
   'references/ai-index-protocol.md',
@@ -25,7 +25,6 @@ for (const relative of [
   'references/learning-agent-integration.md',
   'references/note-writing.md',
   'references/workbuddy-harness.md',
-  'references/connector-integration.md',
 ]) {
   assert.ok(fs.existsSync(path.join(skillRoot, relative)), `missing ${relative}`);
 }
@@ -35,9 +34,9 @@ const zipPath = path.join(repoRoot, 'dist', 'learning-knowledge-growth.workbuddy
 const listing = execFileSync(py, ['-B', '-c', `import zipfile; print("\\n".join(zipfile.ZipFile(r'''${zipPath}''').namelist()))`], { encoding: 'utf8' });
 assert.match(listing, /^learning-knowledge-growth-workbuddy\/SKILL\.md$/m);
 assert.match(listing, /learning-knowledge-growth-workbuddy\/references\/workbuddy-harness\.md/u);
-assert.match(listing, /learning-knowledge-growth-workbuddy\/references\/connector-integration\.md/u);
 assert.doesNotMatch(listing, /openai\.yaml/u);
 assert.doesNotMatch(listing, /\/scripts\//u);
+assert.doesNotMatch(listing, /connector-integration\.md/u);
 assert.doesNotMatch(skill, /D:\\\\|C:\\\\Users|sk-[A-Za-z0-9_-]{16,}/u);
 const bundledMarkdown = listing.split(/\r?\n/u).filter((entry) => entry.endsWith('.md'));
 for (const relative of bundledMarkdown) {

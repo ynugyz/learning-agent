@@ -1,4 +1,4 @@
-# Learning Agent — WorkBuddy 适配版（v0.2.0）
+# Learning Agent — WorkBuddy 适配版（v0.2.1）
 
 这是一份面向 WorkBuddy 的 Skill 包。它与仓库中的 Codex 版共享同一套知识编译语义，但使用 WorkBuddy 要求的 `SKILL.md` frontmatter，并适配 WorkBuddy 的 Skill、Expert 和 Buddy App 绑定方式。
 
@@ -26,7 +26,7 @@ Skill 不固定模型。模型由 WorkBuddy 的 Expert、工作模式或 Buddy A
 
 Skill 不保存 API Key，也不调用 DSH、Jev 或外部模型服务。WorkBuddy 的模型配置负责模型和凭证，Skill 负责资料整理规则。
 
-这是一份 **Skill-only** 包，不是连接器。若 WorkBuddy 当前连接器列表提供 `ima 知识库`，可以在用户授权后按需读取选定资料或保存结果；腾讯乐享知识库、腾讯文档和腾讯网盘也可作为可选通道。Skill 不会自动扫描、后台同步或写回任何知识库。连接器细则见 [连接器适配说明](connector-integration.md)。
+这是一个 **本地资料版 Skill-only** 包：Skill 只处理当前对话附件和 WorkBuddy 明确授权的目录，不主动连接外部服务。若你在 WorkBuddy 中另外启用了 ima 知识库或其它资料连接器，先把需要的资料选入当前对话，再让 Skill 处理；Skill 本身不申请连接器权限，也不会后台同步或自动写回知识库。连接器设计说明仍保留在仓库的 [连接器适配说明](connector-integration.md) 中，但不随基础 ZIP 安装。
 
 ## 第一次运行
 

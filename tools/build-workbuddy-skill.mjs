@@ -29,10 +29,6 @@ fs.copyFileSync(
   path.join(repoRoot, 'workbuddy', 'workbuddy-harness.md'),
   path.join(workbuddyRoot, 'references', 'workbuddy-harness.md'),
 );
-fs.copyFileSync(
-  path.join(repoRoot, 'workbuddy', 'connector-integration.md'),
-  path.join(workbuddyRoot, 'references', 'connector-integration.md'),
-);
 
 const canonical = fs.readFileSync(path.join(canonicalRoot, 'SKILL.md'), 'utf8');
 const body = canonical.replace(/^---[\s\S]*?---\s*/, '')
@@ -62,7 +58,7 @@ const frontmatter = [
   'description: Compile transcripts, slides, PDFs, documents, images, and project files into linked Human and AI knowledge notes in WorkBuddy.',
   'description_zh: 在 WorkBuddy 中将转写、课件、PDF、图片和项目资料整理为可连接、可持续生长的人类笔记与 AI 知识层。',
   'description_en: Compile transcripts, slides, PDFs, images, and project files into linked, incrementally growing Human and AI knowledge notes in WorkBuddy.',
-  'version: 0.2.0',
+  'version: 0.2.1',
   'author: Learning Agent',
   'user-invocable: true',
   '---',
@@ -75,10 +71,9 @@ const frontmatter = [
   '- @references/note-writing.md：简明提要、重点解释与详细整理。',
   '- @references/ai-index-protocol.md：AI 层检索、来源、哈希与增量更新。',
   '- @references/workbuddy-harness.md：WorkBuddy 权限、Skill 绑定、模型和测试方式。',
-  '- @references/connector-integration.md：可选知识库连接器、权限和写回边界。',
   '',
   'WorkBuddy 的模型由当前 Expert、工作模式或 Buddy App 配置决定，Skill 不硬编码模型名称或平台凭证。使用用户在 WorkBuddy 中选定的模型；模型可以是 DeepSeek 或平台提供的其它模型。Skill 只规定资料处理和输出行为。',
-  '这是 Skill-only 包，不是连接器本身。ima 知识库、腾讯乐享知识库、腾讯文档或其它服务只能在用户明确启用并完成 WorkBuddy 授权后作为可选资料来源或结果去处。',
+  '这是 WorkBuddy 本地资料版 Skill。它只处理当前对话附件和用户明确授权的目录；模型、账号和其它服务由 WorkBuddy 自己管理，Skill 不主动连接外部服务。',
   '为降低首次使用门槛：如果用户只提供一个已授权工作区并明确同意，可以在其中使用 inbox、human-notes、ai-knowledge 三个子目录；如果用户已经给出两个输出目录，优先使用用户给出的目录，不要自行改写。',
   '',
   'SKILL.md 下方的学习编译规则来自 Learning Agent 的规范版本。保留两个独立输出根目录，并在 WorkBuddy 已授权可访问的文件夹内运行。',
@@ -100,20 +95,20 @@ const protocol = path.join(workbuddyRoot, 'references', 'ai-index-protocol.md');
 const protocolText = fs.readFileSync(protocol, 'utf8').replace('This is a Codex context-selection practice', 'This is a WorkBuddy context-selection practice');
 fs.writeFileSync(protocol, protocolText.replace(/\r\n/g, '\n'), 'utf8');
 
+const harness = path.join(workbuddyRoot, 'references', 'workbuddy-harness.md');
+const harnessText = fs.readFileSync(harness, 'utf8')
+  .replace(/\n如果使用 `ima 知识库`[\s\S]*?详见 `@references\/connector-integration\.md`。\n/gu, '\n')
+  .replace(/连接器/g, '外部服务')
+  .replace(/\bconnector\b/gi, 'external service')
+  .replace(/\bconnectors\b/gi, 'external services');
+fs.writeFileSync(harness, harnessText.replace(/\r\n/g, '\n'), 'utf8');
+
 const inputModes = path.join(workbuddyRoot, 'references', 'input-modes.md');
 const inputModesText = fs.readFileSync(inputModes, 'utf8')
   .replace(/\n### 可选附件工具[\s\S]*$/u, '\n### 附件工具\n\nWorkBuddy 使用其内置的文件和图片能力保存最终选用的原图。不要启动外部脚本、下载服务或网络工具；只把实际采用的图片放入 Human 输出目录，并在 AI 层记录来源位置和哈希。\n')
   .replace(/\bdelete\b/gi, 'discard')
   .replace(/API keys?/gi, 'credentials');
 fs.writeFileSync(inputModes, inputModesText.replace(/\r\n/g, '\n'), 'utf8');
-
-const connector = path.join(workbuddyRoot, 'references', 'connector-integration.md');
-const connectorText = fs.readFileSync(connector, 'utf8')
-  .replace(/API Keys?/gi, 'credentials')
-  .replace(/\n官方参考：[\s\S]*$/u, '\n')
-  .replace(/https?:\/\/[^)\s]+/gi, '')
-  .replace(/\bdelete\b/gi, 'discard');
-fs.writeFileSync(connector, connectorText.replace(/\r\n/g, '\n'), 'utf8');
 
 // WorkBuddy's installation preview is intentionally conservative. The package
 // must describe its behavior without looking like it bundles a network client
