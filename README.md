@@ -122,6 +122,22 @@ Skill 需要当前 Codex 环境能读取输入并写入你指定的目录；云�
 
 如果这个项目对你的学习整理有帮助，欢迎在 GitHub 上点一个 Star，支持项目继续改进。
 
+### WorkBuddy 适配版
+
+仓库同时提供独立的 WorkBuddy Skill：`learning-knowledge-growth-workbuddy`。它使用 WorkBuddy 要求的中英文 Skill frontmatter，保留同一套 SourceMap、LessonModel、Alignment、ChangePlan、Human Note 和 AI Layer 规则；Codex 版和 WorkBuddy 版互不覆盖。
+
+| WorkBuddy 入口 | 用法 |
+| --- | --- |
+| 普通对话 | 在 WorkBuddy 的“技能 → 添加技能 → 上传技能”中导入 [WorkBuddy Skill ZIP](dist/learning-knowledge-growth.workbuddy.skill.zip)，启用后附加资料。 |
+| Expert | 将 WorkBuddy Skill 目录加入 Expert 的 `skills` 列表，再在对话中召唤该 Expert。 |
+| Buddy App | 在工作模式或场景胶囊中预绑定该 Skill，让进入该场景的对话自动使用学习资料整理规则。 |
+
+WorkBuddy 的模型由 Expert、工作模式或 Buddy App 的模型配置决定，Skill 不写死模型名称或 API Key。建议先用当前可用的较强 DeepSeek 模型跑一份范围受控的资料，再用 DeepSeek Flash 或其它快速模型跑同一资料进行对照。模型名称和可用性以 WorkBuddy 当前模型池为准。Skill 不调用 DSH、Jev 或外部 DeepSeek API；WorkBuddy 已配置的 DeepSeek 模型可以直接作为执行模型。
+
+第一次运行需要在 WorkBuddy 的已授权目录中分别指定：原始资料位置、Human Note 输出位置和 AI Layer 输出位置，并选择“简明提要”“重点解释”或“详细整理”。建议先使用测试目录，确认来源、公式、双链和增量更新后再授权真实 Vault。具体绑定方式、权限边界和模型对照步骤见 [WorkBuddy Harness 说明](workbuddy/README.md)。
+
+官方格式参考：[WorkBuddy Skill](https://open.workbuddy.cn/en/docs/skill)、[Expert](https://open.workbuddy.cn/en/docs/expert)、[Buddy App](https://open.workbuddy.cn/en/docs/buddy-app)。
+
 ## English guide
 
 ### What this is
@@ -239,12 +255,28 @@ Legacy scripts in this repository are experimental tools; ordinary users can use
 
 If this project helps you organize your learning, a GitHub Star is welcome and supports continued improvement.
 
+### WorkBuddy adapter
+
+The repository also provides a separate WorkBuddy Skill, `learning-knowledge-growth-workbuddy`. It uses WorkBuddy's bilingual Skill frontmatter while preserving the same SourceMap, LessonModel, Alignment, ChangePlan, Human Note, and AI Layer behavior. The Codex and WorkBuddy packages are independent.
+
+| WorkBuddy entry point | How to use it |
+| --- | --- |
+| Regular conversation | Import [the WorkBuddy Skill ZIP](dist/learning-knowledge-growth.workbuddy.skill.zip) from WorkBuddy's Skills panel, enable it, and attach your materials. |
+| Expert | Add the WorkBuddy Skill directory to the Expert `skills` list, then summon that Expert. |
+| Buddy App | Pre-bind the Skill to a work mode or scene capsule so conversations in that scene use the learning workflow. |
+
+WorkBuddy selects the model through the Expert, work mode, or Buddy App configuration. The Skill does not hardcode a model name or API key. Start with the strongest available DeepSeek model on a bounded sample, then compare a faster DeepSeek Flash or equivalent model on the same input. Model names and availability follow the current WorkBuddy model pool. The Skill does not call DSH, Jev, or an external DeepSeek API; a DeepSeek model already configured in WorkBuddy can run it directly.
+
+The first run should use a WorkBuddy-authorized test folder and separate Human Note and AI Layer output directories. See the [WorkBuddy Harness guide](workbuddy/README.md) for binding, permissions, model comparison, and the first-run prompt. Official format references: [WorkBuddy Skill](https://open.workbuddy.cn/en/docs/skill), [Expert](https://open.workbuddy.cn/en/docs/expert), and [Buddy App](https://open.workbuddy.cn/en/docs/buddy-app).
+
 ## 项目资源 / Project resources
 
 | 路径 / Path | 内容 / Contents |
 | --- | --- |
 | [skill/learning-knowledge-growth](skill/learning-knowledge-growth/) | Skill 源文件与配套参考 / Skill instructions and references |
+| [workbuddy/learning-knowledge-growth-workbuddy](workbuddy/learning-knowledge-growth-workbuddy/) | WorkBuddy 适配版 Skill / WorkBuddy-compatible Skill |
 | [dist/learning-knowledge-growth.skill.zip](dist/learning-knowledge-growth.skill.zip) | 可下载的 Skill 安装包 / Downloadable Skill bundle |
+| [dist/learning-knowledge-growth.workbuddy.skill.zip](dist/learning-knowledge-growth.workbuddy.skill.zip) | WorkBuddy 可导入安装包 / WorkBuddy importable Skill bundle |
 | [prompts](prompts/) | 笔记与索引提示词 / Note and index prompts |
 | [docs](docs/) | 项目记录与开发文档 / Project records and development documentation |
 | [tools](tools/) | 安装工具与检查命令 / Installation and validation tools |
