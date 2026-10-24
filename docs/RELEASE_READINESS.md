@@ -21,12 +21,12 @@ ZIP 当前只包含 Skill 运行所需的 `SKILL.md`、`agents/openai.yaml`、�
 `references/` 文件和可选的 `scripts/attach_source_image.py` 附件工具。发布前下载后应重新计算哈希，并确认压缩包内没有运行日志、课程笔记、
 生产 Vault 文件或凭据。
 
-WorkBuddy 适配包位于 `dist/learning-knowledge-growth.workbuddy.skill.zip`，包内使用 WorkBuddy 所需的中英文
+WorkBuddy 适配包（当前版本 `0.2.0`）位于 `dist/learning-knowledge-growth.workbuddy.skill.zip`，包内使用 WorkBuddy 所需的中英文
 frontmatter，不包含 `agents/openai.yaml`。它由 `tools/build-workbuddy-skill.mjs` 从当前 Skill 语义生成，验证时应检查
-WorkBuddy frontmatter、`@references/` 路由、顶层目录结构和 ZIP 内容清单。
+WorkBuddy frontmatter、`@references/` 路由、顶层目录结构和 ZIP 内容清单。它是 Skill-only 包；ima（如客户端提供）、腾讯乐享、腾讯文档和腾讯网盘均为可选的用户授权通道，不打包连接器凭证。
 
 ```text
-WorkBuddy ZIP SHA-256: 68109EE0355E18F04AECD8A2F8E30A56535C6357A87DA4B828D1A68618FBD18F
+WorkBuddy ZIP SHA-256: 1A4D476E57F9DA2998660454BFEF7DD62EA6560824A9A7659F97BCABBA15CE11
 ```
 
 ## 已核对项目

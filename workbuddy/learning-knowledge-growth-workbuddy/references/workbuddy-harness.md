@@ -14,7 +14,7 @@ WorkBuddy 负责模型、会话、文件权限和 Skill 调度；本 Skill 负�
 
 ## 2. 导入与授权
 
-将 `learning-knowledge-growth-workbuddy/` 压缩包导入 WorkBuddy 的“技能 → 添加技能 → 上传技能”。导入后检查技能描述和版本，再启用它。
+将 `dist/learning-knowledge-growth.workbuddy.skill.zip` 导入 WorkBuddy 的“技能 → 添加技能 → 上传技能”。普通用户不需要解压或上传开发目录；导入后检查技能描述和版本，再启用它。
 
 WorkBuddy 只能访问本次授权的文件夹。建议准备一个实验根目录，例如：
 
@@ -26,6 +26,10 @@ learning-experiment/
 ```
 
 在第一次对话中明确告诉 WorkBuddy：`human-notes/` 和 `ai-knowledge/` 的实际路径，允许写入这两个目录，原始资料只读。生产 Vault 先使用副本或测试目录，确认结果后再授权真实目录。
+
+如果想减少配置，可以只授权一个工作区并明确同意默认结构：`inbox/`、`human-notes/`、`ai-knowledge/`。这只是快捷约定；如果用户给出了两个已有输出目录，必须沿用原目录。
+
+如果使用 `ima 知识库`、腾讯乐享知识库、腾讯文档或腾讯网盘，先在 WorkBuddy 连接器面板完成授权，再在当前任务中只启用需要的连接器。连接器是可选输入/输出通道，不改变 Skill 的两层产物结构；写回知识库前要明确目标库、目标文档和写入范围。详见 `@references/connector-integration.md`。
 
 ## 3. 模型怎么运行
 

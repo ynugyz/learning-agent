@@ -5,7 +5,7 @@ display_name_en: Learning Knowledge Growth
 description: Compile transcripts, slides, PDFs, documents, images, and project files into linked Human and AI knowledge notes in WorkBuddy.
 description_zh: 在 WorkBuddy 中将转写、课件、PDF、图片和项目资料整理为可连接、可持续生长的人类笔记与 AI 知识层。
 description_en: Compile transcripts, slides, PDFs, images, and project files into linked, incrementally growing Human and AI knowledge notes in WorkBuddy.
-version: 0.1.0
+version: 0.2.0
 author: Learning Agent
 user-invocable: true
 ---
@@ -18,8 +18,11 @@ user-invocable: true
 - @references/note-writing.md：简明提要、重点解释与详细整理。
 - @references/ai-index-protocol.md：AI 层检索、来源、哈希与增量更新。
 - @references/workbuddy-harness.md：WorkBuddy 权限、Skill 绑定、模型和测试方式。
+- @references/connector-integration.md：可选知识库连接器、权限和写回边界。
 
 WorkBuddy 的模型由当前 Expert、工作模式或 Buddy App 配置决定，Skill 不硬编码模型名称或 API Key。使用用户在 WorkBuddy 中选定的模型；模型可以是 DeepSeek 或平台提供的其它模型。Skill 只规定资料处理和输出行为。
+这是 Skill-only 包，不是连接器本身。ima 知识库、腾讯乐享知识库、腾讯文档或其它服务只能在用户明确启用并完成 WorkBuddy 授权后作为可选资料来源或结果去处。
+为降低首次使用门槛：如果用户只提供一个已授权工作区并明确同意，可以在其中使用 inbox、human-notes、ai-knowledge 三个子目录；如果用户已经给出两个输出目录，优先使用用户给出的目录，不要自行改写。
 
 SKILL.md 下方的学习编译规则来自 Learning Agent 的规范版本。保留两个独立输出根目录，并在 WorkBuddy 已授权可访问的文件夹内运行。
 # Learning Knowledge Growth

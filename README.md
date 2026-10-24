@@ -124,7 +124,7 @@ Skill 需要当前 Codex 环境能读取输入并写入你指定的目录；云�
 
 ### WorkBuddy 适配版
 
-仓库同时提供独立的 WorkBuddy Skill：`learning-knowledge-growth-workbuddy`。它使用 WorkBuddy 要求的中英文 Skill frontmatter，保留同一套 SourceMap、LessonModel、Alignment、ChangePlan、Human Note 和 AI Layer 规则；Codex 版和 WorkBuddy 版互不覆盖。
+仓库同时提供独立的 WorkBuddy Skill（当前适配版 v0.2.0）：`learning-knowledge-growth-workbuddy`。它使用 WorkBuddy 要求的中英文 Skill frontmatter，保留同一套 SourceMap、LessonModel、Alignment、ChangePlan、Human Note 和 AI Layer 规则；Codex 版和 WorkBuddy 版互不覆盖。
 
 | WorkBuddy 入口 | 用法 |
 | --- | --- |
@@ -133,6 +133,8 @@ Skill 需要当前 Codex 环境能读取输入并写入你指定的目录；云�
 | Buddy App | 在工作模式或场景胶囊中预绑定该 Skill，让进入该场景的对话自动使用学习资料整理规则。 |
 
 WorkBuddy 的模型由 Expert、工作模式或 Buddy App 的模型配置决定，Skill 不写死模型名称或 API Key。建议先用当前可用的较强 DeepSeek 模型跑一份范围受控的资料，再用 DeepSeek Flash 或其它快速模型跑同一资料进行对照。模型名称和可用性以 WorkBuddy 当前模型池为准。Skill 不调用 DSH、Jev 或外部 DeepSeek API；WorkBuddy 已配置的 DeepSeek 模型可以直接作为执行模型。
+
+WorkBuddy 版是 **Skill-only** 包，不是连接器。`ima 知识库`（若当前客户端提供）、腾讯乐享知识库、腾讯文档和腾讯网盘都只能作为用户明确授权后的可选资料来源或结果去处；默认仍使用授权本地目录。Skill 不自动扫描、后台同步或写回知识库，写回前应确认目标库和改动范围。详见 [WorkBuddy 连接器适配说明](workbuddy/connector-integration.md)。
 
 第一次运行需要在 WorkBuddy 的已授权目录中分别指定：原始资料位置、Human Note 输出位置和 AI Layer 输出位置，并选择“简明提要”“重点解释”或“详细整理”。建议先使用测试目录，确认来源、公式、双链和增量更新后再授权真实 Vault。具体绑定方式、权限边界和模型对照步骤见 [WorkBuddy Harness 说明](workbuddy/README.md)。
 
