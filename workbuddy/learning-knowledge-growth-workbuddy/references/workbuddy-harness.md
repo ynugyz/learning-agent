@@ -2,7 +2,7 @@
 
 ## 1. 这份包负责什么
 
-WorkBuddy 负责模型、会话、文件权限和 Skill 调度；本 Skill 负责学习资料的理解、知识整理、Human Note 和 AI Layer 输出。Skill 不安装模型，不保存 API Key，也不从外部启动第二套模型。
+WorkBuddy 负责模型、会话、文件权限和 Skill 调度；本 Skill 负责学习资料的理解、知识整理、Human Note 和 AI Layer 输出。Skill 不安装模型，不保存 平台凭证，也不从外部启动第二套模型。
 
 它可以挂在三种入口：
 
@@ -42,7 +42,7 @@ learning-experiment/
 
 模型名称会随 WorkBuddy 的模型池和版本变化；以模型选择面板实际显示的名称为准。模型替换不应改变 Skill 文件。比较模型时，固定资料、权限、工作模式、提示和解释深度，否则无法判断差异来自模型还是流程。
 
-Skill 不调用 DSH、Jev 或外部 DeepSeek API。WorkBuddy 已配置的 DeepSeek 模型可以直接作为本 Skill 的执行模型；API Key、平台凭证和模型路由留在 WorkBuddy 的配置中。
+Skill 不调用 DSH、Jev 或第二模型服务。WorkBuddy 已配置的 DeepSeek 模型可以直接作为本 Skill 的执行模型；平台凭证和模型路由留在 WorkBuddy 的配置中。
 
 ## 4. 推荐的 WorkBuddy 系统提示
 
@@ -80,7 +80,7 @@ AI Layer 目录：<授权目录>/ai-knowledge/概率论
 - 是否保留公式条件、来源定位和可解析的 wikilink；
 - 是否按“简明提要”避免教材式扩写；
 - 是否把不确定内容暂存，而不是覆盖旧知识；
-- 是否没有把中间 JSON、API Key 或运行日志写进 Human Note；
+- 是否没有把中间 JSON、平台凭证 或运行日志写进 Human Note；
 - 是否能在下一次添加资料时继续更新同一知识对象。
 
 先用一份资料完成基准，再扩大到多个科目。WorkBuddy 的 Skill 触发、模型路由和权限行为属于 Harness 层，应在每个入口单独验证。

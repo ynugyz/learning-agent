@@ -8,7 +8,7 @@
 
 - WorkBuddy 可识别的 `SKILL.md`；
 - `references/`：输入资料、Human Note、AI Layer、WorkBuddy Harness 说明；
-- `scripts/attach_source_image.py`：保存已检查的 PDF/PPT 原图并生成相对 Markdown 链接。
+- WorkBuddy 内置的文件和图片能力：保存已检查的 PDF/PPT 原图并生成相对 Markdown 链接；WorkBuddy 包不携带外部 Python 辅助脚本。
 
 ## 导入
 

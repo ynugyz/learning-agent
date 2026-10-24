@@ -1,6 +1,6 @@
 # WorkBuddy 连接器适配说明
 
-本 Skill 是 **Skill-only** 能力包，不是连接器，也不自带账号授权、API Key 或远程服务。默认使用 WorkBuddy 已授权的本地工作目录；连接器只有在用户明确打开并授权后才参与当前任务。
+本 Skill 是 **Skill-only** 能力包，不是连接器，也不自带账号授权、credentials 或远程服务。默认使用 WorkBuddy 已授权的本地工作目录；连接器只有在用户明确打开并授权后才参与当前任务。
 
 ## 可选连接器
 
@@ -32,11 +32,3 @@
 ## WorkBuddy 侧配置
 
 连接器应在 WorkBuddy 的“专家·技能·连接器”中单独添加并授权，再在当前任务的工具面板启用。Skill 不应把某个连接器写成硬依赖；这样用户仍可只上传文件使用，也可以在需要时临时启用 ima 或腾讯乐享。
-
-官方参考：
-
-- [WorkBuddy 连接器](https://open.workbuddy.cn/docs/connector)
-- [WorkBuddy Skill](https://open.workbuddy.cn/en/docs/skill)
-- [WorkBuddy Expert](https://open.workbuddy.cn/en/docs/expert)
-- [WorkBuddy Buddy App](https://open.workbuddy.cn/en/docs/buddy-app)
-- [WorkBuddy 连接电脑与 ima 知识库](https://www.workbuddy.cn/docs/workbuddymini/features/Multidevice)

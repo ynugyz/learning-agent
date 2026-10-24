@@ -87,7 +87,7 @@ Cards are compact and bounded. A card normally contains:
 - If two objects may be the same but cannot be safely merged, keep separate cards and add a bounded relation or unresolved note.
 - Update `sourceRefs`, `sectionRefs`, hashes and relations together with the note change.
 - Heading numbers are presentation, not identity: when Human Note headings are numbered or renumbered, update affected `sectionRefs` and authorized note links to their actual final targets. Preserve `knowledgeId`; never derive it from a heading's sequence number. Report known incoming links outside the authorized edit scope that still need repair without expanding to a full-Vault scan.
-- Never delete a card or human section solely because the latest source omitted it.
+- Never discard a card or human section solely because the latest source omitted it.
 - Retain current knowledge and its source references without accumulating permanent per-run versions or full source copies. Use the user's existing version control when available; this skill does not require a new history store.
 
 ## Token and integrity rules

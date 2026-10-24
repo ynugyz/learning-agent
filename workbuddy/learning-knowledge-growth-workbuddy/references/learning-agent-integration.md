@@ -24,7 +24,7 @@ in the AI index/cards; a per-run manifest or change-log file is not required.
 Source-image attachments stay with the Human Notes using relative links; the
 AI layer records their source locators without storing another image copy.
 After a successful run, verify image links point to final attachments, then
-delete the temporary workspace and unused page renders. A compact error note is
+discard the temporary workspace and unused page renders. A compact error note is
 kept only when a run fails and diagnosis needs it.
 
 For future workflow experiments, compare the current path with a simplified

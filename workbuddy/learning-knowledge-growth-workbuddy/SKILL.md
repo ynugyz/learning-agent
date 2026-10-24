@@ -20,7 +20,7 @@ user-invocable: true
 - @references/workbuddy-harness.md：WorkBuddy 权限、Skill 绑定、模型和测试方式。
 - @references/connector-integration.md：可选知识库连接器、权限和写回边界。
 
-WorkBuddy 的模型由当前 Expert、工作模式或 Buddy App 配置决定，Skill 不硬编码模型名称或 API Key。使用用户在 WorkBuddy 中选定的模型；模型可以是 DeepSeek 或平台提供的其它模型。Skill 只规定资料处理和输出行为。
+WorkBuddy 的模型由当前 Expert、工作模式或 Buddy App 配置决定，Skill 不硬编码模型名称或平台凭证。使用用户在 WorkBuddy 中选定的模型；模型可以是 DeepSeek 或平台提供的其它模型。Skill 只规定资料处理和输出行为。
 这是 Skill-only 包，不是连接器本身。ima 知识库、腾讯乐享知识库、腾讯文档或其它服务只能在用户明确启用并完成 WorkBuddy 授权后作为可选资料来源或结果去处。
 为降低首次使用门槛：如果用户只提供一个已授权工作区并明确同意，可以在其中使用 inbox、human-notes、ai-knowledge 三个子目录；如果用户已经给出两个输出目录，优先使用用户给出的目录，不要自行改写。
 
@@ -47,7 +47,7 @@ At the beginning of a new course or a new kind of material, ask the user for two
 1. **Material type** — choose one or more: `课堂转写`, `课件/PPT`, `PDF/教材/文档`, `图片/扫描资料`, `项目/代码/ZIP`, or `混合资料`.
 2. **Explanation depth / 笔记展开程度** — offer `简明提要（推荐）` (recognizable terms, a brief meaning and only necessary qualifiers), `重点解释` (explain difficult or easily confused points selectively), or `详细整理` (retain source-supported detail, including requested examples and derivations). Explain the difference by how much is developed, not by promising that the longest option is best.
 
-If several files have different types, record a type for each file and use `混合资料` for the batch. Reuse a clear preference, or ask once and save the answer in the existing course metadata or setup configuration; no per-run manifest or new configuration schema is required. “简洁 / 知道是什么即可 / 不懂我自己查” selects `简明提要` directly. When the user delegates the choice (`AI 自行取舍`), start concise and expand only to prevent misunderstanding. Recognize saved legacy values: `完整保留` means `详细整理`, `平衡整理` means `重点解释`, and `AI 自行取舍` means the concise adaptive behavior. The user's current request overrides a saved preference; do not silently override an explicit request for full detail. Depth governs newly written explanations, not permission to delete valid existing content. Read [references/note-writing.md](references/note-writing.md) before drafting Human Notes.
+If several files have different types, record a type for each file and use `混合资料` for the batch. Reuse a clear preference, or ask once and save the answer in the existing course metadata or setup configuration; no per-run manifest or new configuration schema is required. “简洁 / 知道是什么即可 / 不懂我自己查” selects `简明提要` directly. When the user delegates the choice (`AI 自行取舍`), start concise and expand only to prevent misunderstanding. Recognize saved legacy values: `完整保留` means `详细整理`, `平衡整理` means `重点解释`, and `AI 自行取舍` means the concise adaptive behavior. The user's current request overrides a saved preference; do not silently override an explicit request for full detail. Depth governs newly written explanations, not permission to discard valid existing content. Read [references/note-writing.md](references/note-writing.md) before drafting Human Notes.
 
 ## Inputs and routing
 
@@ -125,11 +125,11 @@ After validation, the durable result is deliberately small:
 - the one-time `knowledge-growth.config.json` setup file, kept outside the Human Note tree;
 - optionally, one overwritten `last-run.md` containing at most a few lines for the user's orientation. It is not required for retrieval or self-growth and must never become a timestamped history.
 
-Do not create a per-run manifest, a full change log, a duplicate provenance file, or a permanent audit directory by default. Source references, note hashes, maintenance state, unresolved items and relations belong in the AI index/cards; the conversation report can state what changed. If the user explicitly asks for a review bundle, export it separately and delete it after review.
+Do not create a per-run manifest, a full change log, a duplicate provenance file, or a permanent audit directory by default. Source references, note hashes, maintenance state, unresolved items and relations belong in the AI index/cards; the conversation report can state what changed. If the user explicitly asks for a review bundle, export it separately and discard it after review.
 
-Once the Human Note, its attachments and AI index/cards pass their integrity checks, delete the entire temporary run workspace, including raw model responses and unselected page/slide renders. First verify that final image links resolve outside that workspace; retain the referenced Human attachments. Do not delete the original source files or existing shared attachments. If a run fails, write one compact `run-error.md` (or report the error in the conversation) and delete the temporary workspace unless the user explicitly asks to retain diagnostics. Never present a partial artifact as a finished note.
+Once the Human Note, its attachments and AI index/cards pass their integrity checks, discard the entire temporary run workspace, including raw model responses and unselected page/slide renders. First verify that final image links resolve outside that workspace; retain the referenced Human attachments. Do not discard the original source files or existing shared attachments. If a run fails, write one compact `run-error.md` (or report the error in the conversation) and discard the temporary workspace unless the user explicitly asks to retain diagnostics. Never present a partial artifact as a finished note.
 
-The normal successful result is the formal Human Note and its corresponding AI knowledge state, written to the configured separate roots. Do not label successful outputs as candidates. When a target already exists, preserve useful content and integrate supported changes without appending duplicate explanations. A concise preference is not permission to batch-shorten old notes; apply it to new text unless the user authorizes a specific rewrite scope. A short change summary may be shown in the conversation, but is not a required file and should not accumulate on disk. Do not delete existing knowledge automatically.
+The normal successful result is the formal Human Note and its corresponding AI knowledge state, written to the configured separate roots. Do not label successful outputs as candidates. When a target already exists, preserve useful content and integrate supported changes without appending duplicate explanations. A concise preference is not permission to batch-shorten old notes; apply it to new text unless the user authorizes a specific rewrite scope. A short change summary may be shown in the conversation, but is not a required file and should not accumulate on disk. Do not discard existing knowledge automatically.
 
 A malformed model response may receive bounded mechanical repair, but do not regenerate the entire pipeline unnecessarily.
 
@@ -143,4 +143,4 @@ Every successful run must report in the conversation input files and their types
 
 ## Scope and safety
 
-Never search the entire Vault. Use explicit course profiles, selected folders, or bounded existing-note references. Never modify or delete existing notes without an explicit write request. Keep API keys in environment configuration; do not copy them into notes, manifests, or skill files.
+Never search the entire Vault. Use explicit course profiles, selected folders, or bounded existing-note references. Never modify or discard existing notes without an explicit write request. Keep credentials in environment configuration; do not copy them into notes, manifests, or skill files.

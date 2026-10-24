@@ -26,7 +26,7 @@ frontmatter，不包含 `agents/openai.yaml`。它由 `tools/build-workbuddy-ski
 WorkBuddy frontmatter、`@references/` 路由、顶层目录结构和 ZIP 内容清单。它是 Skill-only 包；ima（如客户端提供）、腾讯乐享、腾讯文档和腾讯网盘均为可选的用户授权通道，不打包连接器凭证。
 
 ```text
-WorkBuddy ZIP SHA-256: 1A4D476E57F9DA2998660454BFEF7DD62EA6560824A9A7659F97BCABBA15CE11
+WorkBuddy ZIP SHA-256: 52D2B0F68D9A20D288B3178855CBE95A3CEAC2074482D40F9AAA53DBCD989163
 ```
 
 ## 已核对项目

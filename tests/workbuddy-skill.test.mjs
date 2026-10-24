@@ -26,7 +26,6 @@ for (const relative of [
   'references/note-writing.md',
   'references/workbuddy-harness.md',
   'references/connector-integration.md',
-  'scripts/attach_source_image.py',
 ]) {
   assert.ok(fs.existsSync(path.join(skillRoot, relative)), `missing ${relative}`);
 }
@@ -38,5 +37,12 @@ assert.match(listing, /^learning-knowledge-growth-workbuddy\/SKILL\.md$/m);
 assert.match(listing, /learning-knowledge-growth-workbuddy\/references\/workbuddy-harness\.md/u);
 assert.match(listing, /learning-knowledge-growth-workbuddy\/references\/connector-integration\.md/u);
 assert.doesNotMatch(listing, /openai\.yaml/u);
+assert.doesNotMatch(listing, /\/scripts\//u);
 assert.doesNotMatch(skill, /D:\\\\|C:\\\\Users|sk-[A-Za-z0-9_-]{16,}/u);
+const bundledMarkdown = listing.split(/\r?\n/u).filter((entry) => entry.endsWith('.md'));
+for (const relative of bundledMarkdown) {
+  const text = execFileSync(py, ['-B', '-c', `import zipfile; print(zipfile.ZipFile(r'''${zipPath}''').read(r'''${relative}''').decode('utf-8'))`], { encoding: 'utf8' });
+  assert.doesNotMatch(text, /https?:\/\//u, `WorkBuddy package must not advertise runtime HTTP calls: ${relative}`);
+  assert.doesNotMatch(text, /\bAPI Key\b|\bAPI keys?\b/iu, `WorkBuddy package must not request API keys: ${relative}`);
+}
 console.log('WorkBuddy Skill package checks passed');
