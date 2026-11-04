@@ -55,10 +55,10 @@ const frontmatter = [
   'name: learning-knowledge-growth-workbuddy',
   'display_name: Learning Knowledge Growth',
   'display_name_en: Learning Knowledge Growth',
-  'description: Compile transcripts, slides, PDFs, documents, images, and project files into linked Human and AI knowledge notes in WorkBuddy.',
+  'description: Compile transcripts, slides, PDFs, documents, images, and project files into linked Human and AI knowledge notes and editable Excalidraw diagrams in WorkBuddy.',
   'description_zh: 在 WorkBuddy 中将转写、课件、PDF、图片和项目资料整理为可连接、可持续生长的人类笔记与 AI 知识层。',
   'description_en: Compile transcripts, slides, PDFs, images, and project files into linked, incrementally growing Human and AI knowledge notes in WorkBuddy.',
-  'version: 0.2.1',
+  'version: 0.4.1',
   'author: Learning Agent',
   'user-invocable: true',
   '---',
@@ -122,6 +122,10 @@ for (const entry of fs.readdirSync(path.join(workbuddyRoot, 'references'), { wit
     .replace(/平台凭证、平台凭证/g, '平台凭证')
     .replace(/\bdelete\b/gi, 'discard')
     .replace(/删除/g, '丢弃')
+    .replace(/\x60scripts\/validate_excalidraw\.py\x60/g, '宿主可用的 Excalidraw 场景校验器')
+    .replace(/运行 宿主可用的 Excalidraw 场景校验器 检查/g, '使用宿主可用的 Excalidraw 场景校验器检查')
+    .replace(/保存前运行 Skill 自带的 宿主可用的 Excalidraw 场景校验器 做/g, '保存前使用宿主可用的 Excalidraw 场景校验器做')
+    .replace(/运行 宿主可用的 Excalidraw 场景校验器。/g, '使用宿主可用的 Excalidraw 场景校验器。')
     .replace(/https?:\/\/[^)\s]+/gi, '');
   fs.writeFileSync(file, `${text.replace(/\r\n/g, '\n').trimEnd()}\n`, 'utf8');
 }

@@ -20,7 +20,8 @@ Learning Agent 提供一个可安装的 Codex Skill：`learning-knowledge-growth
 | --- | --- |
 | 多种资料输入 | 接收 TXT 转写、Markdown、粘贴文本、PPT/PPTX、PDF、图片、文档，以及项目文件或 ZIP；非文本资料的读取能力取决于当前 Codex 环境中的工具。 |
 | 原资料配图 | 按需要将 PDF/PPT 中有助理解的图表、流程图等插入对应小节，标明页码或幻灯片号；选用的图片随笔记保存，相同图片复用，不整本截图。 |
-| 简明学习笔记 | 默认推荐“术语＋一句大意”，必要时补关键条件、公式或区别；不强制每个点都补定义、原理、例子和易错点。 |
+| 可编辑图形 | 对资料明确支持的流程、结构、比较、变量关系和数学/几何构造，按需生成可编辑 `.excalidraw` 图；没有图形需求时不调用，图形始终保留来源定位。 |
+| 简明学习笔记 | 覆盖本批范围内提到的概念，每项通常一两句话；保留必要条件、公式或区别，仅点名的概念标明“未展开”，不自主补定义。 |
 | 简短情境引入 | 可用“例：一年期存款”这样的短语代替完整的课堂过程描述；必要题设、条件、数字和推理步骤仍保留。 |
 | 基于材料整理 | 新增知识必须来自原始材料或已有有效笔记；缺失题面、公式和不确定内容标记为待补或待核对，不凭模型常识扩写。 |
 | 已有笔记生长 | 保留已有有效内容，有新含义才补充；不同资料重复说明同一件事时合并来源，不反复追加同义段落。 |
@@ -124,7 +125,7 @@ Skill 需要当前 Codex 环境能读取输入并写入你指定的目录；云�
 
 ### WorkBuddy 适配版
 
-仓库同时提供独立的 WorkBuddy Skill（当前本地资料适配版 v0.2.1）：`learning-knowledge-growth-workbuddy`。它使用 WorkBuddy 要求的中英文 Skill frontmatter，保留同一套 SourceMap、LessonModel、Alignment、ChangePlan、Human Note 和 AI Layer 规则；Codex 版和 WorkBuddy 版互不覆盖。
+仓库同时提供独立的 WorkBuddy Skill（当前本地资料适配版 v0.4.1）：`learning-knowledge-growth-workbuddy`。它使用 WorkBuddy 要求的中英文 Skill frontmatter，保留同一套 SourceMap、LessonModel、Alignment、ChangePlan、Human Note 和 AI Layer 规则，并增加按需的 Excalidraw 可编辑图形通道、证据包选择和保守的增量预筛选；Codex 版和 WorkBuddy 版互不覆盖。
 
 | WorkBuddy 入口 | 用法 |
 | --- | --- |
@@ -154,6 +155,7 @@ The current user interface is a Codex Skill, not an Obsidian plugin or a standal
 | --- | --- |
 | Multiple input formats | TXT transcripts, Markdown, pasted text, PPT/PPTX, PDFs, images, documents, and project files or ZIP archives. Reading non-text formats depends on tools available in your Codex environment. |
 | Original source figures | Relevant PDF/slide charts and diagrams beside the corresponding explanation, with page or slide references. Selected images travel with the notes and identical files are reused; entire decks are not dumped as screenshots. |
+| Editable diagrams | When the source clearly supports a process, structure, comparison, variable relationship, or mathematical/geometric construction, optionally create an editable `.excalidraw` scene with source references; ordinary text does not trigger diagram generation. |
 | Concise study notes | The recommended style is a recognizable term plus a brief meaning, adding essential conditions, formulas or distinctions as needed. No mandatory definition–mechanism–example checklist for every point. |
 | Concise scenario cues | Short phrases such as “Example: one-year deposit” replace long classroom narratives. Necessary assumptions, quantities and reasoning steps remain. |
 | Source-grounded content | New knowledge must come from supplied materials or valid existing notes. Missing formulas, incomplete questions, and uncertainty are recorded rather than filled in from model memory. |
@@ -195,7 +197,7 @@ The installer replaces the same-named Skill in your current Codex configuration;
 3. Specify the course or topic and two separate output folders.
 4. Identify existing notes and explicitly state whether they may be updated.
 
-For a new batch, the Skill confirms the material type and explanation depth without repeating preferences already provided. **Concise overview** is recommended: recognize the topics, understand their gist, and find where to read more. **Selective explanation** and **Detailed notes** are also available. “Let Codex choose” starts concise and expands only to prevent misunderstanding. Legacy density settings remain recognized; the current explicit request takes precedence.
+For a new batch, the Skill confirms the material type and explanation depth without repeating preferences already provided. **Concise overview** is recommended: cover the distinct concepts mentioned within the selected scope, usually in one or two sentences each, and keep lookup cues. Name-only mentions stay marked as unexpanded rather than receiving invented definitions. **Selective explanation** and **Detailed notes** are also available. “Let Codex choose” starts concise and expands only to prevent misunderstanding. Legacy density settings remain recognized; the current explicit request takes precedence.
 
 Understanding the source fully does not require printing every detail. A textbook supplied alongside lecture material supports the current topic instead of automatically expanding the note to the whole chapter. Unexpanded detail stays in the original material, with compact retrieval locations in the AI layer. Slides, PDFs, documents and images retain their original locations through the appropriate reading tools; unreadable content is marked rather than invented.
 

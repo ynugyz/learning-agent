@@ -1,4 +1,4 @@
-# Learning Agent — WorkBuddy 适配版（v0.2.1）
+# Learning Agent — WorkBuddy 适配版（v0.4.1）
 
 这是一份面向 WorkBuddy 的 Skill 包。它与仓库中的 Codex 版共享同一套知识编译语义，但使用 WorkBuddy 要求的 `SKILL.md` frontmatter，并适配 WorkBuddy 的 Skill、Expert 和 Buddy App 绑定方式。
 
@@ -8,7 +8,7 @@
 
 - WorkBuddy 可识别的 `SKILL.md`；
 - `references/`：输入资料、Human Note、AI Layer、WorkBuddy Harness 说明；
-- WorkBuddy 内置的文件和图片能力：保存已检查的 PDF/PPT 原图并生成相对 Markdown 链接；WorkBuddy 包不携带外部 Python 辅助脚本。
+- WorkBuddy 内置的文件和图片能力：保存已检查的 PDF/PPT 原图并生成相对 Markdown 链接；WorkBuddy 包不携带外部 Python 辅助脚本，场景校验由宿主能力或人工文件级检查完成。
 
 ## 导入
 
@@ -26,6 +26,10 @@ Skill 不固定模型。模型由 WorkBuddy 的 Expert、工作模式或 Buddy A
 
 Skill 不保存 API Key，也不调用 DSH、Jev 或外部模型服务。WorkBuddy 的模型配置负责模型和凭证，Skill 负责资料整理规则。
 
+v0.4.1 在运行优化之外加入 Excalidraw 原生可编辑图支持：优先使用 Obsidian 原生 CLI/Automate，其次使用宿主已接入的 Excalidraw MCP/App，最后才生成本地 `.excalidraw.md`/`.excalidraw`。流程、结构、变量关系和数学/几何构造都可以触发视觉审核。图中文字和箭头必须有真实双向绑定，Human Note 直接嵌入可编辑图；PNG/SVG 只作为可选预览。若 Excalidraw 不可用，仍可只交付文字或来源截图，并记录文件级校验回退。
+
+此前 v0.4.0 的运行优化仍保留：先用来源 ID、定位和哈希组装临时证据包，再生成笔记；对已有对象先做保守的 unchanged 预筛选，只有身份、范围、来源、笔记、卡片和依赖都完全一致时才复用。缺少任何条件都会继续正常判断，因此相似文本不会被直接当作“无需更新”。ChangePlan 默认保留已有有效内容，不会因为新资料没有再次提到就静默删除。
+
 这是一个 **本地资料版 Skill-only** 包：Skill 只处理当前对话附件和 WorkBuddy 明确授权的目录，不主动连接外部服务。若你在 WorkBuddy 中另外启用了 ima 知识库或其它资料连接器，先把需要的资料选入当前对话，再让 Skill 处理；Skill 本身不申请连接器权限，也不会后台同步或自动写回知识库。连接器设计说明仍保留在仓库的 [连接器适配说明](connector-integration.md) 中，但不随基础 ZIP 安装。
 
 ## 第一次运行
@@ -38,7 +42,7 @@ Skill 不保存 API Key，也不调用 DSH、Jev 或外部模型服务。WorkBud
 Human Note 输出：<WorkBuddy 已授权目录>/human-notes
 AI Layer 输出：<WorkBuddy 已授权目录>/ai-knowledge
 已有笔记允许更新。
-采用简明提要：术语加简短大意，保留关键条件和公式，不扩写成教材。
+采用简明提要：覆盖本批资料提到的概念，每项通常一两句话，保留关键条件和公式；仅提及的概念不擅自扩写。
 ```
 
 WorkBuddy 只会访问授权目录。建议先用测试目录，确认 Human Note、AI Layer、来源链接和增量更新都符合预期，再授权真实 Vault。

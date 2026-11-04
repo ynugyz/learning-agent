@@ -592,6 +592,90 @@ contract. Fields are expected to change; see D-0007.
   reversible; unknown or stale inputs continue through normal processing. No
   permanent run manifest, new enum or large memory system is added.
 
+### D-0024 — Use an evidence-triggered visual channel for mathematical and structural understanding
+- Date: 2026-11-01
+- Status: accepted for the Codex and WorkBuddy Skill workflows
+- Decision: Treat Excalidraw as an optional Human-layer aid selected by a visual
+  audit. Trigger the audit when the source contains a process, structure,
+  comparison, variable relation, coordinate relation, function shape, geometric
+  construction, vector, probability tree or matrix layout, or when a concrete
+  learning question is clearer through positions, paths, shapes or changes.
+  Prefer the native Obsidian CLI/Automate, then an actually available
+  Excalidraw connector, then a validated local scene. Keep diagrams editable,
+  source-grounded and linked from the Human Note; use qualitative figures only
+  with an explicit schematic/not-to-scale note. Do not add a fifth machine
+  table or store scene payloads in the AI layer.
+- Rationale: The existing relation-graph guidance did not cover mathematical
+  figures such as coordinate planes, curves or geometric constructions. These
+  figures can reduce explanation burden when the source provides the formula or
+  relation, but a visual channel must not invent values, equations, labels or
+  arrows. A two-signal audit keeps the decision evidence-based while allowing a
+  useful diagram even when the source has no ready-made image.
+- Alternatives considered: require a diagram for every lesson — rejected as
+  decorative and costly; limit diagrams to source screenshots — rejected because
+  editable mathematical constructions can expose relationships more clearly;
+  add a durable diagram database — rejected because assets remain Human-layer
+  aids with provenance already represented by existing source attachments.
+- Consequences: The four compilation responsibilities, two output layers and
+  core schemas remain unchanged. Canonical Skill output includes a deterministic
+  scene validator; the WorkBuddy package relies on a host validator or explicit
+  file-level fallback because it does not bundle Python helpers. Missing CLI or
+  connector capability is recorded and must not silently suppress an eligible
+  visual decision.
+
+### D-0025 — Allow labelled external supplements and classroom-figure reconstruction
+- Date: 2026-11-03
+- Status: accepted (user-requested)
+- Decision: The Skill may, when the host offers search tools and the user has
+  authorized web lookup, retrieve traceable public sources for a real-world
+  case the teacher dwells on but whose data was not supplied. External content
+  appears only in an `外部补充` callout with source and access date, is
+  registered in the AI layer as a `外部补充` source, never rewrites classroom
+  statements, and turns contradictions into CONFLICT/review items. Charts are
+  redrawn from public data rather than copied. Visual selection is by learning
+  question: Excalidraw for shapes, curve shifts, coordinates and multi-panel
+  comparisons, including schematics reconstructed from a teacher's spoken
+  description; Mermaid only for non-spatial flows; tables for attribute
+  comparisons. Interactive single-file HTML charts may accompany, never
+  replace, a static figure.
+- Rationale: In a real finance lesson the teacher spent about 100 transcript
+  lines on international 10-year yields without the chart, and drew several
+  supply-demand and yield-curve figures orally. A "lightest form first" rule
+  replaced these with tables and a flowchart, losing the shapes the lesson was
+  about, and the source-only rule left the case unreadable.
+- Alternatives considered: keep source-only knowledge — rejected for cases
+  that depend on missing public data; let external facts merge into the body —
+  rejected because it blurs evidence and teacher opinion; embed downloaded
+  third-party chart images — rejected for copyright and link stability.
+- Consequences: Evidence now has two classes, classroom and external
+  supplement, kept separate in both layers. WorkBuddy stays local-first unless
+  its host provides search tools. Hosted HTML-embed plugins are optional; every
+  interactive chart has a static fallback.
+
+### D-0026 — Add chapter review maps and interactive mechanism models
+- Date: 2026-11-03
+- Status: accepted (user-requested after a prototype on the finance course)
+- Decision: Each chapter with about six or more related knowledge objects keeps
+  one Excalidraw review map generated from existing AI-card `relations`: linked
+  boxes to home sections, page regions, bound and labelled arrows routed around
+  boxes. Updates preserve user-moved nodes and user-added elements; hand-drawn
+  arrows become ChangePlan hints, not automatic relations. Core formula-driven
+  mechanisms may get a single-file interactive HTML model with presets matching
+  the lesson's cases, a hand-checked computation, labelled demonstration
+  assumptions and a static small-multiple fallback.
+- Rationale: The AI layer already holds a relation network that the user could
+  not see; a linked Excalidraw map makes it usable for review with hover preview
+  and editing. Interactive models let the learner test "what if this changes"
+  for mechanisms the lesson explains through parameter changes.
+- Alternatives considered: Obsidian Canvas — rejected by the user in favour of
+  Excalidraw; regenerating maps from scratch each run — rejected because it
+  would erase the user's layout and annotations; treating map edits as
+  knowledge — rejected because the map is a view, not a source of truth.
+- Consequences: New attachment kinds `excalidraw-review-map` and
+  `interactive-model`, and `generatedFrom: ai-relations`. No schema change to
+  cards or relations. Interactive content depends on an HTML-embed plugin and
+  always has a static fallback.
+
 ## Template for new decisions
 
 ```

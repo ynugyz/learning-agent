@@ -22,9 +22,19 @@ Source understanding may be richer than the selected Human Note explanation dept
 - Keep the source locator attached to each selected excerpt: source identity, original file, page/slide or line/span, and source hash where available. Extracted text must retain a mapping to those original locations. A model summary or card can route retrieval, but cannot be the sole evidence for adding, correcting or resolving a claim. Open the referenced original material, or the actual valid existing note when it is the supplied seed knowledge; if neither is available, retain the gap explicitly.
 - Reuse already loaded evidence within the run instead of repeatedly reading or summarizing it. Deduplicate identical spans, not distinct examples or qualifications. This is a Codex context-selection practice, not another model call, required stage, permanent evidence packet or new index format.
 
+### Evidence packet for one decision (temporary)
+
+When a card, Human Note section or proposed update needs context, the runner may assemble a small temporary packet with these in-memory fields:
+
+```text
+sourceId + original locator + excerpt + evidence role + adjacent-span reason
+```
+
+`evidence role` can be `definition`, `condition`, `formula`, `example`, `method`, `boundary`, `relation` or `uncertainty`. This is a selection convention, not a new durable schema or a fifth machine table. Build it deterministically from the already loaded SourceMap/LessonModel and bounded existing-note references: match stable IDs first, then canonical terms/aliases, then broader retrieval; deduplicate exact spans; retain distinct examples and qualifications; and widen the packet whenever a claim lacks its condition or counter-scope. Apply token limits only after those coverage checks. The packet may be discarded after the decision, while its source IDs and locators remain in the AI card or update result.
+
 Retrieval ranking is a candidate selector only. A high similarity score does not prove that the selected source supports the claim. For formulas and conditions, numbers or historical claims, teacher examples being generalized, corrections/conflicts, and uncertain source units, return to the original span before writing or resolving the object. A simple existence check for a source ID is insufficient; the wording of the claim must be supported by the located content. If support is weaker than the proposed wording, shorten the claim, retain an uncertainty/deferred state, or leave it out.
 
-When a later run proposes an update, run a cheap unchanged gate before semantic judgment. Reuse the existing object only if its stable ID, relevant source and note hashes, selected depth, and dependent relation/source hashes match. Any unknown or stale dependency goes through Alignment/ChangePlan. This gate saves repeated decisions; it never turns similarity into `NO_CHANGE` and does not certify factual truth.
+When a later run proposes an update, run a cheap unchanged gate before semantic judgment. Compute a comparison tuple from the stable ID, task scope, selected depth, relevant source hashes and locators, current Human Note hash, relevant AI-card hash, and dependent relation/source hashes. Reuse the existing object only when every required component is present and exactly equal to the recorded tuple. Any unknown or stale component, changed scope, uncertain/conflicted source, or explicit correction request goes through Alignment/ChangePlan. This gate saves repeated decisions; it never turns similarity into `NO_CHANGE`, does not certify factual truth, and must be reported as deterministic reuse rather than a fresh semantic judgment. For a batch, keep only transient counts such as `prefiltered`, `evaluated`, and `forced_evaluation`; do not create a per-run history file.
 
 ## Course index minimum
 
@@ -43,6 +53,10 @@ The course `index.json` should contain:
 ```
 
 Each record should identify a Human Note, stable `knowledgeId`, title, aliases when known, maintenance state, source references, open items and the current note hash. A last-update timestamp is optional; do not append a run-history entry for every invocation. Page relations are routing hints; they do not replace object relations.
+
+Generated Human-layer visuals are listed once in the owning record's `attachments` with `assetRef`, `sha256`, `kind` and `generatedFrom`. Use `kind` values such as `excalidraw`, `chart-svg`, `interactive-html`, `interactive-model` and `excalidraw-review-map`, and `generatedFrom` values `source-derived`, `external-data` or `ai-relations`. A chapter review map belongs to the chapter's topic-page record; refresh its hash whenever the map is regenerated.
+
+An authorized external supplement is also one `sources` entry, with `type: "外部补充"`, the page or dataset `url`, `title`, `accessedAt`, the series or section used, and a one-line `purpose`; it has no transcript line locators. Claims that rely on it reference that `sourceId` and state in `uncertainty` that the support is external rather than classroom evidence.
 
 Store original source identity, locator convention and content hash once in `sources`; cards may reference that entry plus the relevant locations. Do not duplicate complete source descriptions in every card. A hash detects changed content; it does not prove factual correctness.
 
@@ -82,12 +96,14 @@ Cards are compact and bounded. A card normally contains:
 - Match by `knowledgeId`, canonical term, aliases and claim similarity before creating a new object.
 - If the object exists, update its card and the referenced Human Note section; do not create a duplicate page merely because the lesson came from a new session.
 - Distinguish a supported addition, a correction, a difference in scope or assumptions, and unresolved evidence before writing. Integrate genuinely new meaning at the selected explanation depth; do not append another explanation merely because it is source-supported. Correct only the claim the evidence actually overturns; preserve compatible formulations with their conditions; defer uncertain differences instead of silently choosing one. A new session or different wording alone is not a correction.
+- ChangePlan proposals are patches over the current state, not replacements. Allowed default intents are `add_supported`, `narrow_scope`, `add_relation`, `annotate_uncertainty`, and `correct_overturned_claim`; preserve existing compatible content and provenance for all other claims. A removal, archival or merge that would discard information needs an explicit user instruction and a bounded target. If that instruction is absent, keep both formulations with their conditions or mark the difference deferred.
 - Treat update state as three meanings even though no new enum is needed: maintain a supported object; hold/profile an ambiguous difference with `maintenanceState: "deferred"` and the existing deferred resolution semantics; correct only when evidence overturns the old claim. A deferred object remains discoverable and reactivatable, and must not overwrite a settled Human Note claim.
 - If evidence is insufficient, keep the card with `maintenanceState: "deferred"` and preserve the evidence gap. Split unrelated evidence gaps into separate cards when they require different future evidence or point to different sections; do not put every unresolved item into one catch-all card.
 - If two objects may be the same but cannot be safely merged, keep separate cards and add a bounded relation or unresolved note.
 - Update `sourceRefs`, `sectionRefs`, hashes and relations together with the note change.
 - Heading numbers are presentation, not identity: when Human Note headings are numbered or renumbered, update affected `sectionRefs` and authorized note links to their actual final targets. Preserve `knowledgeId`; never derive it from a heading's sequence number. Report known incoming links outside the authorized edit scope that still need repair without expanding to a full-Vault scan.
 - Never delete a card or human section solely because the latest source omitted it.
+- After drafting a high-level semantic core or compact summary, compare it back to the selected original spans. If a condition, limitation, numerical qualifier or uncertainty marker is not supported by the spans, shorten the summary or reopen a wider packet before writing. The AI card is a routing aid and cannot validate its own summary.
 - Retain current knowledge and its source references without accumulating permanent per-run versions or full source copies. Use the user's existing version control when available; this skill does not require a new history store.
 
 ## Token and integrity rules

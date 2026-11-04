@@ -7,17 +7,25 @@ import { execFileSync } from 'node:child_process';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const skillRoot = path.join(repoRoot, 'workbuddy', 'learning-knowledge-growth-workbuddy');
 const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
+const visuals = fs.readFileSync(path.join(skillRoot, 'references', 'visuals-and-excalidraw.md'), 'utf8');
 const frontmatter = skill.match(/^---\n([\s\S]*?)\n---/u)?.[1] ?? '';
 
 for (const field of ['name:', 'description:', 'description_zh:', 'description_en:', 'version:', 'author:']) {
   assert.match(frontmatter, new RegExp(`^${field.replace(':', '\\:')}`, 'm'), `missing WorkBuddy field ${field}`);
 }
 assert.match(frontmatter, /^user-invocable:\s*true$/m);
-assert.match(frontmatter, /^version:\s*0\.2\.1$/m);
+assert.match(frontmatter, /^version:\s*0\.4\.1$/m);
 assert.doesNotMatch(skill, /Codex|openai\.yaml/u);
 assert.match(skill, /@references\/input-modes\.md/u);
 assert.match(skill, /@references\/workbuddy-harness\.md/u);
 assert.doesNotMatch(skill, /connector|连接器|ima 知识库|腾讯乐享/u);
+assert.doesNotMatch(skill, /scripts\/validate_excalidraw\.py/u, 'WorkBuddy package must not require a repository-only validator path');
+assert.match(skill, /coordinate relation, function shape, geometric figure, vector, probability tree or matrix layout/u);
+assert.match(visuals, /宿主可用的 Excalidraw 场景校验器/u);
+assert.match(skill, /Excalidraw review map/u, 'missing chapter review map rule');
+assert.match(skill, /interactive mechanism model/u, 'missing interactive model rule');
+assert.match(visuals, /## 章节复习地图/u);
+assert.match(visuals, /### 可交互机制模型/u);
 
 for (const relative of [
   'references/ai-index-protocol.md',
@@ -25,6 +33,8 @@ for (const relative of [
   'references/learning-agent-integration.md',
   'references/note-writing.md',
   'references/workbuddy-harness.md',
+  'references/obsidian-excalidraw-cli.md',
+  'references/visuals-and-excalidraw.md',
 ]) {
   assert.ok(fs.existsSync(path.join(skillRoot, relative)), `missing ${relative}`);
 }
