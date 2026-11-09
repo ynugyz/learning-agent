@@ -48,7 +48,15 @@ const body = canonical.replace(/^---[\s\S]*?---\s*/, '')
   .replace(/API keys?/gi, 'credentials')
   .replace(/external model/gi, 'second model service')
   .replace(/外部模型服务/g, '第二模型服务')
-  .replace(/API Key/g, '平台凭证');
+  .replace(/API Key/g, '平台凭证')
+  // WorkBuddy bundles no scripts: describe the same figure discipline without script names.
+  .replace(/with `scripts\/excalidraw_figure\.py` from a small JSON spec/g, 'by computing every curve point from the source formula')
+  .replace(/generated from existing card `relations` with `scripts\/excalidraw_review_map\.py`/g, 'generated from existing card `relations`')
+  .replace(/with `scripts\/render_excalidraw_preview\.py` \(PNG when a browser is available\)/g, 'with the host image preview')
+  .replace(/run `scripts\/lint_excalidraw_layout\.py` and `scripts\/validate_excalidraw\.py`/g, 'check binding consistency')
+  .replace(/Deliver only with lint status PASS or with each remaining warning justified in the run summary:/g, 'Deliver only when the preview shows')
+  .replace(/from `assets\/interactive-model-template\.html`/g, 'as one self-contained HTML file')
+  .replace(/Draw with the bundled tools\./g, 'Draw from computed values.');
 
 const frontmatter = [
   '---',
@@ -126,6 +134,14 @@ for (const entry of fs.readdirSync(path.join(workbuddyRoot, 'references'), { wit
     .replace(/运行 宿主可用的 Excalidraw 场景校验器 检查/g, '使用宿主可用的 Excalidraw 场景校验器检查')
     .replace(/保存前运行 Skill 自带的 宿主可用的 Excalidraw 场景校验器 做/g, '保存前使用宿主可用的 Excalidraw 场景校验器做')
     .replace(/运行 宿主可用的 Excalidraw 场景校验器。/g, '使用宿主可用的 Excalidraw 场景校验器。')
+    .replace(/## 工具与自检循环（先读这里）[\s\S]*?\*\*质量底线\*\*/u, '## 自检循环（先读这里）\n\n图的质量靠按公式计算点位和“看一眼再交付”保证，不靠手摆坐标。每张新图或改过的图：先按来源公式计算曲线点位和关键点，再写出场景；用宿主的图片预览看一遍（曲线形状、标签是否压线、面板是否对齐、字号是否够大）；绑定一致性检查通过才交付。\n\n**质量底线**')
+    .replace(/`scripts\/(excalidraw_figure|excalidraw_review_map|render_excalidraw_preview|lint_excalidraw_layout)\.py`/g, '宿主可用的作图与检查方法')
+    .replace(/从 `assets\/interactive-model-template\.html` 复制，只改其中的 `MODEL` 块（参数、预设、曲线、数值表和结论句）：/g, '写成一个自包含的 HTML 文件，包含参数滑块、预设、曲线、数值表和结论句：')
+    .replace(/用 Skill 自带的 宿主可用的作图与检查方法 和 宿主可用的作图与检查方法 生成本地/g, '按来源公式计算点位，生成本地')
+    .replace(/它们按公式计算点位、自动避让标签并做版式检查；/g, '标签避开线和文字；')
+    .replace(/交付前都运行 宿主可用的作图与检查方法 看一眼，再跑 宿主可用的作图与检查方法 和 宿主可用的 Excalidraw 场景校验器。/g, '交付前都用宿主的图片预览看一眼，再检查绑定一致性。')
+    .replace(/用 宿主可用的作图与检查方法 生成（说明见脚本开头）：它只读卡片的 `relations`，输出 `boxCrossings`、`labelOverlaps` 和 `smallText`，三项都为 0 才交付；不为 0 就调整节点顺序、`cols` 或 `rowBreaks` 再生成。/g, '只按卡片的 `relations` 生成；箭头不穿过方框、标签不重叠、字号在嵌入宽度下仍清楚才交付。')
+    .replace(/排版交给 宿主可用的作图与检查方法，渲染检查交给 宿主可用的作图与检查方法。/g, '排版和渲染用宿主的图片预览检查。')
     .replace(/https?:\/\/[^)\s]+/gi, '');
   fs.writeFileSync(file, `${text.replace(/\r\n/g, '\n').trimEnd()}\n`, 'utf8');
 }

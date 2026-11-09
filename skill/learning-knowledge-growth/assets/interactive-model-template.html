@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>机制模型标题</title>
+<!--
+  Interactive mechanism model template (learning-knowledge-growth).
+  Copy to <course>/_assets/learning/interactive/<名称>-交互模型.html and edit only the MODEL block:
+  - params: one slider per source variable; min/max/step cover the lesson's cases.
+  - presets: one button per classroom case, labelled with the teacher's wording.
+  - series(p): curves to plot over the x range, computed only from the source formula.
+  - table(p): the numbers to show; verdict(p): one sentence the numbers justify.
+  Self-contained: no network, no external scripts. Embed in the note with ![[file.html|-]] and keep a
+  static Excalidraw/SVG figure next to it. Check one preset by hand before delivery.
+-->
+<style>
+:root { color-scheme: light; --bg:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --grid:#e6e5e1; --panel:#ffffff;
+  --c0:#2a78d6; --c1:#d9822b; --c2:#2f9e6e; --c3:#9c36b5; --hi:#eb6834; --zero:#b9b8b2; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark; --bg:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --grid:#33322f; --panel:#24231f;
+  --c0:#3987e5; --c1:#e0913a; --c2:#3aa77a; --c3:#b65bd0; --hi:#d95926; --zero:#5c5b57; } }
+* { box-sizing: border-box; }
+body { margin:0; padding:12px 16px; background:var(--bg); color:var(--ink); font:14px/1.5 "Microsoft YaHei", system-ui, sans-serif; }
+h1 { font-size:16px; margin:0 0 2px; } .sub { color:var(--ink2); font-size:12px; margin:0 0 8px; }
+.bar { display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; margin:6px 0; }
+label { display:inline-flex; gap:6px; align-items:center; font-variant-numeric: tabular-nums; }
+input[type=range] { width:170px; }
+button { font:inherit; font-size:12px; padding:2px 10px; border:1px solid var(--grid); border-radius:6px; background:var(--panel); color:var(--ink); cursor:pointer; }
+.wrap { display:flex; flex-wrap:wrap; gap:14px; } .wrap > div { flex:1 1 320px; min-width:280px; }
+svg { width:100%; height:auto; display:block; }
+table { border-collapse:collapse; font-variant-numeric: tabular-nums; width:100%; }
+td, th { border-bottom:1px solid var(--grid); padding:4px 6px; text-align:right; } td:first-child, th:first-child { text-align:left; }
+.out { font-weight:600; margin:8px 0 2px; color:var(--hi); } .note { color:var(--ink2); font-size:12px; }
+</style>
+</head>
+<body>
+<h1 id="title"></h1>
+<p class="sub" id="sub"></p>
+<div class="bar" id="params"></div>
+<div class="bar" id="presets"></div>
+<div class="out" id="verdict"></div>
+<div class="wrap">
+  <div><svg id="chart" viewBox="0 0 440 280"></svg></div>
+  <div><table id="table"></table><p class="note" id="note"></p></div>
+</div>
+<script>
+// ===== MODEL: edit this block only =====
+const MODEL = {
+  title: '复利终值：期数和利率怎样放大差距',
+  sub: '终值 FV = PV (1 + i)^T；课堂例：100 元、10%、2 期。',
+  note: '演示假设：每期末计息，不追加也不提取。',
+  x: { label: '期数 T', min: 0, max: 20 },
+  params: [
+    { key: 'pv', label: '本金 PV', min: 50, max: 200, step: 10, value: 100 },
+    { key: 'i', label: '利率 i (%)', min: 0, max: 20, step: 1, value: 10 },
+  ],
+  presets: [
+    { label: '课堂例：100 元、10%', values: { pv: 100, i: 10 } },
+    { label: '利率为 0', values: { pv: 100, i: 0 } },
+  ],
+  series: p => [
+    { label: '复利', color: '--c0', f: t => p.pv * Math.pow(1 + p.i / 100, t) },
+    { label: '单利', color: '--c1', f: t => p.pv * (1 + p.i / 100 * t) },
+  ],
+  marker: p => 2,                                   // x value to highlight (or null)
+  table: p => [['2 期复利', (p.pv * Math.pow(1 + p.i / 100, 2)).toFixed(2)], ['2 期单利', (p.pv * (1 + p.i / 100 * 2)).toFixed(2)]],
+  verdict: p => p.i === 0 ? '利率为 0 时两种算法相同。' : '期数越长，复利比单利多出的部分越大。',
+};
+// ===== end of MODEL =====
+
+const S = Object.fromEntries(MODEL.params.map(q => [q.key, q.value]));
+const $ = id => document.getElementById(id);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const NS = 'http://www.w3.org/2000/svg';
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
+const fmt = v => (Math.abs(v) >= 1000 ? v.toFixed(0) : (+v.toFixed(2)).toString()).replace('-', '−');
+$('title').textContent = MODEL.title; $('sub').textContent = MODEL.sub; $('note').textContent = MODEL.note;
+for (const q of MODEL.params) {
+  const l = document.createElement('label');
+  l.innerHTML = `${q.label} <input type="range" min="${q.min}" max="${q.max}" step="${q.step}"> <span></span>`;
+  const r = l.querySelector('input'); r.oninput = () => { S[q.key] = +r.value; render(); };
+  $('params').appendChild(l); q.el = l;
+}
+for (const pr of MODEL.presets) {
+  const b = document.createElement('button'); b.textContent = pr.label;
+  b.onclick = () => { Object.assign(S, pr.values); render(); }; $('presets').appendChild(b);
+}
+function render() {
+  for (const q of MODEL.params) { q.el.querySelector('input').value = S[q.key]; q.el.querySelector('span').textContent = S[q.key]; }
+  const ser = MODEL.series(S), { min: a, max: b } = MODEL.x, N = 200;
+  const pts = ser.map(s => Array.from({ length: N + 1 }, (_, k) => { const x = a + (b - a) * k / N; return [x, s.f(x)]; }));
+  const ys = pts.flat().map(p => p[1]).filter(Number.isFinite);
+  let lo = Math.min(0, ...ys), hi = Math.max(...ys); if (hi === lo) hi = lo + 1;
+  const svg = $('chart'); svg.innerHTML = '';
+  const W = 440, H = 280, L = 52, R = 14, T = 14, B = 34;
+  const X = x => L + (W - L - R) * (x - a) / (b - a), Y = y => T + (H - T - B) * (1 - (y - lo) / (hi - lo));
+  for (let k = 0; k <= 4; k++) { const v = lo + (hi - lo) * k / 4;
+    el('line', { x1: L, x2: W - R, y1: Y(v), y2: Y(v), stroke: css(Math.abs(v) < 1e-9 ? '--zero' : '--grid') }, svg);
+    el('text', { x: L - 6, y: Y(v) + 4, 'font-size': 11, fill: css('--ink2'), 'text-anchor': 'end' }, svg).textContent = fmt(v); }
+  for (let k = 0; k <= 4; k++) { const v = a + (b - a) * k / 4;
+    el('text', { x: X(v), y: H - 16, 'font-size': 11, fill: css('--ink2'), 'text-anchor': 'middle' }, svg).textContent = fmt(v); }
+  el('text', { x: (L + W - R) / 2, y: H - 2, 'font-size': 11, fill: css('--ink2'), 'text-anchor': 'middle' }, svg).textContent = MODEL.x.label;
+  pts.forEach((ps, k) => {
+    el('polyline', { points: ps.filter(p => Number.isFinite(p[1])).map(p => `${X(p[0])},${Y(p[1])}`).join(' '), fill: 'none', stroke: css(ser[k].color), 'stroke-width': 2.5 }, svg);
+    const last = ps[ps.length - 1]; el('text', { x: X(last[0]) - 4, y: Y(last[1]) - 6, 'font-size': 12, fill: css(ser[k].color), 'text-anchor': 'end' }, svg).textContent = ser[k].label;
+  });
+  const m = MODEL.marker(S);
+  if (m !== null && m !== undefined) {
+    el('line', { x1: X(m), x2: X(m), y1: T, y2: H - B, stroke: css('--hi'), 'stroke-dasharray': '4 3' }, svg);
+    ser.forEach(s => el('circle', { cx: X(m), cy: Y(s.f(m)), r: 4.5, fill: css(s.color), stroke: css('--bg'), 'stroke-width': 2 }, svg));
+  }
+  $('table').innerHTML = MODEL.table(S).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+  $('verdict').textContent = MODEL.verdict(S);
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+render();
+</script>
+</body>
+</html>

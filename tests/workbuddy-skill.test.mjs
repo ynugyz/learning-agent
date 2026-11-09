@@ -24,6 +24,9 @@ assert.match(skill, /coordinate relation, function shape, geometric figure, vect
 assert.match(visuals, /宿主可用的 Excalidraw 场景校验器/u);
 assert.match(skill, /Excalidraw review map/u, 'missing chapter review map rule');
 assert.match(skill, /interactive mechanism model/u, 'missing interactive model rule');
+assert.match(skill, /## Visual channel \(mandatory checklist\)/u, 'missing mandatory visual checklist');
+assert.match(skill, /Read the visual rules first/u, 'visual checklist must require reading the visual reference');
+assert.doesNotMatch(skill, /scripts\/excalidraw_figure|interactive-model-template/u, 'WorkBuddy SKILL.md must not name bundled-only scripts');
 assert.match(visuals, /## 章节复习地图/u);
 assert.match(visuals, /### 可交互机制模型/u);
 

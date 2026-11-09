@@ -2,6 +2,46 @@
 
 这是一条由来源内容和理解收益触发的 Human-layer 视觉通道，不是第五张机器表。流程、几何、函数、空间和数量关系都可配图；来源不必已有图片。目标是减少理解难度，同时保留可检索的文字和来源。
 
+## 工具与自检循环（先读这里）
+
+图的质量靠工具和“看一眼再交付”保证，不靠手摆坐标。Skill 自带四个脚本，都只读写本地文件、不联网：
+
+| 脚本 | 做什么 |
+| --- | --- |
+| `scripts/excalidraw_figure.py` | 从一个小 JSON 描述生成 `.excalidraw.md`：坐标系、按公式计算的曲线、曲线移动、点和辅助线、刻度、多面板并排、带标签的方框和绑定箭头；标签自动避开线和文字 |
+| `scripts/excalidraw_review_map.py` | 从卡片 `relations` 生成章节复习地图，箭头绕开方框，超过约 1400 像素自动换行 |
+| `scripts/render_excalidraw_preview.py` | 把场景渲染成 SVG；本机有 Chromium 系浏览器时再出 PNG，用来亲眼检查 |
+| `scripts/lint_excalidraw_layout.py` | 版式检查：字太小、文字被线穿过、文字互相重叠为 FAIL；方框塞满段落、图注写进图里、手绘风格、纯方框图为 WARN |
+
+每张新图或改过的图都走一遍：
+
+1. 写 JSON 描述（坐标用数学坐标，曲线写公式 `expr`），运行 `excalidraw_figure.py spec.json --out-dir <课程>/_assets/learning/diagrams --preview <run>/preview.svg`；
+2. 用 `render_excalidraw_preview.py ... --png` 出图，**打开 PNG 看一遍**：曲线形状对不对、标签是否压线、面板是否对齐；
+3. `lint_excalidraw_layout.py` 为 PASS，`validate_excalidraw.py` 为 PASS 才交付；WARN 要么修掉，要么在运行摘要里写明理由；
+4. 预览图留在 run 工作区，不放进 Vault。
+
+一个两面板供求图的描述示例（数值只是格式示例）：
+
+```json
+{"name": "外汇市场-需求右移",
+ "elements": [
+  {"kind": "plot", "x": 80, "y": 140, "w": 380, "h": 280, "xrange": [0, 1], "yrange": [0, 1],
+   "xlabel": "Q", "ylabel": "汇率 q", "title": "人民币资产市场", "subtitle": "需求右移",
+   "curves": [{"expr": "0.15 + 0.7*x", "from": 0.1, "to": 0.95, "color": "ink", "label": "S"},
+              {"expr": "0.9 - 0.7*x", "from": 0.05, "to": 0.95, "color": "blue", "label": "D₁"},
+              {"expr": "1.05 - 0.7*x", "from": 0.25, "to": 1.0, "color": "red", "dashed": true, "label": "D₂"}],
+   "segments": [{"from": [0.3, 0.72], "to": [0.45, 0.72], "color": "red", "arrow": true}],
+   "points": [{"at": [0.5357, 0.525], "color": "blue", "label": "E₁", "guides": true}]}]}
+```
+
+**质量底线**（2026-11 一次实际运行的教训：外汇供求图被画成 7 个塞满文字的方框，标签压在箭头上，图注写进了图里，RNN 画成 5 个用无向线连着的方框）：
+
+- 课上讲的是曲线移动、坐标或形状，就画坐标图；不要用“方框里写‘需求右移 → q↓’”代替曲线。
+- 方框里只放名称和一行提示（不超过 4 行、约 60 字）；解释写在笔记正文。
+- 时间展开、序列、网络结构这类图要画出结构本身（例如 RNN 按时间步展开、箭头有方向），不是把概念名排成一圈。
+- 图中不写“示意图”“据课堂口述重绘”“来源”，这些写在嵌入下方的 Markdown 图注里。
+- 不用手绘风格（`roughness` 为 0），字号按显示宽度保证约 12 像素以上（场景宽 1200 时至少 18–20）。
+
 ## 按理解问题选择表达
 
 先问这张图要回答什么，再选工具；三种形式各管各的，不按“轻重”互相替代：
@@ -31,13 +71,13 @@
 数据走势、多条序列、需要悬停读数或切换显示时，可以在 Excalidraw 或静态 SVG 之外，再生成一个可交互的单文件 HTML 图：
 
 - 单文件、自包含：数据内联，不加载外部脚本、字体或网络资源，不读写宿主存储。
-- 放在 Human root 的 `_assets/learning/interactive/`，按用户已安装的嵌入插件写法嵌入：Embed HTML 用 `![[文件名.html|-]]`（`-` 表示高度适应内容）；HTML Prototype Viewer 用 `html-preview` 代码块。不知道用户装了哪种插件时先询问，或只嵌静态图。
+- 放在 Human root 的 `_assets/learning/interactive/`，按用户已安装的嵌入插件写法嵌入：Embed HTML 用 `![[文件名.html|-]]`（`-` 表示高度适应内容）；HTML Prototype Viewer 用 `html-preview` 代码块。先看 Vault 的 `.obsidian/plugins/` 里有没有 `embed-html`（Embed HTML）或其他 HTML 嵌入插件；有就直接用对应写法，确实看不到插件时才只嵌静态图并在摘要里说明。
 - 同一张图总是同时提供静态版本（`.svg` 或 Excalidraw）：装了插件时交互图放在正文，静态版本放进折叠块备用；没装插件时静态图放在正文。交互图只增加读数和切换，不承载静态图里没有的结论。
 - 交互图跟随宿主的明暗主题，主题切换后要重绘，不能只在加载时读取一次。
 
 ### 可交互机制模型
 
-核心机制由一个公式或一组变量关系驱动，而课堂讲的正是“某个量变了，结果怎么变”时（例如预期平均加溢价决定收益率曲线、需求移动决定价格和收益率、复利期数决定终值），可以做成能拖动参数的单文件 HTML 模型：
+核心机制由一个公式或一组变量关系驱动，而课堂讲的正是“某个量变了，结果怎么变”时（例如预期平均加溢价决定收益率曲线、需求移动决定价格和收益率、复利期数决定终值、杠杆放大每股收益、逐笔业务改变会计等式两边），**要**做成能拖动参数的单文件 HTML 模型。从 `assets/interactive-model-template.html` 复制，只改其中的 `MODEL` 块（参数、预设、曲线、数值表和结论句）：
 
 - **只算资料给出的关系**：公式、变量和变化方向来自课堂或教材；模型计算必须可复算，交付前至少用一组参数手算核对。
 - **演示假设要写明**：为了能动起来而补的设定（例如溢价随期限线性增加、示意数值）在页面上和对应卡片的 `uncertainty` 中各写一句，并提供回到课堂原始情形的设置（例如把溢价设为 0 即回到纯预期理论）。
@@ -45,8 +85,11 @@
 - **显示结论而不只显示曲线**：同时给出数值表和一句由数值判断的结论（例如“曲线形状：向下倾斜”）。
 - **放在讲解之后**：先用文字讲清机制，模型紧跟其后，图注一句话说明拖什么、看什么；静态备用图用几个预设并排的小图，放进折叠块。
 - 定义类、只需记住的内容不做模型；每节最多一个，只给最核心、最难凭想象理解的机制。
+- **每个核心机制都要有交代**：运行摘要逐条列出本次的核心机制，写出模型文件名，或写明为什么不做（例如“只是定义”“资料没有给出变量关系”）。“想保持轻量”不是理由。
 
 ## 章节复习地图
+
+用 `scripts/excalidraw_review_map.py` 生成（说明见脚本开头）：它只读卡片的 `relations`，输出 `boxCrossings`、`labelOverlaps` 和 `smallText`，三项都为 0 才交付；不为 0 就调整节点顺序、`cols` 或 `rowBreaks` 再生成。
 
 每个章节（同一 MOC 小节或同一组主题页覆盖的知识对象）维护一张 Excalidraw 复习地图，把 AI 层已有的关系画成可以点击的网络，供复习时从整体结构进入具体小节：
 
@@ -138,9 +181,9 @@ DiagramIR = {
 - 是否出现坐标、函数、斜率、截距、向量、面积/区域、角度、三角形、圆、数轴、分布形状、概率树或矩阵等数学/几何信号；
 - 模型是否能提出一个具体的图形学习问题，且答案依赖对象的位置、方向、路径、形状或变化，而不是只依赖文字定义。
 
-命中信号后必须完成视觉判断：按“按理解问题选择表达”确定形式。理解问题依赖形状、位置、移动或并排对比，或转写显示老师在讲一张未提供的图时，选择 `editable-diagram`（原图可用时选 `original-screenshot`）并立即执行；只有没有空间含义的流程或对照，才由 Mermaid 或表格完成。若只是名字/关键词、没有额外理解收益、用户明确只要文字或证据不足，可选 `none`，在临时工作记忆中记一句具体理由，不写永久审核报告。对数学/几何图记录 `visualType`、`utilityQuestion` 和适用的 `scaleNote`；定性图注明“示意图/未按比例”。调用顺序为原生 CLI/Automate → 已接入 MCP/App → 本地可编辑场景回退。能力探测每次运行一次即可，不要每小节重复探测；确认应画后，不能因没有原图或没有 MCP 就默默跳过。
+命中信号后必须完成视觉判断：按“按理解问题选择表达”确定形式。理解问题依赖形状、位置、移动或并排对比，或转写显示老师在讲一张未提供的图时，选择 `editable-diagram`（原图可用时选 `original-screenshot`）并立即执行；只有没有空间含义的流程或对照，才由 Mermaid 或表格完成。若只是名字/关键词、没有额外理解收益、用户明确只要文字或证据不足，可选 `none`，在临时工作记忆中记一句具体理由，不写永久审核报告。对数学/几何图记录 `visualType`、`utilityQuestion` 和适用的 `scaleNote`；定性图注明“示意图/未按比例”。工具选择：坐标图、函数曲线、曲线移动、数轴、多面板对比和复习地图一律用 Skill 自带脚本生成本地场景（它们按公式计算点位，并自带版式检查）；带标签的小型示意图可以用原生 CLI/Automate 或已接入的 MCP/App 创建，也可以用 `excalidraw_figure.py` 的 `box`/`arrow`；编辑用户已有的场景时优先用原生 CLI。能力探测每次运行一次即可，不要每小节重复探测；确认应画后，不能因没有原图或没有 MCP 就默默跳过。
 
-原生 CLI 作用于 Obsidian 中已注册的 Vault；本次写入目标不是该 Vault（例如在副本或测试目录中试运行）时，不对正式 Vault 调用 CLI，改用本地场景生成并如实报告。优先读取 [references/obsidian-excalidraw-cli.md](obsidian-excalidraw-cli.md)。如果 Obsidian 原生 CLI/ExcalidrawAutomate 可用，优先使用它；它会把简化的形状、标签和箭头请求序列化为真正的绑定元素，并保存现代 `.excalidraw.md`。只有 CLI 不可用时，才使用当前环境已经接入的 Excalidraw MCP/App（工具名称可能显示为 `excalidraw`、`create_diagram`、`create_from_mermaid` 或同类名称）：
+原生 CLI 作用于 Obsidian 中已注册的 Vault；本次写入目标不是该 Vault（例如在副本或测试目录中试运行）时，不对正式 Vault 调用 CLI，改用本地场景生成并如实报告。优先读取 [references/obsidian-excalidraw-cli.md](obsidian-excalidraw-cli.md)。原生 CLI/ExcalidrawAutomate 适合创建带标签的示意图和编辑已有场景：它会把简化的形状、标签和箭头请求序列化为真正的绑定元素，并保存现代 `.excalidraw.md`，但它的基本元素是方框、标签和箭头，不会替你计算曲线。没有 CLI 时，可以使用当前环境已经接入的 Excalidraw MCP/App（工具名称可能显示为 `excalidraw`、`create_diagram`、`create_from_mermaid` 或同类名称）：
 
 1. 先把绘图目标、节点、关系、来源定位和不确定项整理成最小说明；不要把完整转写再次发送给绘图工具。
 2. 要求返回可编辑的 Obsidian-native scene，优先是 `.excalidraw.md`；必要时再请求 PNG/SVG 预览。
@@ -149,9 +192,9 @@ DiagramIR = {
 
 对节点连接图，保存前确认：形状的 `boundElements` 反向列出其内部文字和连接箭头，内部文字的 `containerId` 指向形状，连接箭头的 `startBinding`/`endBinding` 指向真实节点且两端反向列出箭头。只在画面上相交不能冒充绑定。几何图中的独立标签、坐标轴和曲线不受此容器要求约束。运行 `scripts/validate_excalidraw.py` 检查实际使用的绑定一致性。
 
-保存前运行 Skill 自带的 `scripts/validate_excalidraw.py` 做轻量确定性检查：支持 `.excalidraw` 与 `.excalidraw.md`，检查顶层类型、版本、元素数组、元素 ID 唯一性、基本几何字段、文字容器双向关系和箭头端点双向绑定。它不是完整 Excalidraw schema，也不验证数学正确性或排版。另需回算关键点/约束并查看实际渲染；有 Obsidian 时确认 Reading View 嵌入，可通过 CLI `export` 检查预览。没有可用渲染器时如实报告仅完成文件检查，不能声称已通过渲染验证。
+保存前运行 Skill 自带的 `scripts/validate_excalidraw.py` 做轻量确定性检查：支持 `.excalidraw` 与 `.excalidraw.md`，检查顶层类型、版本、元素数组、元素 ID 唯一性、基本几何字段、文字容器双向关系和箭头端点双向绑定。它不是完整 Excalidraw schema，也不验证数学正确性或排版；排版交给 `scripts/lint_excalidraw_layout.py`，渲染检查交给 `scripts/render_excalidraw_preview.py`。另需回算关键点/约束并亲眼看渲染结果；有 Obsidian 时确认 Reading View 嵌入，可通过 CLI `export` 检查预览。没有可用渲染器时如实报告仅完成文件检查，不能声称已通过渲染验证。
 
-Excalidraw 官方 MCP App 是一个独立的 MCP 服务；它可以把自然语言或结构化绘图要求变成可编辑的手绘风格场景。若当前环境没有该 MCP/连接器，不要伪称已经调用：由 Codex 根据同一份受证据约束的绘图说明直接写出合法 `.excalidraw` JSON，或只保留原始截图并报告“未生成可编辑图”。不要为了接入 Excalidraw 在 Skill 中新增网络客户端、API Key、React 运行时或外部模型。
+Excalidraw 官方 MCP App 是一个独立的 MCP 服务；它可以把自然语言或结构化绘图要求变成可编辑场景，默认是手绘风格，保存前把 `roughness` 改为 0 并跑一遍版式检查。若当前环境没有该 MCP/连接器，不要伪称已经调用：由 Codex 根据同一份受证据约束的绘图说明直接写出合法 `.excalidraw` JSON，或只保留原始截图并报告“未生成可编辑图”。不要为了接入 Excalidraw 在 Skill 中新增网络客户端、API Key、React 运行时或外部模型。
 
 ## 两层产物如何对应
 

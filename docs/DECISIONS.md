@@ -676,6 +676,34 @@ contract. Fields are expected to change; see D-0007.
   cards or relations. Interactive content depends on an HTML-embed plugin and
   always has a static fallback.
 
+### D-0027 — Ship figure tools and a mandatory visual checklist with the Skill
+
+- Date: 2026-11-08
+- Status: accepted
+- Decision: The Codex Skill bundles four local scripts: `excalidraw_figure.py`
+  (figures from a JSON spec with curves computed from formulas and collision-free
+  labels), `excalidraw_review_map.py` (review maps from card relations, wrapped to
+  stay legible when embedded), `render_excalidraw_preview.py` (SVG/PNG preview for
+  self-inspection) and `lint_excalidraw_layout.py` (layout lint), plus an
+  interactive-model HTML template. SKILL.md moves the visual rules into a
+  mandatory checklist whose first step is reading
+  `references/visuals-and-excalidraw.md`; every core mechanism needs either an
+  interactive model or a stated reason in the run summary.
+- Rationale: A real Codex run on 2026-11-08 never opened the visual reference
+  (the read instruction sat at the end of a 3,000-character paragraph), drew a
+  supply-and-demand topic as seven text-stuffed boxes with labels on arrows, and
+  built no interactive model. The good figures in the 11-03/11-04 trials came
+  from tools that were never packaged; structural validation alone passed the
+  poor figures.
+- Alternatives considered: stronger wording only — rejected, the agent needs
+  tools to compute curves and to see its output; relying on the Obsidian CLI —
+  kept only for small schematics and edits, since its primitives are boxes,
+  labels and arrows.
+- Consequences: Scripts stay local and network-free. The WorkBuddy package
+  still ships no scripts; its build rewrites the checklist into the same
+  discipline without script names. Lint FAIL blocks delivery; warnings must be
+  fixed or justified.
+
 ## Template for new decisions
 
 ```

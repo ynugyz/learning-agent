@@ -4,9 +4,14 @@
 
 ## 优先级
 
-1. **Obsidian 原生 CLI / ExcalidrawAutomate**：如果 Obsidian 正在运行、版本支持 Excalidraw CLI（通常要求 API 1.12.2+）并且插件已启用，优先调用它。CLI 的序列化器会把简化的 `label`、`start`、`end` 转换为真实的文字容器和箭头绑定。
-2. **已接入的 Excalidraw MCP/App**：只在宿主确实提供该工具时调用；工具返回的场景必须保存为 Obsidian 可打开的文件。
-3. **本地文件生成**：没有 CLI 或 MCP 时，才写 `.excalidraw.md` 或 legacy `.excalidraw`。这时必须执行本文件的绑定校验；不能只拼出几何位置相邻的元素。
+这份文件只讲怎样通过 Obsidian 创建和编辑场景。画什么、画成什么样、质量底线和交互模型，先读 [visuals-and-excalidraw.md](visuals-and-excalidraw.md)。
+
+1. **坐标图、函数曲线、曲线移动、数轴、多面板对比、复习地图**：用 Skill 自带的 `scripts/excalidraw_figure.py` 和 `scripts/excalidraw_review_map.py` 生成本地 `.excalidraw.md`。它们按公式计算点位、自动避让标签并做版式检查；CLI 的方框、标签、箭头基本元素不会替你算曲线。
+2. **带标签的小型示意图和编辑已有场景**：Obsidian 正在运行、版本支持 Excalidraw CLI（通常要求 API 1.12.2+）并且插件已启用时，优先用原生 CLI / ExcalidrawAutomate。CLI 的序列化器会把简化的 `label`、`start`、`end` 转换为真实的文字容器和箭头绑定。
+3. **已接入的 Excalidraw MCP/App**：只在宿主确实提供该工具时调用；工具返回的场景必须保存为 Obsidian 可打开的文件，并把手绘风格改为 `roughness: 0`。
+4. **手写本地文件**：以上都不适用时才手写 `.excalidraw.md` 或 legacy `.excalidraw`，并执行本文件的绑定校验；不能只拼出几何位置相邻的元素。
+
+无论哪条路径，交付前都运行 `scripts/render_excalidraw_preview.py` 看一眼，再跑 `scripts/lint_excalidraw_layout.py` 和 `scripts/validate_excalidraw.py`。
 
 不要安装第二套 Excalidraw CLI，也不要在没有工具时声称已经实时操作 Obsidian 画布。
 
