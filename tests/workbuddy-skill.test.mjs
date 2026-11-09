@@ -8,6 +8,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const skillRoot = path.join(repoRoot, 'workbuddy', 'learning-knowledge-growth-workbuddy');
 const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
 const visuals = fs.readFileSync(path.join(skillRoot, 'references', 'visuals-and-excalidraw.md'), 'utf8');
+const noteWriting = fs.readFileSync(path.join(skillRoot, 'references', 'note-writing.md'), 'utf8');
 const frontmatter = skill.match(/^---\n([\s\S]*?)\n---/u)?.[1] ?? '';
 
 for (const field of ['name:', 'description:', 'description_zh:', 'description_en:', 'version:', 'author:']) {
@@ -25,6 +26,9 @@ assert.match(visuals, /宿主可用的 Excalidraw 场景校验器/u);
 assert.match(skill, /Excalidraw review map/u, 'missing chapter review map rule');
 assert.match(skill, /interactive mechanism model/u, 'missing interactive model rule');
 assert.match(skill, /## Visual channel \(mandatory checklist\)/u, 'missing mandatory visual checklist');
+assert.match(skill, /checklist grouped by lesson/u, 'missing per-lesson MOC review checklist rule');
+assert.match(skill, /reviewChecklist/u, 'missing review checklist option');
+assert.match(noteWriting, /### 课程 MOC 的待复习清单/u, 'missing MOC review checklist section');
 assert.match(skill, /Read the visual rules first/u, 'visual checklist must require reading the visual reference');
 assert.doesNotMatch(skill, /scripts\/excalidraw_figure|interactive-model-template/u, 'WorkBuddy SKILL.md must not name bundled-only scripts');
 assert.match(visuals, /## 章节复习地图/u);
