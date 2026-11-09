@@ -1,0 +1,28 @@
+{
+  "contractVersion": "alignment/0.1",
+  "schemaVersion": "0.1",
+  "status": "draft",
+  "alignmentId": "alignment-probability-graph-01",
+  "lessonModelRef": "lesson-probability-graph-01",
+  "candidates": [
+    {
+      "alignmentId": "al-expand-probability-graph",
+      "lessonItemRefs": ["li-joint-probability-example"],
+      "existingKnowledgeRefs": ["knowledge:probability-graph-model"],
+      "existingNoteRefs": ["notes/概率图模型与贝叶斯网络.md"],
+      "relation": "EXAMPLE",
+      "rationale": "The existing concept can absorb the classroom example without replacing its explanation.",
+      "confidence": "high"
+    },
+    {
+      "alignmentId": "al-link-causality-boundary",
+      "lessonItemRefs": ["li-probability-causality-boundary"],
+      "existingKnowledgeRefs": ["knowledge:causal-inference"],
+      "existingNoteRefs": ["notes/因果推理.md"],
+      "relation": "RELATION",
+      "rationale": "This is strongly related to causal inference but remains a distinct boundary statement.",
+      "confidence": "medium",
+      "suggestedLinks": ["[[因果推理]]"]
+    }
+  ]
+}

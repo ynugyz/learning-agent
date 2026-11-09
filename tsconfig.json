@@ -1,0 +1,31 @@
+{
+  "comment": "Types-only project. `npm run typecheck` (tsc --noEmit) compiles src/contracts/*.ts; TypeScript 5.9.3 is an exact-pinned devDependency (DECISIONS.md D-0013). No emit, no build: these are contract declarations, and the only implementation is a compiler check.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "types": [],
+
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noEmit": true,
+
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "runs", "test-vault", "src/human-note-v2/composer-v2-1.ts"]
+}

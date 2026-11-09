@@ -1,0 +1,85 @@
+{
+  "contractVersion": "run-manifest/0.1",
+  "schemaVersion": "0.1",
+  "status": "draft",
+  "runId": "run-20260922T190141Z-0001",
+  "caseId": {
+    "availability": "present",
+    "value": "case-asr-noise-001"
+  },
+  "startedAt": "2026-09-22T19:01:41+08:00",
+  "finishedAt": "2026-09-22T19:02:14+08:00",
+  "git": {
+    "availability": "present",
+    "commit": "ce8fd2aec629cb5965e25abb9ac227826a981f93",
+    "branch": "design/m1a-core-contracts",
+    "dirty": true,
+    "dirtyPaths": [
+      "specs/source-map-v0.1.md"
+    ],
+    "worktreeRef": "design/m1a-core-contracts"
+  },
+  "runtime": {
+    "availability": "present",
+    "requested": {
+      "kind": "dsh"
+    },
+    "resolved": {
+      "kind": "dsh",
+      "version": "0.1.6-alpha.2"
+    },
+    "resolution": "matched",
+    "reason": "contradicts availability present"
+  },
+  "model": {
+    "requested": "example-model-large",
+    "resolved": {
+      "availability": "available",
+      "value": "example-model-large"
+    }
+  },
+  "reasoning": {
+    "requested": "medium",
+    "applied": "medium"
+  },
+  "versions": {
+    "prompts": {
+      "source-map.extract-units": "1"
+    },
+    "schemas": {
+      "source-map/0.1": "0.1"
+    },
+    "contracts": {
+      "run-manifest/0.1": "0.1"
+    }
+  },
+  "sourceBundle": {
+    "packageId": "pkg-bayes-lecture03",
+    "refs": [
+      {
+        "kind": "evidence",
+        "ref": "fixtures/bayes-lecture03/transcript.asr.txt",
+        "digest": {
+          "alg": "sha256",
+          "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    ]
+  },
+  "platform": {
+    "environmentRef": "docs/ENVIRONMENT.md"
+  },
+  "usage": {
+    "availability": "reported",
+    "inputTokens": 1830,
+    "outputTokens": 604,
+    "totalTokens": 2434
+  },
+  "durationMs": 33000,
+  "omissions": [
+    {
+      "field": "model.provider",
+      "reason": "unavailable"
+    }
+  ]
+}

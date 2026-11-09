@@ -1,0 +1,717 @@
+# Decision Log
+
+Architectural decisions that may affect future work are recorded here. Chat
+history is **not** a record.
+
+## Format
+
+```
+### D-NNNN — <title>
+- Date: YYYY-MM-DD
+- Status: accepted | proposed | NEEDS_REVIEW | superseded by D-NNNN
+- Decision: ...
+- Rationale: ...
+- Alternatives considered: ...
+- Consequences: ...
+```
+
+---
+
+### D-0001 — Repository layout follows AGENTS.md §12
+- Date: 2026-09-22
+- Status: accepted
+- Decision: Create the skeleton exactly as sketched in `AGENTS.md` §12, adding
+  two directories: `tools/` (reproducible repository checks) and `docs/`
+  file `ENVIRONMENT.md` (recorded toolchain/environment facts).
+- Rationale: The documented layout already separates product logic, pipeline,
+  runtime adapter, benchmark and future plugin. The two additions are
+  non-architectural: `tools/` holds only checks, and `ENVIRONMENT.md` records
+  facts needed for experiment reproducibility (AGENTS.md §9).
+- Alternatives considered: (a) wait for human confirmation of the exact tree;
+  (b) fold checks into a `scripts/` dir. (a) wastes a round trip on a purely
+  mechanical choice; (b) `tools/` reads better for developer tooling.
+- Consequences: Later milestones may still add or rename directories, but
+  `src/core`, `src/pipeline`, `src/runtime/dsh` are treated as stable names.
+
+### D-0002 — Empty areas get placeholder READMEs, not fake implementations
+- Date: 2026-09-22
+- Status: accepted
+- Decision: Every empty directory carries a concise `README.md` stating its
+  future responsibility. No stub code, no invented APIs, no fabricated
+  benchmark Gold data.
+- Rationale: AGENTS.md §12 explicitly forbids inventing fake production
+  implementation to fill directories, and §16 requires `TODO` / `UNKNOWN`
+  markers over plausible-looking generated content.
+- Alternatives considered: `.gitkeep` files plus a single top-level roadmap.
+  Rejected: readers would have to guess each directory's purpose.
+- Consequences: Placeholders must be replaced, not silently accumulated, when
+  their layer is implemented.
+
+### D-0003 — DSH is treated as an external runtime at M0; pinning strategy deferred
+- Date: 2026-09-22
+- Status: accepted (scope: M0 only)
+- Decision:
+  - M0 does **not** vendor, modify, install, upgrade or project-pin the current
+    DSH. It is consumed as an already-installed external runtime.
+  - Whether later milestones adopt a project-local exact version, some other pin
+    strategy, or keep DSH as an external runtime is **not decided here**. That
+    choice is deferred until the `AgentRuntime` / DSH adapter work has been
+    attempted, and it is a human decision.
+  - Every experiment run must record the DSH version actually resolved at run
+    time, whatever the eventual pinning strategy turns out to be.
+  - The currently installed `0.1.6-alpha.2` is an **environment fact**, not a
+    standing architectural commitment of this project.
+- Rationale: `AGENTS.md` §5 forbids modifying global software and DSH source
+  without approval, and §9 requires the DSH version to be recorded per
+  experiment. Committing the project to a pinning policy before the adapter
+  exists would settle a dependency-management question on no evidence
+  (`AGENTS.md` §18: add complexity only when experiments justify it). DSH also
+  lives outside this repository (`<node-install-root>\\node_modules\\@deepseek-ai\\dsh`).
+- Alternatives considered: (a) project-pin `@deepseek-ai/dsh` now for
+  reproducibility — attractive, but it fixes a dependency-management strategy
+  before the adapter reveals what actually needs pinning (the package, the CLI
+  invocation, or nothing); (b) declare DSH permanently unpinned — rejected as a
+  premature permanent commitment in the opposite direction.
+- Consequences: Reproducibility today rests on the machine's installed DSH, so
+  run manifests must capture the detected version and cross-version comparisons
+  stay invalid until that is recorded. This decision must be revisited in M1/M2
+  with adapter evidence and closed by human review.
+
+### D-0004 — No project dependencies are introduced at M0
+- Date: 2026-09-22
+- Status: accepted
+- Decision: M0 ships no `package.json`, no `pyproject.toml`, no lockfile. The
+  only executable artifact is `tools/check.ps1`, written against Windows
+  PowerShell using the already-installed toolchain.
+- Rationale: AGENTS.md §5 and §18 require project-local, reversible, inspectable
+  choices and forbid premature abstraction. Adding a manifest would force a
+  language/runtime decision (D-0005) before any experiment justifies it.
+- Alternatives considered: a minimal Node `package.json` with a `check` script
+  for cross-platform convenience. Rejected for now: it implicitly selects the
+  Node/TypeScript track and adds a convention the project has not decided on.
+- Consequences: When the first real module lands, this decision must be
+  revisited and a lockfile committed in the same change.
+
+### D-0005 — TypeScript is the primary implementation language (human ruling)
+- Date: 2026-09-22
+- Status: accepted (human ruling recorded during M1A; supersedes the M0 deferral)
+- Decision: TypeScript is the Learning Agent's primary implementation language.
+  - `src/core` → TypeScript
+  - `src/pipeline` → TypeScript
+  - `src/modules` → TypeScript
+  - `src/runtime` → TypeScript
+  - the future Obsidian plugin → TypeScript
+  - `src/contracts` (added in M1A to hold the four core contracts) → TypeScript
+  - **Python is not a core runtime language.** It may be used later for offline
+    experiment analysis, statistics or research scripts, but only when a
+    concrete need exists. No Python package layout is created now.
+- Rationale: (a) DSH is a Node/TypeScript runtime, so the adapter boundary needs
+  no cross-language bridge; (b) the future Obsidian plugin is TypeScript, so the
+  plugin becomes a client rather than a re-implementation; (c) JSON Schema and
+  TypeScript types can be kept structurally aligned, which is hard across
+  languages. The M0 host has Node v22.23.2 and pnpm 11.7.0 available.
+- Alternatives considered: (a) Python — strong analysis ecosystem, but would
+  force interop with the DSH adapter and the plugin; (b) a split
+  (TS transport + Python analysis) — rejected for now as two toolchains and two
+  validation paths before any experiment justifies it.
+- Consequences: This unblocks the first real module. **No dependency is
+  installed and no implementation is written by this decision** — M1A is
+  design-only. A `package.json` scaffold with no dependencies is added in M1A
+  so `npm run typecheck` becomes available once `typescript` is deliberately
+  installed; no lockfile exists yet. Python remains available on the host for
+  future offline scripts without becoming part of the core runtime.
+
+### D-0006 — Test vault is a disposable sandbox with a tracked machine layer
+- Date: 2026-09-22
+- Status: accepted
+- Decision: `test-vault/` holds only a minimal sandbox vault plus
+  `.learning-agent/` metadata. The vault's note content is git-ignored
+  wholesale; the `.learning-agent/` metadata directory is explicitly tracked.
+  The production Vault is never read into or referenced by this repository.
+  **See D-0010: this sandbox location is a development convenience and does
+  not decide where machine-layer data lives in a real Obsidian Vault.**
+- Rationale: AGENTS.md §3.1 requires experiments to use a test vault,
+  fixtures or snapshots. Tracking the machine-layer metadata makes sandbox
+  state and generated artifacts inspectable and diffable, which is the point
+  of the sandbox.
+- Alternatives considered: tracking the whole test vault (risk of drifting
+  toward real notes) or tracking nothing (no reviewable sandbox state).
+- Consequences: `.gitignore` needs explicit negations, which must be preserved
+  as the vault grows. Nothing here may ever be pointed at a production Vault.
+
+### D-0007 — Seed schemas are placeholder drafts, not frozen contracts
+- Date: 2026-09-22
+- Status: proposed
+- Decision: Include three draft JSON Schemas (`source-map.schema.json`,
+  `lesson-model.schema.json`, `semantic-card.schema.json`) marked
+  `"$comment": "DRAFT — NEEDS_REVIEW"`, with `version` and `status` fields so
+  later incompatibilities are detectable.
+- Rationale: AGENTS.md §12 asks for schema placeholders. Schemas make the
+  layer boundaries concrete enough to discuss, and `tools/check.ps1` can verify
+  they parse as JSON. Inventing final field sets would overreach.
+- Alternatives considered: prose-only placeholders in `schemas/README.md`.
+  Rejected: JSON Schema is cheap and immediately machine-checkable.
+- Consequences: Any incompatible change to these drafts is a review-gated
+  situation (AGENTS.md §15). No implementation may treat them as stable.
+
+**Schema review status (as of REVIEW_GATE_M0_REV1):** the three schemas are
+retained unchanged as discussion drafts. **None of them has passed human schema
+review**, and no implementation code may treat any of them as a stable
+contract. Fields are expected to change; see D-0007.
+
+### D-0008 — Repository stores LF; Windows scripts are checked out CRLF
+- Date: 2026-09-22
+- Status: accepted
+- Decision: Add `.gitattributes` with `* text=auto eol=lf` plus explicit
+  `text eol=crlf` for `*.ps1`, `*.psm1`, `*.psd1`, `*.cmd`, `*.bat`; add a
+  matching `.editorconfig`.
+- Rationale: The M0 host is Windows, so Git defaulted to CRLF in the working
+  tree and emitted warnings on every add (`AGENTS.md` §18 asks for reproducible,
+  inspectable state). A single stored line ending keeps diffs stable across
+  machines and future CI, while PowerShell 5.1 script parsing stays safe with
+  CRLF. `pwsh` is absent on this host, so `.ps1` files must remain 5.1-clean.
+- Alternatives considered: (a) accept Git's platform default — non-reproducible
+  diffs, noisy warnings; (b) normalize everything to LF including `.ps1` —
+  works under PowerShell 7 but risks 5.1 edge cases on multi-line constructs.
+- Consequences: `git add --renormalize .` was run once; the working tree of
+  pre-existing files (`AGENTS.md`) still shows CRLF until it is next rewritten,
+  which is harmless because the index is already LF. Any future change to these
+  rules requires renormalizing again.
+
+### D-0009 — Git initialized here; the first commit is left for human review
+- Date: 2026-09-22
+- Status: accepted
+- Decision: Run `git init -b main` because `REVIEW_GATE_M0` requires a
+  reportable Git status and AGENTS.md §13 step 16 asks for a *prepared* commit.
+  Stage the bootstrap, but do not author the commit until the human approves
+  the tree at the review gate.
+- Rationale: `main` represents stable runnable state (AGENTS.md §4). An
+  unreviewed bootstrap commit would claim stability the tree has not earned.
+  The tree contents are fully inspectable while staged, so review costs
+  nothing.
+- Alternatives considered: committing immediately with a conventional message,
+  then amending after review. Rejected: rewriting history is exactly what
+  AGENTS.md §3.4 prohibits without a gate.
+- Consequences: The repository has no commits at the gate; `git status` shows
+  a staged initial commit. Nothing is pushed anywhere.
+### D-0010 — Machine-layer physical layout in a Vault is NOT decided
+- Date: 2026-09-22
+- Status: NEEDS_REVIEW
+- Decision: `test-vault/.learning-agent/` is a **development/test sandbox
+  location only**. It does not express, imply or pre-select the eventual
+  physical layout of SemanticCard data in a real Obsidian Vault. Whether that
+  layout is Vault-root centralized, module-local sidecar files, a database, or
+  something else remains **undecided and review-gated**.
+- Rationale: The sandbox needs *some* directory to exist at M0 so the layer
+  boundary is concrete, and a vault-local `.learning-agent/` directory is the
+  cheapest reversible choice. It is not evidence for a product decision:
+  the test vault has no real modules, no scale constraints, no sync conflicts
+  and no Obsidian plugin. Deriving a storage architecture from it would be
+  exactly the premature commitment `AGENTS.md` §18 warns against, and changing
+  a knowledge-storage layout later is the kind of irreversible migration §15
+  places behind human review.
+- Alternatives considered: (a) leave the sandbox vault without a machine layer
+  at all — rejected, the layer boundary would stay abstract; (b) pick a
+  candidate layout now (e.g. sidecar-per-note) — rejected as unfounded;
+  (c) store the sandbox layer outside the vault tree — rejected because the
+  human-note/machine-layer join (`AGENTS.md` §7) is what the sandbox exists to
+  exercise.
+- Consequences: Anything written under `test-vault/.learning-agent/` is
+  sandbox-shaped and must be assumed throwaway. Storage-layout questions must
+  be answered by a human decision recorded here before any production Vault
+  integration work starts. No code may hard-code the `.learning-agent/`
+  directory name as a product-level assumption.
+
+
+### D-0011 — The M1A core contract set exists as four explicit contracts
+- Date: 2026-09-22
+- Status: accepted (design record; the contracts themselves are DRAFT and
+  **NEEDS_REVIEW** — see §15 of `AGENTS.md` on review gates)
+- Decision: The Learning Agent's cross-cutting artifact shapes are defined as
+  exactly four contracts, each with a prose spec, a draft JSON Schema and a
+  TypeScript declaration file:
+
+  | Contract | Answers | Spec |
+  | --- | --- | --- |
+  | **SemanticCard v0.1** | How is one concept indexed machine-readably without duplicating the human note? | `specs/semantic-card-v0.1.md` |
+  | **SourceMap v0.1** | What is actually present in this source package, and what is missing? | `specs/source-map-v0.1.md` |
+  | **AgentRuntime Boundary v0.1** | What may the pipeline ask of a runtime, and what comes back? | `specs/agent-runtime-v0.1.md` |
+  | **RunManifest v0.1** | Is comparing this run with another valid? | `specs/run-manifest-v0.1.md` |
+
+  The set is deliberately closed at four. A fifth contract requires its own
+  decision entry.
+- Rationale: `AGENTS.md` §14 requires architecture-affecting decisions to be in
+  the log rather than only in chat history, and §12/§13 expect placeholder
+  artifacts to be replaced by real ones. Four contracts is the minimum needed
+  to make the Layer A–G pipeline and the runtime boundary describable:
+  evidence structure (SourceMap), machine semantics (SemanticCard), execution
+  (AgentRuntime) and reproducibility (RunManifest). Anything more would be
+  design for a milestone that has not started (`AGENTS.md` §18).
+- Alternatives considered: (a) deriving contracts one at a time as each module
+  needs them — rejected because they reference each other
+  (SemanticCard → SourceMap, RunManifest → AgentRuntime) and piecemeal design
+  produced the circularity found in M1A; (b) defining `LessonModel`,
+  alignment and `ChangePlan` at the same time — rejected as M1B work and as
+  premature, since none of them has a consumer yet.
+- Consequences: The M0 seed schemas were rederived rather than extended and are
+  archived at `schemas/archive/m0-draft/`; `lesson-model` has **no successor**
+  yet. Contracts live in `src/contracts` (D-0012) and are consumed by specs,
+  schemas and code alike. The contracts are **DRAFT — NOT
+  IMPLEMENTATION-STABLE**; no implementation may treat them as frozen, and an
+  incompatible change remains review-gated.
+
+### D-0012 — Contract types live in `src/contracts/`, not `src/runtime/` or `src/core/`
+- Date: 2026-09-22
+- Status: accepted
+- Decision: The four contract type declarations live in a new neutral directory
+  `src/contracts/`. `src/core`, `src/pipeline`, `src/modules` and
+  `src/runtime/**` may all import from it. No contract type may live in
+  `src/runtime/`, and `src/core` must not become the home for types that
+  `src/runtime` needs.
+- Rationale: The M0 sketch placed the runtime interface in `src/runtime/`, which
+  would have forced `src/core` to import `src/runtime/` for shared types — the
+  exact dependency direction `AGENTS.md` §3.3 and `docs/ARCHITECTURE.md` §4
+  forbid. `src/core` is also the wrong home: it is product logic, and making
+  `src/runtime` depend on product logic couples the replaceable boundary to the
+  thing it exists to isolate. A neutral declarations-only directory keeps
+  `core`/`pipeline`/`modules` → `contracts` and `runtime` → `contracts`, with
+  no edge between `core` and `runtime` in either direction.
+- Alternatives considered: (a) `src/runtime/agent-runtime.ts` (the M0 sketch) —
+  rejected for the core→runtime edge; (b) `src/core/contracts.ts` — rejected for
+  the runtime→core edge; (c) per-layer contract files with duplicated types —
+  rejected because a shared contract with two definitions is not a contract.
+- Consequences: `src/contracts/` holds declarations only and must contain no
+  behaviour. A `tools/check.ps1` assertion guards the dependency boundary by
+  rejecting `runtime/dsh` / `@deepseek-ai` module references anywhere outside
+  the adapter. `docs/ARCHITECTURE.md` §4 and `src/runtime/README.md` were
+  corrected to match. `ReviewStatus` and `SchemaVersion` — shared by all four
+  contracts — live in `semantic-card.ts`, which is a **known wart** (`CH-15`):
+  a shared scalar should have a neutral home, and this is recorded as an open
+  issue rather than fixed by adding a fifth file in this revision.
+
+### D-0013 — Project-local dev-only tooling: exact-pinned TypeScript and Ajv
+- Date: 2026-09-22
+- Status: accepted (M1A-V; supersedes the "zero dependencies at all" reading of
+  D-0004 for **dev** dependencies only)
+- Decision:
+  - Add exactly two project-local **dev** dependencies, at **exact** versions:
+    `typescript@5.9.3` (compiler) and `ajv@8.20.0` (JSON Schema draft-2020-12
+    validator).
+  - Commit the generated `package-lock.json`.
+  - Install locally only. **Nothing is installed globally**, and DSH is not
+    touched.
+  - `dependencies` stays **empty**: no product/runtime dependency is introduced.
+  - `tools/check.ps1` fails if either dev dependency is not exactly pinned, if
+    the lockfile is missing, or if any runtime dependency appears.
+- Rationale: M1A-V's purpose is to prove the contracts hold under real tooling
+  rather than under prose. That is impossible without a compiler and a
+  validator. Both are dev-only, so they never enter the shipped system, and
+  `AGENTS.md` §5 requires project-local dependencies with exact versions where
+  reproducibility matters.
+- Alternatives considered: (a) relying on a globally installed `tsc` — rejected
+  as unreproducible and as touching global software; (b) `ajv-cli` instead of
+  `ajv` — rejected as a heavier dependency whose CLI provides no assertion
+  strength the direct API lacks, and it would obscure the allowlist logic that
+  makes the negative tests meaningful; (c) skipping executable verification —
+  rejected because it is the entire point of the milestone; (d) `typescript@7`
+  (the current `latest`) — rejected in favour of the mature 5.9 line for a
+  verification milestone.
+- Consequences: `npm install` becomes a prerequisite for a green
+  `tools/check.ps1`; a fresh clone therefore cannot pass without installing the
+  pinned tooling, which is deliberate. The repository now contains
+  `node_modules` and an npm cache (`.npm-cache/`, git-ignored) — the cache is
+  redirected into the repo by `.npmrc` because this host's default cache
+  directory is outside the writable workspace. That `.npmrc` is a **host
+  workaround, not a project convention**, and is documented as such in
+  `docs/reviews/M1A_EXECUTABLE_VERIFICATION.md` §7.
+
+### D-0014 — Contract fixtures are generated from named mutations
+- Date: 2026-09-22
+- Status: accepted
+- Decision: The 48 invalid contract fixtures under `tests/contracts/**` are
+  generated by `tools/generate-contract-fixtures.mjs`, which applies one named
+  mutation per fixture to a deep clone of the canonical valid document. The
+  canonical `valid.json` fixtures are normalised to the same 2-space JSON layout
+  so each spec's embedded example is byte-identical to its fixture, and that
+  identity is asserted by the test runner.
+- Rationale: A hand-edited invalid JSON file hides *what* was changed, so a
+  reviewer cannot tell whether it tests the intended rule or merely tests that
+  malformed input is rejected. With generated fixtures each violation is a
+  two-line greppable statement of intent, fixtures can be regenerated and
+  diffed, and the spec/prose copy cannot silently drift from the executable one.
+  The runner additionally requires each rejection to come from a reviewed
+  keyword allowlist, so a fixture that fails for an unintended reason (a `type`
+  error) fails the test instead of passing it.
+- Alternatives considered: (a) hand-written invalid fixtures — rejected for
+  reviewability; (b) snapshot testing of validator error output — rejected as
+  brittle and noisy across Ajv versions; (c) generating valid fixtures from the
+  schema (`ajv` has no such facility; would also require a fixture generator
+  library) — rejected as a new dependency and as circular (a schema-generated
+  valid document proves little about intent).
+- Consequences: changing a contract means regenerating fixtures
+  (`node tools/generate-contract-fixtures.mjs`) and, if the example changed,
+  re-syncing specs (`node tools/sync-spec-examples.mjs`). Both are plain Node
+  scripts with no extra dependency. The generated fixtures are committed so a
+  reviewer can read them without running anything.
+
+### D-0015 — Human learning notes are a separate v2 branch from knowledge updates
+- Date: 2026-09-23
+- Status: proposed
+- Decision: Keep SourceMap and accepted LessonModel v1 frozen. Add a prototype
+  Human Note Composer branch that consumes a dual-axis LessonModel v2 view and a
+  declarative Human Note Plan. Keep Alignment, ChangePlan and the old Writer on
+  the long-term knowledge update path. Human-facing Markdown and machine
+  semantic sidecars are separate artifacts.
+- Rationale: REAL_CASE_001 showed that safe, provenance-preserving Vault
+  updates and useful human review notes have different objectives. Combining
+  them produced a safety/readability tradeoff that failed learning utility. A
+  lecture-flow axis, coverage ledger and explicit quality audits address the
+  note problem without weakening the frozen SourceMap or update path.
+- Alternatives considered: (a) continue extending the old Writer — rejected
+  because its patch target and human-note goals remain coupled; (b) let
+  Alignment REVIEW suppress note content — rejected because uncertainty needs
+  a warning, not silent omission; (c) freeze a new formal schema immediately —
+  rejected because this is an Architecture v2 prototype, not M1B schema freeze.
+- Consequences: v2 adds reusable prototype types, deterministic planning and
+  audit utilities. The current sidecar layout, section vocabulary and prose
+  policy remain reviewable and are not implementation-stable contracts.
+
+### D-0016 — Consolidate the post-LessonModel branch and DLI coverage rules
+- Date: 2026-09-23
+- Status: proposed — READY_FOR_HUMAN_REVIEW (Architecture Consolidation v0.2)
+- Decision: Document SourceMap and LessonModel as shared machine forms, then
+  branch into a Human Chapter Note generator and the separate
+  Alignment/ChangePlan/Knowledge Updater path. Treat Distinct Learning
+  Information (DLI) as an internal coverage unit within LessonModel/Human Note
+  generation, not a fifth form, stage, Agent or LLM call. Preserve distinct
+  learning information while compressing repetition; allow only bounded
+  canonical enrichment inside a source-triggered recall target. Keep a
+  semantic sidecar separate from human Markdown. Architecture v1 remains
+  unfrozen until context-independence, generalization, cost and maintainability
+  criteria are met. The detailed candidate is in
+  `docs/architecture/ARCHITECTURE_CONSOLIDATION_V0_2.md` and its companion
+  documents.
+- Rationale: REAL_CASE_001 established useful chapter/block structure and
+  separation of safe Vault mutation from course-note writing. It also exposed
+  the risk that Source Units become overcompressed during Module-to-Block
+  writing. DLI coverage addresses that risk without another artifact or Agent.
+- Alternatives considered: a serial Alignment/ChangePlan-to-Human-Note path,
+  one module per block, fixed sentence budgets, no enrichment, unrestricted
+  enrichment and a separate DLI stage. All were rejected for either lost
+  learning information, unsafe expansion or needless runtime complexity.
+- Consequences: This is documentation only. It does not modify accepted forms,
+  Composer code, the production Vault or schema status. Fresh-case evidence and
+  measured runtime/user review cost are still required before v1 freeze.
+
+---
+
+### D-0017 — Temporary pilot-safe mode is a write boundary, not a semantic layer
+- Date: 2026-09-24
+- Status: proposed
+- Decision: Add a standalone `pilot-safe` executor and `pilot:note` command for
+  dry-run and commit trials. It may read explicitly listed source materials,
+  but all candidate writes stay under the independent `pilot-vault`; existing
+  final paths are never modified. The executor does not alter SourceMap, DLI,
+  Composer or architecture semantics.
+- Rationale: Real personal classroom notes need a reversible trial boundary
+  before any production integration. A preflight plan, strict path containment,
+  byte/file limits and an abort manifest make the boundary inspectable.
+- Alternatives considered: modifying Composer write calls directly — rejected
+  because it would couple a temporary safety concern to semantic logic; allowing
+  production Vault paths — rejected by the repository safety protocol.
+- Consequences: Pilot commits create only candidate Markdown/JSON and a local
+  run manifest. The mode is temporary and must not be treated as production
+  Vault integration.
+
+### D-0018 — Knowledge compilation is source-first, link-first and additive
+- Date: 2026-09-25
+- Status: accepted — supersedes the stronger Human Note assumptions in D-0015
+  and D-0016 for the new design branch
+- Decision:
+  - Keep exactly four knowledge-compilation responsibilities: SourceMap,
+    LessonModel, Alignment and ChangePlan.
+  - Keep two output layers: an AI-facing semantic layer and a Human-facing note
+    layer.
+  - Treat existing Human notes as durable seed knowledge whose learning content
+    cannot be silently removed.
+  - Prefer an Obsidian wikilink for related concepts. Propose a merge only when
+    two pages clearly represent the same knowledge object and all useful
+    content can be preserved.
+  - Lead Human notes with the classroom explanation and add a concise general
+    boundary when the classroom uses a simplification.
+  - Treat transcript filenames as opaque labels; infer content identity from
+    the material itself.
+  - Use transcript-first ingestion and inspect photographs or PPT pages only
+    when a missing visual object affects understanding.
+- Rationale: The user's existing notes are already human-processed knowledge,
+  not disposable summaries. The intended system must make those notes grow
+  incrementally, in the spirit of a linked persistent wiki, while retaining
+  classroom context and source provenance. The new branch therefore removes
+  fixed page roles, block budgets, mandatory DLI ledgers, default human conflict
+  gates and model-call targets from the architecture.
+- Alternatives considered:
+  - Regenerate each note from the newest lesson — rejected because it can lose
+    accumulated human understanding.
+  - Merge every related concept — rejected because related concepts often need
+    separate learning pages.
+  - Require human review for every discrepancy — rejected because contextualized
+    parallel explanations are usually sufficient.
+  - Require visual capture for every lesson — rejected because the cost is not
+    justified when transcript evidence is enough.
+- Consequences: The earlier Human Note v2 prototypes remain historical
+  experiments. The new draft protocol is intentionally small and leaves page
+  organization, internal DLI use and rendering strategy open for real-case
+  evidence.
+
+### D-0019 — Knowledge Router and Jev quality gate stay outside the four core contracts
+- Date: 2026-09-28
+- Status: accepted for scratch experiments; production integration deferred
+- Decision: Add a high-recall Knowledge Router and an optional TypeSafe/Jev
+  decision adapter as run-local sidecars. Keep SourceMap, LessonModel,
+  Alignment and ChangePlan as separate semantic responsibilities. Run a
+  deterministic Human Note preflight before optional Jev quality scoring, and
+  limit local section repair to at most two scratch-only rounds with rescore.
+- Rationale: Routing and quality judgments are control-plane decisions, not
+  durable knowledge. Keeping them outside the four contracts prevents SourceMap
+  from acquiring final dispositions, keeps DSH/TypeSafe replaceable, and lets
+  the system test recall before enabling active filtering.
+- Alternatives considered: replacing the four contracts with one decision
+  table — rejected because provenance and mutation planning have different
+  lifecycles; putting route fields in SourceMap — rejected because SourceMap is
+  an evidence layer; allowing whole-note automatic regeneration — rejected
+  because existing Human Notes are durable seed knowledge.
+- Consequences: The first Jev run may be unavailable when no API key exists;
+  deterministic fallback reports that fact rather than fabricating a Jev
+  result. Router shadow mode does not change LessonModel input. Production
+  Vault writing and the existing pilot-safe commit gate remain unchanged.
+
+### D-0020 — AI knowledge state uses progressive index and object-card retrieval
+- Date: 2026-10-03
+- Status: accepted for the Codex-only skill workflow
+- Decision: Keep a small course-level `index.json` as the L0 router and add
+  bounded knowledge-object cards as L1 retrieval state. Use the index to select
+  pages and cards, then open only the required Human Note sections and evidence.
+  Do not treat a full Markdown backup or a page-level mirror as the AI layer.
+- Rationale: The finance rebuild backup showed that copying Human Notes into an
+  AI directory preserves content but does not reduce context, identify stable
+  objects, or support precise incremental updates. Stable cards with aliases,
+  claims, section anchors, relations and provenance provide the missing routing
+  layer while leaving Human Notes optimized for learning.
+- Alternatives considered: loading the entire course Vault each run — rejected
+  because it wastes tokens and makes updates page-level; replacing Human Notes
+  with compressed cards — rejected because it loses learning detail; adding all
+  metadata to Markdown — rejected because it pollutes the human layer.
+- Consequences: The skill must maintain index/cards together with note updates,
+  validate relation and section targets, and retain old cards until a migration
+  is verified. Existing backups remain rollback material and are not treated as
+  the canonical AI retrieval state.
+
+### D-0021 — Evidence selection and original figures in the Codex Skill
+- Date: 2026-10-18
+- Status: accepted for the Codex-only skill workflow
+- Decision: Understand the complete selected input scope first, then reuse bounded
+  evidence for each knowledge update. Treat 3–5 retrieved units as a possible
+  starting point, never a coverage limit. Keep original locators and distinguish
+  additions, corrections, scope differences and uncertainty. Keep scenario cues
+  short without dropping necessary assumptions or reasoning.
+- Decision: Select useful original PDF/slide figures, preserve original page/slide
+  locations, and store only used images with Human Notes using relative links.
+  Deduplicate image bytes; keep compact attachment metadata in existing AI source
+  records. No new knowledge layer, model provider, core schema or durable run log.
+- Rationale: The user's research brief suggests relevance-based loading and source
+  attribution; the user's reading feedback calls for source figures and less
+  classroom narration. The [selection study](https://arxiv.org/abs/2609.34227)
+  and [attribution study](https://arxiv.org/abs/2609.14245) motivate these choices,
+  but their retrieval benchmarks do not establish note quality or savings here.
+- Alternatives considered: hard evidence caps risk missing later conditions;
+  whole-deck screenshots reduce searchability and grow storage; copied image
+  bytes in the AI layer duplicate the Human assets; a new router/model adds
+  deployment work. None is needed for this change.
+- Consequences: The existing two-layer output remains. The optional standard-library
+  attachment helper saves already rendered images; PDF/PPT rendering still depends
+  on tools available in the executing Codex environment. Original sources and
+  pre-existing attachments are not cleaned with temporary files. No numerical
+  performance gain is claimed before a separate controlled measurement.
+
+### D-0022 — Separate topic coverage from explanation depth
+- Date: 2026-10-18
+- Status: accepted for the Codex-only skill workflow
+- Decision: Recommend concise topic cues and brief meanings. Keep correctness-critical
+  conditions; expand selected difficult points or explicitly requested detail.
+  Replace the all-roles-complete writing goal with a conditional toolbox. Distinguish
+  understanding a source from reproducing its detail in Human Notes. Current user
+  preferences override saved ones; explicit requests for detailed output remain valid.
+- Rationale: The user reported textbook-like output after density selection. The old
+  defaults combined completeness, unlimited expansion and mandatory-sounding content
+  lists. Brief framing alone could not remove that pressure.
+- References: [Cornell's note-taking guide](https://lsc.cornell.edu/notes.html) uses
+  telegraphic recording and recall cues; [Mayer and Moreno (2003)](https://carpentries.github.io/instructor-training/files/papers/mayer-reduce-cognitive-load-2003.pdf)
+  discusses selecting essential material and signaling; [Sundararajan and Adesope (2020)](https://link.springer.com/article/10.1007/s10648-020-09522-4)
+  finds that interesting but irrelevant detail can hinder learning. These studies
+  do not prove that every shorter AI note is better or that necessary conditions
+  should be removed. [Kepano's vault](https://github.com/kepano/kepano-obsidian) and
+  [Andy Matuschak's atomic-note discussion](https://notes.andymatuschak.org/Evergreen_notes_should_be_atomic)
+  inform focused notes and navigation, without adopting their folder layout or
+  requiring one tiny page per term. The [LLM Wiki template](https://github.com/marcchend/Obsidian-LLM-Wiki-Template)
+  was also reviewed; its per-concept pages and cumulative logs are not requirements here.
+- Alternatives considered: rigid word limits can damage meaning; hiding long prose
+  in collapsed blocks or copying it into AI cards only relocates bloat; automatically
+  shortening old notes risks losing valid manual work. None is the default.
+- Consequences: No core schema or runtime changes. Existing source preservation,
+  numbered headings, math, links and source images remain. Multi-source writing
+  follows the task's topic, not the union of every supplied chapter. Same-meaning
+  updates reuse existing prose. Unexpanded detail is retrievable, not automatically
+  deferred or treated as already fully absorbed. Existing notes are not batch-rewritten.
+
+### D-0023 — Reuse unchanged knowledge only after deterministic freshness checks
+- Date: 2026-10-23
+- Status: accepted for the Codex-only skill workflow
+- Decision: Before Alignment or ChangePlan, compare stable object identity,
+  relevant source/note/dependency hashes, selected explanation depth and scope.
+  Reuse an unchanged object only when all required values match. Similarity and
+  retrieval scores may find candidates but cannot establish support or authorize
+  `NO_CHANGE`. Verify original spans selectively for formulas, conditions,
+  numbers, teacher examples generalized into rules, corrections and conflicts.
+  Keep ambiguous differences in the existing deferred state until evidence is
+  sufficient; correct only when evidence overturns the old claim.
+- Rationale: The 2026-10-23 research brief recommends testing when memory is
+  injected and when updates can be skipped. REM reports lifecycle-gated recall
+  in a coding benchmark, but its gains do not transfer automatically to notes.
+  The citation-verification study shows that an existing source identifier can
+  still be irrelevant to a claim. PreCoMem motivates a waiting state for
+  ambiguous changes, while the geometry study cautions that similarity does not
+  prove coverage. These are engineering cues, not a license to add another
+  model or schema.
+- References: [REM](https://arxiv.org/abs/2610.27377),
+  [Real PMIDs, Wrong Papers](https://arxiv.org/abs/2610.29812),
+  [PreCoMem](https://arxiv.org/abs/2610.29467),
+  [The Geometry of Agent Memory](https://arxiv.org/abs/2610.26433), and
+  [When Does Experience Memory Help](https://arxiv.org/abs/2610.27714).
+- Consequences: The existing four responsibilities, two output layers and
+  concise Human Note policy remain. The unchanged check is deterministic and
+  reversible; unknown or stale inputs continue through normal processing. No
+  permanent run manifest, new enum or large memory system is added.
+
+### D-0024 — Use an evidence-triggered visual channel for mathematical and structural understanding
+- Date: 2026-11-01
+- Status: accepted for the Codex and WorkBuddy Skill workflows
+- Decision: Treat Excalidraw as an optional Human-layer aid selected by a visual
+  audit. Trigger the audit when the source contains a process, structure,
+  comparison, variable relation, coordinate relation, function shape, geometric
+  construction, vector, probability tree or matrix layout, or when a concrete
+  learning question is clearer through positions, paths, shapes or changes.
+  Prefer the native Obsidian CLI/Automate, then an actually available
+  Excalidraw connector, then a validated local scene. Keep diagrams editable,
+  source-grounded and linked from the Human Note; use qualitative figures only
+  with an explicit schematic/not-to-scale note. Do not add a fifth machine
+  table or store scene payloads in the AI layer.
+- Rationale: The existing relation-graph guidance did not cover mathematical
+  figures such as coordinate planes, curves or geometric constructions. These
+  figures can reduce explanation burden when the source provides the formula or
+  relation, but a visual channel must not invent values, equations, labels or
+  arrows. A two-signal audit keeps the decision evidence-based while allowing a
+  useful diagram even when the source has no ready-made image.
+- Alternatives considered: require a diagram for every lesson — rejected as
+  decorative and costly; limit diagrams to source screenshots — rejected because
+  editable mathematical constructions can expose relationships more clearly;
+  add a durable diagram database — rejected because assets remain Human-layer
+  aids with provenance already represented by existing source attachments.
+- Consequences: The four compilation responsibilities, two output layers and
+  core schemas remain unchanged. Canonical Skill output includes a deterministic
+  scene validator; the WorkBuddy package relies on a host validator or explicit
+  file-level fallback because it does not bundle Python helpers. Missing CLI or
+  connector capability is recorded and must not silently suppress an eligible
+  visual decision.
+
+### D-0025 — Allow labelled external supplements and classroom-figure reconstruction
+- Date: 2026-11-03
+- Status: accepted (user-requested)
+- Decision: The Skill may, when the host offers search tools and the user has
+  authorized web lookup, retrieve traceable public sources for a real-world
+  case the teacher dwells on but whose data was not supplied. External content
+  appears only in an `外部补充` callout with source and access date, is
+  registered in the AI layer as a `外部补充` source, never rewrites classroom
+  statements, and turns contradictions into CONFLICT/review items. Charts are
+  redrawn from public data rather than copied. Visual selection is by learning
+  question: Excalidraw for shapes, curve shifts, coordinates and multi-panel
+  comparisons, including schematics reconstructed from a teacher's spoken
+  description; Mermaid only for non-spatial flows; tables for attribute
+  comparisons. Interactive single-file HTML charts may accompany, never
+  replace, a static figure.
+- Rationale: In a real finance lesson the teacher spent about 100 transcript
+  lines on international 10-year yields without the chart, and drew several
+  supply-demand and yield-curve figures orally. A "lightest form first" rule
+  replaced these with tables and a flowchart, losing the shapes the lesson was
+  about, and the source-only rule left the case unreadable.
+- Alternatives considered: keep source-only knowledge — rejected for cases
+  that depend on missing public data; let external facts merge into the body —
+  rejected because it blurs evidence and teacher opinion; embed downloaded
+  third-party chart images — rejected for copyright and link stability.
+- Consequences: Evidence now has two classes, classroom and external
+  supplement, kept separate in both layers. WorkBuddy stays local-first unless
+  its host provides search tools. Hosted HTML-embed plugins are optional; every
+  interactive chart has a static fallback.
+
+### D-0026 — Add chapter review maps and interactive mechanism models
+- Date: 2026-11-03
+- Status: accepted (user-requested after a prototype on the finance course)
+- Decision: Each chapter with about six or more related knowledge objects keeps
+  one Excalidraw review map generated from existing AI-card `relations`: linked
+  boxes to home sections, page regions, bound and labelled arrows routed around
+  boxes. Updates preserve user-moved nodes and user-added elements; hand-drawn
+  arrows become ChangePlan hints, not automatic relations. Core formula-driven
+  mechanisms may get a single-file interactive HTML model with presets matching
+  the lesson's cases, a hand-checked computation, labelled demonstration
+  assumptions and a static small-multiple fallback.
+- Rationale: The AI layer already holds a relation network that the user could
+  not see; a linked Excalidraw map makes it usable for review with hover preview
+  and editing. Interactive models let the learner test "what if this changes"
+  for mechanisms the lesson explains through parameter changes.
+- Alternatives considered: Obsidian Canvas — rejected by the user in favour of
+  Excalidraw; regenerating maps from scratch each run — rejected because it
+  would erase the user's layout and annotations; treating map edits as
+  knowledge — rejected because the map is a view, not a source of truth.
+- Consequences: New attachment kinds `excalidraw-review-map` and
+  `interactive-model`, and `generatedFrom: ai-relations`. No schema change to
+  cards or relations. Interactive content depends on an HTML-embed plugin and
+  always has a static fallback.
+
+### D-0027 — Ship figure tools and a mandatory visual checklist with the Skill
+
+- Date: 2026-11-08
+- Status: accepted
+- Decision: The Codex Skill bundles four local scripts: `excalidraw_figure.py`
+  (figures from a JSON spec with curves computed from formulas and collision-free
+  labels), `excalidraw_review_map.py` (review maps from card relations, wrapped to
+  stay legible when embedded), `render_excalidraw_preview.py` (SVG/PNG preview for
+  self-inspection) and `lint_excalidraw_layout.py` (layout lint), plus an
+  interactive-model HTML template. SKILL.md moves the visual rules into a
+  mandatory checklist whose first step is reading
+  `references/visuals-and-excalidraw.md`; every core mechanism needs either an
+  interactive model or a stated reason in the run summary.
+- Rationale: A real Codex run on 2026-11-08 never opened the visual reference
+  (the read instruction sat at the end of a 3,000-character paragraph), drew a
+  supply-and-demand topic as seven text-stuffed boxes with labels on arrows, and
+  built no interactive model. The good figures in the 11-03/11-04 trials came
+  from tools that were never packaged; structural validation alone passed the
+  poor figures.
+- Alternatives considered: stronger wording only — rejected, the agent needs
+  tools to compute curves and to see its output; relying on the Obsidian CLI —
+  kept only for small schematics and edits, since its primitives are boxes,
+  labels and arrows.
+- Consequences: Scripts stay local and network-free. The WorkBuddy package
+  still ships no scripts; its build rewrites the checklist into the same
+  discipline without script names. Lint FAIL blocks delivery; warnings must be
+  fixed or justified.
+
+## Template for new decisions
+
+```
+### D-0017 — <title>
+- Date:
+- Status: proposed | accepted | NEEDS_REVIEW | superseded by D-NNNN
+- Decision:
+- Rationale:
+- Alternatives considered:
+- Consequences:
+```

@@ -1,0 +1,44 @@
+{
+  "name": "learning-agent",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Codex Skill and reproducible tools for turning learning materials into source-grounded, linked Human and AI knowledge notes.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "comment": "TypeScript is the primary implementation language (DECISIONS.md D-0005). M1A-V adds project-local DEV-ONLY tooling with exact pinned versions: typescript (compiler) and ajv (JSON Schema 2020-12 validator). There is no runtime dependency; `dependencies` stays empty on purpose. The lockfile is committed.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test:contracts": "node tools/contract-tests.mjs",
+    "test:human-note-v2": "node --experimental-strip-types tests/human-note-v2.test.mjs",
+    "test:human-note-structure": "node --experimental-strip-types tests/human-note-v2.test.mjs",
+    "test:pilot-safe": "node tests/pilot-safe.test.mjs",
+    "test:pilot-adapter": "node --experimental-strip-types tests/pilot-adapter.integration.test.mjs",
+    "test:knowledge-compilation": "node tests/knowledge-compilation.test.mjs",
+    "test:knowledge-compilation-runtime": "node tests/knowledge-compilation-runtime.test.mjs",
+    "test:knowledge-compilation-canary": "node tests/knowledge-compilation-canary.test.mjs",
+    "test:knowledge-compilation-stage-selection": "node tests/knowledge-compilation-stage-selection.test.mjs",
+    "test:knowledge-router": "node --experimental-strip-types tests/knowledge-router.test.mjs",
+    "test:note-inclusion-gate": "node --experimental-strip-types tests/note-inclusion-gate.test.mjs",
+    "test:typesafe-adapter": "node --experimental-strip-types tests/typesafe-adapter.test.mjs",
+    "test:workbuddy-skill": "node tests/workbuddy-skill.test.mjs",
+    "test:course-profiles": "node tests/course-profiles.test.mjs",
+    "pilot:course": "node --experimental-strip-types tools/course-rebuild.mjs",
+    "test": "npm run test:contracts && npm run test:human-note-v2 && npm run test:pilot-safe && npm run test:pilot-adapter && npm run test:knowledge-compilation && npm run test:knowledge-compilation-runtime && npm run test:knowledge-compilation-canary && npm run test:knowledge-compilation-stage-selection && npm run test:knowledge-router && npm run test:note-inclusion-gate && npm run test:typesafe-adapter && npm run test:workbuddy-skill && npm run test:course-profiles",
+    "pilot:note": "node --experimental-strip-types tools/pilot-note.mjs",
+    "pilot:router": "node --experimental-strip-types tools/knowledge-router-canary.mjs",
+    "pilot:note-inclusion": "node --experimental-strip-types tools/note-inclusion-canary.mjs",
+    "pilot:quality": "node --experimental-strip-types tools/note-quality-gate.mjs",
+    "skill:install": "node tools/install-learning-skill.mjs",
+    "build:workbuddy": "node tools/build-workbuddy-skill.mjs",
+    "session": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-learning-session.ps1",
+    "check": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/check.ps1"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "ajv": "8.20.0"
+  }
+}

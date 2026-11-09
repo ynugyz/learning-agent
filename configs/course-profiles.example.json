@@ -1,0 +1,17 @@
+{
+  "contractVersion": "course-profiles/0.1",
+  "defaultProfile": "example-course",
+  "profiles": [
+    {
+      "id": "example-course",
+      "slug": "example-course",
+      "course": "Example Course",
+      "candidateFileName": "Example Course.md",
+      "vaultRelativeRoot": "path/to/course",
+      "defaultSnapshots": [
+        "path/to/course/MOC.md",
+        "path/to/course/overview.md"
+      ]
+    }
+  ]
+}

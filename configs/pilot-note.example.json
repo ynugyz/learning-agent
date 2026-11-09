@@ -1,0 +1,10 @@
+{
+  "mode": "dry-run",
+  "allowedPilotRoot": "D:/ProgramData/Learning-agent/pilot-vault",
+  "sources": [
+    "D:/path/to/lesson-transcript.txt"
+  ],
+  "course": "人工智能导论",
+  "runName": "PILOT_CANARY_001",
+  "composerConfig": "real-case-001-human-note-consolidated.json"
+}

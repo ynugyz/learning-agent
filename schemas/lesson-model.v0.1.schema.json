@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://learning-agent.local/schemas/lesson-model.v0.1.schema.json",
+  "$comment": "DRAFT — NOT IMPLEMENTATION-STABLE.",
+  "title": "LessonModel v0.1",
+  "type": "object",
+  "required": ["contractVersion", "schemaVersion", "status", "lessonModelId", "sourceMapRef", "contentIdentity", "items"],
+  "properties": {
+    "contractVersion": {"const": "lesson-model/0.1"},
+    "schemaVersion": {"const": "0.1"},
+    "status": {"enum": ["draft", "NEEDS_REVIEW", "reviewed"]},
+    "lessonModelId": {"type": "string", "minLength": 1},
+    "sourceMapRef": {"type": "string", "minLength": 1},
+    "contentIdentity": {"type": "string", "minLength": 1},
+    "items": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/item"}},
+    "relations": {"type": "array", "items": {"$ref": "#/$defs/relation"}},
+    "teachingFlow": {"type": "array", "items": {"$ref": "#/$defs/flow"}},
+    "uncertainties": {"type": "array", "items": {"type": "string"}},
+    "visualGaps": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "item": {
+      "type": "object",
+      "required": ["itemId", "kind", "title", "statement", "sourceUnitRefs"],
+      "properties": {
+        "itemId": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["concept", "claim", "mechanism", "example", "comparison", "method", "boundary", "formula", "teacher-explanation", "question", "other"]},
+        "title": {"type": "string", "minLength": 1},
+        "statement": {"type": "string", "minLength": 1},
+        "sourceUnitRefs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "context": {"enum": ["classroom", "course-simplification", "canonical-supplement", "teacher-opinion", "analogy", "inference", "uncertain"]},
+        "scope": {"type": "string"},
+        "uncertainty": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "relation": {
+      "type": "object",
+      "required": ["relationId", "fromItemId", "toItemId", "type"],
+      "properties": {
+        "relationId": {"type": "string", "minLength": 1},
+        "fromItemId": {"type": "string", "minLength": 1},
+        "toItemId": {"type": "string", "minLength": 1},
+        "type": {"enum": ["part-of", "requires", "causes", "enables", "contrasts-with", "example-of", "qualifies", "supports", "uncertain"]},
+        "sourceUnitRefs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "rationale": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "flow": {
+      "type": "object",
+      "required": ["order", "itemRefs", "sourceUnitRefs"],
+      "properties": {
+        "order": {"type": "integer", "minimum": 0},
+        "itemRefs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "sourceUnitRefs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "teachingPurpose": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

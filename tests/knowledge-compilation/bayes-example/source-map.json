@@ -1,0 +1,46 @@
+{
+  "contractVersion": "source-map/0.1",
+  "schemaVersion": "0.1",
+  "status": "draft",
+  "sourcePackageId": "classroom-ai-20260922",
+  "sources": [
+    {
+      "sourceId": "src-transcript-20260922",
+      "kind": "transcript",
+      "location": "external-transcript/bayes-session.txt",
+      "quality": {
+        "rating": "noisy",
+        "issues": ["asr-noise"],
+        "note": "Filename is treated as an opaque recorder label."
+      }
+    }
+  ],
+  "coverage": {
+    "assessment": "known_gaps",
+    "note": "The transcript explains the intuition but does not contain the complete board formula."
+  },
+  "units": [
+    {
+      "unitId": "su-bayes-example-01",
+      "sourceId": "src-transcript-20260922",
+      "locator": {"kind": "line-range", "start": "120", "end": "132"},
+      "contentType": "worked-example",
+      "preservation": {"priority": "high", "rationale": "The example explains why joint probability is difficult.", "isInference": true},
+      "epistemicStatus": "source-explicit",
+      "summary": "Cloud, rain, sprinkler and wet road are used to explain joint probability and conditional reasoning.",
+      "keyTerms": ["联合概率", "条件概率", "路面湿"],
+      "confidence": {"level": "high", "basis": "human-assigned"}
+    },
+    {
+      "unitId": "su-bayes-boundary-01",
+      "sourceId": "src-transcript-20260922",
+      "locator": {"kind": "line-range", "start": "240", "end": "252"},
+      "contentType": "boundary-condition",
+      "preservation": {"priority": "high", "rationale": "The teacher distinguishes probability dependence from causality.", "isInference": true},
+      "epistemicStatus": "source-explicit",
+      "summary": "A probabilistic edge or observed correlation does not by itself establish a causal relationship.",
+      "keyTerms": ["概率关系", "因果关系"],
+      "confidence": {"level": "medium", "basis": "human-assigned"}
+    }
+  ]
+}

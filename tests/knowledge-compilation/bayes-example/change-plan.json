@@ -1,0 +1,34 @@
+{
+  "contractVersion": "change-plan/0.1",
+  "schemaVersion": "0.1",
+  "status": "draft",
+  "planId": "plan-probability-graph-01",
+  "lessonModelRef": "lesson-probability-graph-01",
+  "alignmentRef": "alignment-probability-graph-01",
+  "candidateOnly": true,
+  "operations": [
+    {
+      "operationId": "op-expand-probability-graph-example",
+      "kind": "expand",
+      "targetRefs": ["notes/概率图模型与贝叶斯网络.md"],
+      "alignmentRefs": ["al-expand-probability-graph"],
+      "lessonItemRefs": ["li-joint-probability-example"],
+      "sourceUnitRefs": ["su-bayes-example-01"],
+      "preserveContentRefs": ["human-note:notes/概率图模型与贝叶斯网络.md:existing-content"],
+      "rationale": "Add the classroom example while preserving the existing concept explanation.",
+      "status": "proposed"
+    },
+    {
+      "operationId": "op-link-causality-boundary",
+      "kind": "link",
+      "targetRefs": ["notes/概率图模型与贝叶斯网络.md", "notes/因果推理.md"],
+      "alignmentRefs": ["al-link-causality-boundary"],
+      "lessonItemRefs": ["li-probability-causality-boundary"],
+      "sourceUnitRefs": ["su-bayes-boundary-01"],
+      "preserveContentRefs": ["human-note:notes/概率图模型与贝叶斯网络.md:existing-content", "human-note:notes/因果推理.md:existing-content"],
+      "rationale": "Use a wikilink for a strong relationship without merging two learning pages.",
+      "suggestedLinks": ["[[因果推理]]"],
+      "status": "proposed"
+    }
+  ]
+}

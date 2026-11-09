@@ -1,0 +1,22 @@
+# Editor defaults for the Learning Agent repository.
+# Line endings are governed by .gitattributes; this file keeps editors aligned.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.{ps1,psm1,psd1,cmd,bat}]
+end_of_line = crlf
+
+[*.md]
+# Trailing whitespace is meaningful in Markdown (hard line breaks).
+trim_trailing_whitespace = false
+
+[*.{py,pyi}]
+indent_size = 4

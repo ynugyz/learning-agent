@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://learning-agent.local/schemas/lesson-model.schema.json",
+  "title": "LessonModel",
+  "$comment": "DRAFT — NEEDS_REVIEW. Field set is a hypothesis; no code reads it yet. See docs/DECISIONS.md D-0007 and specs/lesson-model.md (not authored yet).",
+  "description": "Layer B artifact. Models what the current lesson contains before the existing knowledge network is consulted heavily, so incoming material is not distorted by prior beliefs.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version this instance conforms to.",
+      "default": "0.1.0-draft"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "NEEDS_REVIEW", "reviewed"]
+    },
+    "lessonId": {
+      "type": "string",
+      "description": "Stable identifier of this lesson.",
+      "minLength": 1
+    },
+    "title": { "type": "string" },
+    "sourceMapRef": {
+      "type": "string",
+      "description": "Reference to the SourceMap that grounds this model.",
+      "$comment": "TODO: whether this is an id, a path or an embedded object is undecided."
+    },
+    "segments": {
+      "type": "array",
+      "description": "Ordered content units of the lesson.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "order": { "type": "integer", "minimum": 0 },
+          "kind": {
+            "type": "string",
+            "description": "What kind of content this segment is. Teacher analogies, opinions and problem-solving tips MUST be distinguishable from taught content (see docs/ERROR_TAXONOMY.md LSN-*).",
+            "enum": [
+              "concept",
+              "definition",
+              "derivation",
+              "worked-example",
+              "analogy",
+              "opinion",
+              "tip",
+              "exercise",
+              "administrative",
+              "unknown"
+            ]
+          },
+          "summary": {
+            "type": "string",
+            "description": "Compact description of the segment, not a full transcription."
+          },
+          "claims": {
+            "type": "array",
+            "description": "Statements the segment makes, each traceable to evidence.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "text": { "type": "string" },
+                "provenance": {
+                  "type": "array",
+                  "description": "Evidence locators supporting this claim. Required in spirit: a claim without provenance is unverified.",
+                  "items": { "type": "string" }
+                },
+                "epistemicStatus": {
+                  "type": "string",
+                  "description": "Epistemic state of the claim. Machine inference must never silently become verified.",
+                  "enum": ["asserted-by-source", "inferred", "uncertain", "conflicting", "verified"]
+                },
+                "formulaLike": {
+                  "type": "boolean",
+                  "description": "True when the claim is formula-heavy; such content needs separate handling."
+                }
+              },
+              "required": ["id", "text"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["id", "order", "kind"],
+        "additionalProperties": false
+      }
+    },
+    "uncertainties": {
+      "type": "array",
+      "description": "Explicit open questions raised by this lesson, so they are not silently resolved.",
+      "items": { "type": "string" }
+    }
+  },
+  "required": ["version", "status", "lessonId"],
+  "additionalProperties": false
+}
